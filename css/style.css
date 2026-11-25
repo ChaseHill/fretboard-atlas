@@ -1271,3 +1271,11 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
 
 /* A bold word inside the text of a key idea or a task is emphasis, not a second heading: only the panel's own label is set as an eyebrow. */
 .idea p b, .try p b, .idea li b, .try li b, .textcol .idea p b, .textcol .try p b { display: inline; font-size: inherit; line-height: inherit; letter-spacing: normal; text-transform: none; font-weight: 800; margin: 0; }
+
+/* A Back/Next row with nothing to go to is not shown at all, instead of two dead buttons. */
+.nav:not(:has(button:not(:disabled))) { display: none; }
+@media (max-width: 760px) {
+  /* five equal tabs that always fit the screen: a column may shrink below its label width */
+  #tabs.tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  #tabs .tab { padding-left: 0; padding-right: 0; min-width: 0; font-size: 12px; text-align: center; }
+}
