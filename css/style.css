@@ -1199,3 +1199,24 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
 .tabstrip { padding: 10px 0 0; } .tabstrip .tl-bars .tl-strip { flex: 0 1 330px; max-width: 360px; }
 .tab-hit { fill: transparent; cursor: pointer; } .tab-hit:hover, .tab-hit.on { fill: var(--accent-soft); }
 @media (max-width: 760px) { .tabstrip .tl-bars .tl-strip { flex: 1 1 280px; max-width: none; } }
+/* keyed moments under the neck: six key colours in the design's order; pictures two across, one on a phone */
+.tl .k5, .tl-key.k5 { background: var(--fifth); fill: var(--fifth); } .tl .k6, .tl-key.k6 { background: var(--accent); fill: var(--accent); }
+.tl-key.k4, .tl .k4 { background: var(--guide); fill: var(--guide); }
+.tabstrip .tl-how { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tab-moment { cursor: pointer; }
+.tabstrip .tl-pic { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--paper-2); }
+.tabstrip .tl-pic svg { display: block; width: 100%; height: auto; pointer-events: none; }
+.tl-strip .kb { stroke: var(--ink); stroke-width: 1; } .tl-strip .kn { font-size: 9px; font-weight: 800; text-anchor: middle; fill: #fff; } .tl-strip .kn.dark { fill: var(--ink); }
+@media (min-width: 1300px) { .tabstrip .tl-how { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tabstrip .tl-how > div { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .tabstrip .tl-how { grid-template-columns: 1fr; } [data-view="chords"] .tabstrip { display: block; } }
+
+/* distribution on a wide page: nothing parked in a corner with empty space beside it */
+@media (min-width: 761px) {
+  .panel { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; } .panel > * { flex: 1 1 280px; min-width: 0; margin: 0; } .panel > .insight { flex-basis: 100%; }
+  .tabstrip .tl-bars { gap: 6px 0; } .tabstrip .tl-bars .tl-strip { flex: 1 1 320px; max-width: 560px; }
+  .tabstrip .tl-how { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tabstrip .tl-how > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .below > table.strings { grid-column: 1; max-width: none; width: 100%; } .below > table.strings + .nav { grid-column: 2; align-self: end; max-width: none; }
+  .below > .try:last-child, .below > .tl:only-child { grid-column: 1 / -1; }
+}
+
+.gx-peg-out { stroke: var(--ink); stroke-width: 5.5; stroke-linecap: round; } .gx-peg { stroke: #cfc6b8; stroke-width: 3.5; stroke-linecap: round; }
+.gx-key-out { stroke: var(--ink); stroke-width: 9; stroke-linecap: round; } .gx-key { stroke: #e4dfd6; stroke-width: 7; stroke-linecap: round; }

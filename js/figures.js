@@ -50,7 +50,7 @@
     s += `<path class="gx-sil" d="${ringPath(TOP)}" style="fill:${MAT.roast}"/><path class="gx-bind" d="${ringPath(TOP, 0.965)}"/>`;
     // sound hole and rosette, pick guard, bridge, saddle, pins
     s += disc(HOLE, 0, 66, TOP, 'gx-rosette') + disc(HOLE, 0, 50, TOP, 'gx-edge', ` style="fill:${MAT.boardLo}"`);
-    s += `<path class="gx-edge" style="fill:${MAT.hardTop}" d="M${pt(HOLE - 34, 58, TOP)} C${pt(HOLE + 30, 62, TOP)} ${pt(HOLE + 100, 92, TOP)} ${pt(HOLE + 108, 136, TOP)} C${pt(HOLE + 62, 150, TOP)} ${pt(HOLE - 12, 124, TOP)} ${pt(HOLE - 34, 58, TOP)} Z"/>`;
+    s += `<path class="gx-edge" style="fill:${MAT.hardTop}" d="M${pt(HOLE - 34, -58, TOP)} C${pt(HOLE + 30, -62, TOP)} ${pt(HOLE + 100, -92, TOP)} ${pt(HOLE + 108, -136, TOP)} C${pt(HOLE + 62, -150, TOP)} ${pt(HOLE - 12, -124, TOP)} ${pt(HOLE - 34, -58, TOP)} Z"/>`;
     const br = [[SADDLE - 14, -78], [SADDLE + 22, -78], [SADDLE + 22, 78], [SADDLE - 14, 78]];
     s += `<path class="gx-edge" style="fill:${shade(MAT.boardHi, 0.18)}" d="${poly([[br[3][0], br[3][1], TOP], [br[2][0], br[2][1], TOP], [br[2][0], br[2][1], TOP + 4], [br[3][0], br[3][1], TOP + 4]])}"/>`;
     s += `<path class="gx-edge" style="fill:${shade(MAT.boardHi, 0.5)}" d="${poly([[br[1][0], br[1][1], TOP], [br[2][0], br[2][1], TOP], [br[2][0], br[2][1], TOP + 4], [br[1][0], br[1][1], TOP + 4]])}"/>`;
@@ -75,8 +75,9 @@
     s += `<path class="gx-sil" style="fill:${MAT.roast}" d="${poly(head, HZ)}"/>`;
     const posts = [44, 88, 132];
     posts.forEach((x) => [-1, 1].forEach((side) => {
-      s += seg([x, side * 40, HZ - 6], [x, side * 58, HZ - 6], 'gx-shaft');
-      s += disc(x, side * 63, 8.5, HZ - 6, 'gx-edge', ` style="fill:${MAT.nickel}"`) + disc(x, side * 26, 4.4, HZ + 2, 'gx-detail', ` style="fill:${MAT.nickel}"`);
+      const z = HZ - 6, a = [x, side * 38, z], b = [x, side * 56, z], k1 = [x - 9, side * 60, z], k2 = [x + 9, side * 60, z];
+      s += seg(a, b, 'gx-peg-out') + seg(k1, k2, 'gx-key-out') + seg(a, b, 'gx-peg') + seg(k1, k2, 'gx-key');
+      s += disc(x, side * 26, 4.4, HZ + 2, 'gx-detail', ` style="fill:${MAT.nickel}"`);
     }));
     // strings: wound (bronze) for 6, 5 and 4, plain for 3, 2 and 1; string 6 is nearest the viewer
     for (let i = 0; i < 6; i++) {
@@ -88,7 +89,7 @@
     const sy = (i, x) => { const t = (x - NUT) / (SADDLE - NUT); return (18 - i * 7.2) + ((27 - i * 10.8) - (18 - i * 7.2)) * t; };
     const parts = [
       ['Head', 'holds the tuners', [26, 0, HZ], [286, 20], 'start'],
-      ['Tuning pegs', 'turn to tighten a string', [88, 63, HZ - 6], [168, 150], 'end'],
+      ['Tuning pegs', 'turn to tighten a string', [88, 60, HZ - 6], [168, 150], 'end'],
       ['Nut', 'where open strings begin', [NUT - 2.5, -22, NZ + 3], [356, 50], 'start'],
       ['Frets', 'each raises the note a half step', [fretX(5), hw(fretX(5)), NZ], [262, 226], 'end'],
       ['Strings', 'string 6 is the thick one', [fretX(10), sy(5, fretX(10)), NZ + 4], [510, 100], 'start'],
