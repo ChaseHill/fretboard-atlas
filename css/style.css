@@ -1124,3 +1124,26 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
 .reset .ic-wrap { width: auto; } .reset .btn { white-space: nowrap; }
 .tl-contents { margin-left: min(150px, 18%); }
 @media (max-width: 1180px) { .tl-contents { margin-left: 0; } }
+/* the guitar figure, by the isometric rules: outline 1.5, edge 1, detail 0.75; hard shadow; labels beside their parts */
+.gx-shadow { fill: #000; opacity: .15; }
+.gx-out { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; fill: none; } path.gx-out[fill] { fill: attr(fill); }
+.gx-top { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.gx-edge { stroke: var(--ink); stroke-width: 1; stroke-linejoin: round; } .gx-detail { stroke: var(--ink); stroke-width: .75; stroke-linejoin: round; }
+.gx-bind { fill: none; stroke: #f1e7d0; stroke-width: 1.2; opacity: .85; }
+.gx-rosette { fill: none; stroke: #42362f; stroke-width: 3; } .gx-hole { stroke: var(--ink); stroke-width: 1; }
+.gx-fret { stroke: #cfc6b8; stroke-width: 1.4; stroke-linecap: round; } .gx-inlay { fill: #f1e7d0; stroke: none; }
+.gx-shaft { stroke: #cfc6b8; stroke-width: 2.2; } .gx-string { stroke: var(--string, #d2ccc2); } .gx-string.wound { stroke: var(--string-wound, #c4a877); }
+.ao { background: var(--paper-2); border: 1.5px solid var(--line); }
+.ao-name { font: 800 11px var(--mono); fill: var(--ink); } .ao-note { font: italic 400 9.5px var(--mono); fill: var(--ink-2); }
+.ao-lead { stroke: var(--ink-2); stroke-width: 1; } .ao-dot { fill: var(--ink); }
+/* labels need room to be read: on anything narrower than a wide desktop they become the numbered list */
+@media (max-width: 1500px) {
+  .ao-lab, .ao-dot { display: none; } .ao-num { display: block; }
+  .ao-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); list-style: none; counter-reset: ao; margin: 8px 0 0; padding: 0; gap: 6px 16px; }
+  .ao-list li { counter-increment: ao; display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: var(--fs-small); line-height: 1.45; color: var(--ink-2); }
+  .ao-list li::before { content: counter(ao); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: var(--fs-eyebrow); }
+  .ao-list b { color: var(--ink); }
+}
+@media (max-width: 760px) { .ao-svg { width: 100%; margin: 0; } .ao-list { grid-template-columns: 1fr; } }
+.gx-sil { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; fill: none; }
+.ao-mark .ao-num text { font-family: var(--mono); }
