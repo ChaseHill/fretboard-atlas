@@ -1268,3 +1268,6 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
   .pager .btn { box-shadow: none; } .under-step h2 { font-size: var(--fs-heading); } .tl-panel { padding: 10px 12px; }
   .ex-body { grid-template-columns: 1fr; } .tl-contents button { padding: 7px 6px; } .keys .key { min-height: 40px; }
 }
+
+/* A bold word inside the text of a key idea or a task is emphasis, not a second heading: only the panel's own label is set as an eyebrow. */
+.idea p b, .try p b, .idea li b, .try li b, .textcol .idea p b, .textcol .try p b { display: inline; font-size: inherit; line-height: inherit; letter-spacing: normal; text-transform: none; font-weight: 800; margin: 0; }
