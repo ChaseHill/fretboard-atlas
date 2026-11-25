@@ -1279,3 +1279,23 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
   #tabs.tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   #tabs .tab { padding-left: 0; padding-right: 0; min-width: 0; font-size: 12px; text-align: center; }
 }
+
+/* ---------- wide screens: no side column beside a tall instrument ----------
+   A 240px text column beside a stage four times its height left a tall empty strip under the text. The text now runs as a
+   band across the top (explanation on the left, key idea on the right), the instrument takes the full width under it, and
+   the fingering table spans the width instead of leaving a blank half beside it. */
+@media (min-width: 761px) {
+  .lesson { grid-template-columns: minmax(0, 1fr); }
+  .lesson > .textcol, .lesson > .stage, .lesson > .below { grid-column: 1 / -1; }
+  .textcol { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 0 32px; align-items: start; max-width: none; margin-bottom: 14px; }
+  .textcol:empty { display: none; }
+  .textcol > * { grid-column: 1; min-width: 0; }
+  .textcol > .step-head { grid-column: 1 / -1; }
+  .textcol > .idea { grid-column: 2; grid-row: 2 / span 4; margin: 0; }
+  .textcol > .idea > b:first-child { margin-top: 0; }
+  .textcol:not(:has(> .idea)) { grid-template-columns: minmax(0, 72ch); }
+  .textcol .body p { max-width: 68ch; }
+  .below > table.strings { max-width: none; }
+  .below > table.strings { grid-column: 1 / -1; }
+  .below > table.strings + .nav { grid-column: 1 / -1; max-width: 420px; }
+}
