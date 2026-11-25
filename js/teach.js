@@ -35,23 +35,24 @@
     return s + '</svg>';
   }
 
-  // Tab strip. notes: [[beat 0..7, string 1..6, fret], …] over two bars of four beats; moments: [{ beat }] get a keyed band.
+  // Notation strip. notes: [[beat 0..7, string 1..6, fret], …] over two bars of four beats; moments: [{ beat }] get a keyed band.
+  // Each bar is its own drawing, so on a narrow screen the strip wraps at the bar line and never scrolls sideways.
   function tab({ notes, moments = [] }) {
-    const W = 880, x0 = 96, step = 92, ty = 34, gap = 13, H = ty + 5 * gap + 66;
-    const X = (b) => x0 + b * step + (b >= 4 ? 26 : 0), end = X(7) + 60, mid = (X(3) + X(4)) / 2;
-    let s = `<svg class="tl-strip" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tablature, four beats in a bar">`;
-    moments.forEach((m, k) => { s += `<rect class="k${k + 1}" x="${X(m.beat) - 11}" y="${ty - 10}" width="22" height="${5 * gap + 20}" rx="3" opacity=".34"/>`; });
-    for (let i = 0; i < 6; i++) s += `<line class="ln" x1="24" y1="${ty + i * gap}" x2="${end}" y2="${ty + i * gap}"/>`;
-    [24, mid, end].forEach((x) => { s += `<line class="bar" x1="${x}" y1="${ty}" x2="${x}" y2="${ty + 5 * gap}"/>`; });
-    'TAB'.split('').forEach((c, i) => { s += `<text class="tab" x="38" y="${ty + 15 + i * 20}">${c}</text>`; });
-    s += `<text class="ts" x="74" y="${ty + 28}">4</text><text class="ts" x="74" y="${ty + 54}">4</text>`;
-    notes.forEach(([b, str, fr]) => {
-      const cx = X(b), cy = ty + (str - 1) * gap;
-      s += `<rect class="ko" x="${cx - 7}" y="${cy - 7}" width="14" height="14"/><text class="fr" x="${cx}" y="${cy + 4.5}">${fr}</text>`;
-    });
-    [...new Set(notes.map((n) => n[0]))].forEach((b) => { s += `<line class="stem" x1="${X(b)}" y1="${ty + 5 * gap + 6}" x2="${X(b)}" y2="${ty + 5 * gap + 28}"/><text class="ct" x="${X(b)}" y="${ty + 5 * gap + 46}">${(b % 4) + 1}</text>`; });
-    moments.forEach((m, k) => { s += `<rect class="k${k + 1} kb" x="${X(m.beat) - 8}" y="${ty + 5 * gap + 52}" width="16" height="12" rx="2"/><text class="kn${k === 1 ? ' dark' : ''}" x="${X(m.beat)}" y="${ty + 5 * gap + 62}">${k + 1}</text>`; });
-    return s + '</svg>';
+    const step = 84, ty = 34, gap = 13, H = ty + 5 * gap + 66;
+    const bars = [0, 1].filter((b) => b === 0 || notes.some((n) => n[0] >= 4));
+    return '<div class="tl-bars">' + bars.map((b) => {
+      const lead = b === 0 ? 96 : 44, X = (beat) => lead + (beat - b * 4) * step, W = lead + 3 * step + 52;
+      let s = `<svg class="tl-strip" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tablature, bar ${b + 1}, four beats">`;
+      moments.forEach((m, k) => { if (Math.floor(m.beat / 4) === b) s += `<rect class="k${k + 1}" x="${X(m.beat) - 9}" y="${ty - 10}" width="18" height="${5 * gap + 20}" rx="3" opacity=".3"/>`; });
+      for (let i = 0; i < 6; i++) s += `<line class="ln" x1="14" y1="${ty + i * gap}" x2="${W - 8}" y2="${ty + i * gap}"/>`;
+      [14, W - 8].forEach((x) => { s += `<line class="bar" x1="${x}" y1="${ty}" x2="${x}" y2="${ty + 5 * gap}"/>`; });
+      if (b === 0) { 'TAB'.split('').forEach((c, i) => { s += `<text class="tab" x="30" y="${ty + 15 + i * 20}">${c}</text>`; }); s += `<text class="ts" x="64" y="${ty + 28}">4</text><text class="ts" x="64" y="${ty + 54}">4</text>`; }
+      const mine = notes.filter((n) => Math.floor(n[0] / 4) === b);
+      mine.forEach(([bt, str, fr]) => { const cx = X(bt), cy = ty + (str - 1) * gap; s += `<rect class="ko" x="${cx - 7}" y="${cy - 7}" width="14" height="14"/><text class="fr" x="${cx}" y="${cy + 4.5}">${fr}</text>`; });
+      [...new Set(mine.map((n) => n[0]))].forEach((bt) => { s += `<line class="stem" x1="${X(bt)}" y1="${ty + 5 * gap + 6}" x2="${X(bt)}" y2="${ty + 5 * gap + 28}"/><text class="ct" x="${X(bt)}" y="${ty + 5 * gap + 46}">${(bt % 4) + 1}</text>`; });
+      moments.forEach((m, k) => { if (Math.floor(m.beat / 4) === b) s += `<rect class="k${k + 1} kb" x="${X(m.beat) - 8}" y="${ty + 5 * gap + 52}" width="16" height="12" rx="2"/><text class="kn${k === 1 ? ' dark' : ''}" x="${X(m.beat)}" y="${ty + 5 * gap + 62}">${k + 1}</text>`; });
+      return s + '</svg>';
+    }).join('') + '</div>';
   }
 
   const pic = (neck, box) => { specs.push({ neck, box: box || NUT }); return `<div class="tl-pic" data-tl-neck="${specs.length - 1}"></div>`; };
@@ -60,9 +61,9 @@
   G.Teach = {
     chordBox, tab,
     // the plate that opens a lesson: number, two-weight title, what is inside
-    opener(L, n) {
+    opener(L, n, tint) {
       const words = String(L.title).split(' '), key = words.pop(), lead = words.join(' ');
-      return `<div class="tl-open"><div class="tl-plate"><div class="tl-eyebrow">lesson ${n}</div>
+      return `<div class="tl-open"><div class="tl-plate"${tint ? ` style="--tint:${tint}"` : ''}><div class="tl-eyebrow">lesson ${n}</div>
         <div class="tl-title">${lead ? `<span>${esc(lead)}</span>` : ''}<b>${esc(key)}</b></div>
         <ol class="tl-contents">${L.steps.map((s, k) => `<li><button data-act="step" data-i="${k}">${s.title}</button></li>`).join('')}</ol></div>
         <p class="tl-lead">${L.lede}</p></div>`;
@@ -71,11 +72,14 @@
     extras(st) {
       let h = '';
       if (st.box) h += `<div class="tl-boxrow"><figure class="tl-small"><figcaption class="tl-eyebrow">${esc(st.box.name || '')}</figcaption>${chordBox(st.box)}</figure>${st.box.key ? `<figure class="tl-big">${chordBox(Object.assign({}, st.box, { labels: true }))}</figure>` : ''}</div>`;
-      if (st.steps) h += `<div class="tl-steps">${st.steps.map((s, k) => `<div class="tl-step"><span class="n">${k + 1}</span><p>${s.text}</p>${pic(s.neck, s.box)}</div>`).join('')}</div>`;
+      if (st.steps) h += `<div class="tl-steps">${st.steps.map((s, k) => `<div class="tl-step"><span class="n">${k + 1}</span><p>${s.text}</p>${s.neck ? pic(s.neck, s.box) : ''}</div>`).join('')}</div>`;
       if (st.strip) h += `<div class="tl-stripwrap">${st.strip.title ? `<div class="tl-eyebrow">${esc(st.strip.title)}</div>` : ''}${tab(st.strip)}</div>` +
         ((st.strip.moments || []).length ? `<div class="tl-bar">Here’s how</div><div class="tl-how">${st.strip.moments.map((m, k) => `<div><div class="tl-pic-wrap">${pic(m.neck, m.box)}<span class="tl-key k${k + 1}">${k + 1}</span></div><p><span class="tl-key k${k + 1}">${k + 1}</span>${m.text}</p></div>`).join('')}</div>` : '');
+      if (st.how) h += `<div class="tl-steps tl-steps-text">${st.how.map((t, k) => `<div class="tl-step"><span class="n">${k + 1}</span><p>${t}</p></div>`).join('')}</div>`;
+      if (st.facts) h += `<div class="tl-panel">${st.facts.map(([head, items]) => `<div class="tl-eyebrow">${esc(head)}</div>${list(items)}`).join('')}</div>`;
       if (st.look) h += `<div class="tl-panel"><div class="tl-eyebrow">What to look for</div>${list(st.look)}</div>`;
       if (st.aside) h += `<div class="tl-tip"><div class="tl-eyebrow">Tip</div><b>${st.aside.title}</b><p>${st.aside.text}</p></div>`;
+      if (st.tip) h += `<div class="tl-tip"><div class="tl-eyebrow">Tip</div><p>${st.tip}</p></div>`;
       return h ? `<div class="tl">${h}</div>` : '';
     },
     // draw the neck pictures the markup above asked for

@@ -186,7 +186,7 @@
     ${hint ? `<p class="hint">${hint}</p>` : ''}</section>`;
   const KB = '<kbd>←</kbd><kbd>→</kbd> step · <kbd>Space</kbd> play · <kbd>M</kbd> metronome';
   function ui(p) {
-    $('side').innerHTML = p.side; $('crumbs').textContent = p.crumbs; $('title').textContent = p.title;
+    $('side').innerHTML = p.side; if (p.crumbsHTML) $('crumbs').innerHTML = p.crumbsHTML; else $('crumbs').textContent = p.crumbs; $('crumbs').classList.toggle('running', !!p.crumbsHTML); $('title').textContent = p.title;
     $('chips').innerHTML = p.chips || ''; $('lede').innerHTML = p.lede || '';
     $('tiles').innerHTML = p.tiles || ''; $('actions').innerHTML = p.actions || '';
     $('extra').innerHTML = p.extra || ''; $('railHead').innerHTML = p.railHead || ''; $('rail').innerHTML = p.rail || '';
@@ -398,16 +398,16 @@
     const li = LESSONS.indexOf(L), lastStep = i === L.steps.length - 1, nextL = LESSONS[li + 1];
     ui({
       side, crumbs: `${L.group} / Lesson ${inGroup.indexOf(L) + 1} of ${inGroup.length}`, title: L.title,
-      chips: pill(`${L.mins} min`) + pill(L.level) + pill(`${L.steps.length} steps`), lede: i === 0 && TL ? TL.opener(L, LESSONS.indexOf(L) + 1) : L.lede,
-      extra: gbar, actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : ''),
+      chips: pill(`${L.mins} min`) + pill(L.level) + pill(`${L.steps.length} steps`), lede: i === 0 && TL ? TL.opener(L, LESSONS.indexOf(L) + 1, FAM_COLORS[groups.indexOf(L.group) % FAM_COLORS.length]) : L.lede,
+      crumbsHTML: `<span>Lesson ${LESSONS.indexOf(L) + 1} · ${L.title}</span><span>${st.title}</span>`,
+      extra: gbar + (st.object && window.G.Figures && window.G.Figures[st.object] ? window.G.Figures[st.object]() : ''), actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : ''),
       railHead: `<span>In this lesson</span><button class="btn small" data-act="restart">↺ Restart lesson</button>`,
       rail: `<ol class="steps">${L.steps.map((s, k) => `<li class="${k === i ? 'on' : k < i ? 'past' : ''}"><button data-act="step" data-i="${k}"><b>${k + 1}</b><span>${s.title}</span></button></li>`).join('')}</ol>`,
       panel: stepCard({ no: `Lesson ${li + 1}.${i + 1} <small>step ${i + 1} of ${L.steps.length}</small>`, tag: st.tag, title: st.title,
-        body: `<p>${st.body}</p>` + (st.figure && window.G.Figures && window.G.Figures[st.figure] ? `<figure class="figure">${window.G.Figures[st.figure]()}</figure>` : '') +
-          (st.how ? `<ol class="howto-steps">${st.how.map((h) => `<li><span>${h}</span></li>`).join('')}</ol>` : ''), idea: st.idea,
-        more: (TL ? TL.extras(st) : '') + (st.tip ? `<aside class="tip"><b>Tip</b><p>${st.tip}</p></aside>` : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
+        body: `<p>${st.body}</p>`, idea: st.idea,
+        more: (TL ? TL.extras(st) : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
           navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson →` : 'Next →'), hint: KB }) +
-        `<section class="card howto"><b>You’ll learn</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
+        `<section class="card howto"><b>${lastStep ? 'You can now' : 'You’ll learn'}</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
          <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>`,
     });
     if (TL) TL.mount(document);

@@ -23,19 +23,25 @@
     const lay = document.getElementById('layout'), keysOnly = lay && lay.dataset.show === 'keys';
     if (!cols.length || keysOnly) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    const W = X0 + cols.length * CW + 14, H = Y0 + 5 * LH + 16;
-    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="The same notes written as tablature">`;
-    for (let i = 0; i < 6; i++) s += `<line class="tab-line" x1="26" y1="${Y0 + i * LH}" x2="${W - 6}" y2="${Y0 + i * LH}"/><text class="tab-name" x="12" y="${Y0 + i * LH + 3}">${NAMES[i]}</text>`;
-    s += `<line class="tab-bar" x1="26" y1="${Y0}" x2="26" y2="${Y0 + 5 * LH}"/><line class="tab-bar" x1="${W - 6}" y1="${Y0}" x2="${W - 6}" y2="${Y0 + 5 * LH}"/>`;
-    let step = 0;
-    cols.forEach((c, k) => {
-      const x = X0 + k * CW + CW / 2, first = c.notes[0];
-      s += `<g class="tab-col" data-k="${k}"><rect class="hit" x="${x - CW / 2 + 1}" y="2" width="${CW - 2}" height="${H - 4}" rx="5"/>`;
-      s += c.chord ? `<text class="tab-name" x="${x}" y="11">all</text>` : `<g class="tab-step r-${first.role || 'ext'}"><circle cx="${x}" cy="9" r="7"/><text x="${x}" y="12">${++step}</text></g>`;
-      c.notes.forEach((n) => { const y = Y0 + (5 - n.s) * LH, t = String(n.f); s += `<g class="tab-num"><rect x="${x - 4 - t.length * 2.6}" y="${y - 6}" width="${8 + t.length * 5.2}" height="12" rx="2"/><text x="${x}" y="${y + 4}">${t}</text></g>`; });
-      s += '</g>';
+    const PER = 8, H = Y0 + 5 * LH + 14, rows = [];
+    for (let i = 0; i < cols.length; i += PER) rows.push(cols.slice(i, i + PER));
+    let step = 0, k = 0;
+    const svgs = rows.map((row, r) => {
+      const lead = r === 0 ? X0 : 16, W = lead + row.length * CW + 10;
+      let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="The same notes written as tablature${rows.length > 1 ? ', line ' + (r + 1) : ''}">`;
+      for (let i = 0; i < 6; i++) s += `<line class="tab-line" x1="${r === 0 ? 26 : 6}" y1="${Y0 + i * LH}" x2="${W - 4}" y2="${Y0 + i * LH}"/>`;
+      s += `<line class="tab-bar" x1="${r === 0 ? 26 : 6}" y1="${Y0}" x2="${r === 0 ? 26 : 6}" y2="${Y0 + 5 * LH}"/><line class="tab-bar" x1="${W - 4}" y1="${Y0}" x2="${W - 4}" y2="${Y0 + 5 * LH}"/>`;
+      if (r === 0) 'TAB'.split('').forEach((c, i) => { s += `<text class="tab-word" x="13" y="${Y0 + 12 + i * 19}">${c}</text>`; });
+      row.forEach((c, j) => {
+        const x = lead + j * CW + CW / 2, first = c.notes[0];
+        s += `<g class="tab-col" data-k="${k++}"><rect class="hit" x="${x - CW / 2 + 1}" y="2" width="${CW - 2}" height="${H - 4}" rx="5"/>`;
+        s += c.chord ? `<text class="tab-name" x="${x}" y="11">all</text>` : `<text class="tab-count r-${first.role || 'ext'}" x="${x}" y="12">${++step}</text>`;
+        c.notes.forEach((n) => { const y = Y0 + (5 - n.s) * LH, t = String(n.f); s += `<g class="tab-num"><rect x="${x - 4 - t.length * 2.6}" y="${y - 6}" width="${8 + t.length * 5.2}" height="12" rx="2"/><text x="${x}" y="${y + 4}">${t}</text></g>`; });
+        return (s += '</g>');
+      });
+      return s + '</svg>';
     });
-    el.innerHTML = `<div class="tab-cap"><span><b>Tab</b> · lines are strings (thin string on top), numbers are frets</span><span>tap a column to hear it</span></div>${s}</svg>`;
+    el.innerHTML = `<div class="tab-cap"><span><b>Tab</b> · the top line is string 1; numbers are frets; tap a column to hear it</span></div><div class="tab-rows">${svgs.join('')}</div>`;
   }
   function sound(k) {
     const c = cols[k], A = G.Audio, T = G.T, neck = G.App && G.App.neck;
