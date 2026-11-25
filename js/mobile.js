@@ -31,26 +31,33 @@
       const t = panel.querySelector('table.strings');
       if (!narrow.matches) { if (t) under.replaceChildren(); return; } // on a wide screen everything stays where it was drawn
       under.replaceChildren();
-      if (layout && layout.dataset.view === 'practice' && railBox) {
+      const view = layout ? layout.dataset.view : '', step = panel.querySelector('.step');
+      if (view === 'learn' && step) { step.classList.add('under-step'); under.appendChild(step); }
+      else if ((view === 'practice' || view === 'circle') && railBox) {
         const q = document.createElement('div'); q.className = 'under-q';
         if (railHead) { const h = document.createElement('div'); h.className = 'rail-head'; h.append(...railHead.childNodes); q.appendChild(h); }
         q.append(...railBox.childNodes); under.appendChild(q);
       } else if (t) under.appendChild(t);
     };
-    new MutationObserver(lift).observe(panel, { childList: true });
+    new MutationObserver((recs) => { if (recs.some((r) => r.addedNodes.length)) lift(); }).observe(panel, { childList: true }); // only when the app draws the panel, not when a part is lifted out of it
     document.addEventListener('click', () => setTimeout(syncPager, 0));
+    // turning the phone, or a window narrowing to phone width, needs the app to draw the page again in the other arrangement
+    const redraw = () => window.dispatchEvent(new Event('hashchange'));
+    (narrow.addEventListener ? narrow.addEventListener('change', relayout) : narrow.addListener(relayout));
+    function relayout() { if (window.G && window.G.App && window.G.App.redraw) window.G.App.redraw(); else redraw(); }
     lift();
   }
   // On a phone the tiles that say where a shape sits scroll out of sight, so the same facts ride on the corner of the instrument.
   const tiles = document.getElementById('tiles'), badge = document.getElementById('posBadge'), title = document.getElementById('title');
   if (tiles && badge) {
-    const WANT = ['frets', 'strings', 'position', 'left hand', 'right hand'];
+    const WANT = ['frets', 'strings', 'showing', 'now', 'left hand', 'right hand'];
     const label = () => {
       const bits = [];
       tiles.querySelectorAll('.tile').forEach((t) => { const k = t.querySelector('small'), v = t.querySelector('b'); if (k && v && WANT.includes(k.textContent.trim().toLowerCase())) { const val = v.textContent.trim(); if (val && val !== '–' && val !== '-' && val.length <= 16) bits.push([k.textContent.trim().toLowerCase(), val]); } });
       badge.replaceChildren();
-      if (!bits.length) return;
-      const name = document.createElement('b'); name.textContent = title ? title.textContent : ''; badge.appendChild(name);
+      const lay2 = document.getElementById('layout'), view = lay2 ? lay2.dataset.view : '', h2 = document.querySelector('#panel .step h2, #under .step h2');
+      if (view === 'learn' || (!bits.length && view !== 'circle')) return;
+      const name = document.createElement('b'); name.textContent = view === 'circle' && h2 ? h2.textContent : title ? title.textContent : ''; badge.appendChild(name);
       bits.forEach(([k, v]) => { const s = document.createElement('span'), l = document.createElement('small'); l.textContent = k + ' '; s.append(l, v); badge.appendChild(s); });
     };
     new MutationObserver(label).observe(tiles, { childList: true, subtree: true, characterData: true });

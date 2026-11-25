@@ -13,7 +13,7 @@
   ];
   const LABELS = [
     [tag('1 3 5'), 'Numbers on the pegs', 'Each note’s place in the chord or scale, counted from the root. Switch to note names or fingers in the settings (the cog, top right).'],
-    [tag('♭ ♯'), 'Flat and sharp', '♭ lowers a note by one fret (one key); ♯ raises it by one. ♭3 is the minor 3rd, ♭7 the dominant 7th.'],
+    [tag('♭ ♯'), 'Flat and sharp', '♭ lowers a note by one fret (one key); ♯ raises it by one. ♭3 is the minor 3rd; ♭7 is the minor 7th, the one found in dominant and minor 7 chords.'],
   ];
   const NECK = [
     [tag('×'), '× at the nut', 'Do not play this string. Mute it or miss it with the picking hand.'],

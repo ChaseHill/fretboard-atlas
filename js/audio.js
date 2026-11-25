@@ -115,6 +115,9 @@
     return { data: out, rate: (f * (N - S)) / sr };
   };
 
+  // Gain that brings a rendered note to the target loudness (RMS of its first half second), within sane limits.
+  const levelGain = (data, rate, target) => { const n = Math.min(data.length, Math.floor(rate * 0.5)); let s = 0; for (let i = 0; i < n; i++) s += data[i] * data[i]; const rms = Math.sqrt(s / Math.max(1, n)); return rms > 1e-5 ? Math.max(0.1, Math.min(4, target / rms)) : 0.42; };
+  A.levelGain = levelGain;
   A.pluck = (midi, when, vel = 1, stringIdx) => {
     if (!A.resume()) return;
     const key = A.settings.tone + midi;
@@ -123,12 +126,12 @@
       const r = A.render(midi, A.settings.tone, ctx.sampleRate);
       const buf = ctx.createBuffer(1, r.data.length, ctx.sampleRate);
       buf.getChannelData(0).set(r.data);
-      c = { buf, rate: r.rate }; cache.set(key, c);
+      c = { buf, rate: r.rate, gain: levelGain(r.data, ctx.sampleRate, 0.17) }; cache.set(key, c);
     }
     const at = Math.max(when || 0, ctx.currentTime);
     const src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = c.buf; src.playbackRate.value = c.rate * (1 + (Math.random() - 0.5) * 0.0015);
-    g.gain.value = 0.42 * vel;
+    g.gain.value = c.gain * vel;
     src.connect(g); g.connect(bodyIn); src.start(at);
     const voice = { src, g }; live.add(voice); src.onended = () => live.delete(voice);
     if (stringIdx != null) { // a string can only sound one note: damp the previous one
@@ -145,11 +148,11 @@
     if (!c) {
       const r = A.render(midi, tone, ctx.sampleRate), buf = ctx.createBuffer(1, r.data.length, ctx.sampleRate);
       buf.getChannelData(0).set(r.data);
-      c = { buf, rate: r.rate }; cache.set(id, c);
+      c = { buf, rate: r.rate, gain: levelGain(r.data, ctx.sampleRate, 0.15) }; cache.set(id, c);
     }
     const at = Math.max(when || 0, ctx.currentTime), src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = c.buf; src.playbackRate.value = c.rate;
-    g.gain.value = 0.36 * vel;
+    g.gain.value = c.gain * vel;
     src.connect(g); g.connect(keysIn); src.start(at);
     const voice = { src, g }; live.add(voice); src.onended = () => live.delete(voice);
     const prev = keyVoices[midi];

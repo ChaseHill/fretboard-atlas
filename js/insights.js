@@ -33,10 +33,11 @@
     if (FAMILY[id] === 'power') return out;
     T.CIRCLE.forEach((K) => {
       const kp = T.pc(K), scale = MAJ.map((s) => mod(kp + s)), d = scale.indexOf(rp);
-      if (d >= 0 && pcs.every((p) => scale.includes(p))) out.push({ key: K, mode: 'major', roman: roman(MAJ_ROM[d], id), fn: MAJ_FN[d] });
+      const sus = /sus/.test(id), main = (k) => !sus || k === 0 || k === 3 || k === 4;
+      if (d >= 0 && main(d) && pcs.every((p) => scale.includes(p))) out.push({ key: K, mode: 'major', roman: roman(MAJ_ROM[d], id), fn: MAJ_FN[d] });
       const mk = T.spell(K, '6'), mp = T.pc(mk), nat = MIN.map((s) => mod(mp + s)), lead = mod(mp + 11), harm = nat.concat(lead), dm = nat.indexOf(rp);
       const usesLead = pcs.includes(lead);
-      if (dm >= 0 && !usesLead && pcs.every((p) => nat.includes(p))) out.push({ key: mk, mode: 'minor', roman: roman(MIN_ROM[dm], id), fn: MIN_FN[dm] });
+      if (dm >= 0 && main(dm) && !usesLead && pcs.every((p) => nat.includes(p))) out.push({ key: mk, mode: 'minor', roman: roman(MIN_ROM[dm], id), fn: MIN_FN[dm] });
       else if (usesLead && pcs.every((p) => harm.includes(p)) && (dm === 4 || dm === 0 || (rp === lead && FAMILY[id] !== 'aug') || (dm === 2 && FAMILY[id] === 'aug'))) out.push({ key: mk, mode: 'minor', roman: roman(rp === lead ? 'VII' : MIN_ROM[dm], id), fn: dm === 0 ? 'home' : 'tension' });
     });
     const rank = { home: 0, tension: 1, away: 2 };
@@ -47,8 +48,11 @@
   I.moves = (root, id) => {
     const f = FAMILY[id], tri = simple(id), M = tri ? 'maj' : 'maj7', m = tri ? 'm' : 'm7', out = [];
     const go = (semi, qid, label, why) => out.push(Object.assign(at(root, semi, qid), { label, why }));
-    if (f === 'dom') {
-      if (id === '7sus4') go(0, '7', 'Let the 4th fall', 'The suspended 4th drops a half step to the 3rd, and the chord becomes a plain dominant 7.');
+    if (id === '7sus4') {
+      go(0, '7', 'Let the 4th fall', 'The suspended 4th drops a half step to the 3rd, and the chord becomes a plain dominant 7.');
+      go(5, M, 'Resolve home', 'Its root falls a fifth. The suspended 4th is already the root of the home chord, so the landing is soft.');
+      go(7, 'm7', 'Usually comes after', 'The ii chord. Keep its notes, put this root under them, and you have this chord: the smoothest way in.');
+    } else if (f === 'dom') {
       go(5, M, 'Resolve home', 'Its root falls a fifth. The 3rd and 7th, a tritone apart, each move one step inward.');
       go(5, m, 'Resolve to minor', 'The same pull, landing on a minor chord.');
       go(2, m, 'Deceptive move', 'The ear expects home and gets the vi chord of that key instead, a whole step above this chord. It shares two notes with the home chord, so it sounds like a near miss.');
@@ -124,12 +128,13 @@
     else if (f === 'min') { add(0, 'dorian', 'The usual choice on a ii chord or a minor vamp.'); add(0, 'minor', 'When this is the vi or the i chord.'); add(0, 'minpent', 'Five notes that never clash.'); }
     else if (id === '7b9') { add(5, 'harm', 'Play the harmonic minor of the chord it resolves to. That scale contains this chord’s ♭9.'); add(0, 'mixo', 'Works if you avoid the natural 2nd.'); }
     else if (id === '7s9') { add(0, 'blues', 'The ♯9 is the blues scale’s ♭3 sitting on top of a major 3rd.'); add(0, 'minpent', 'The same clash, with fewer notes.'); }
+    else if (id === '7sus4') { add(0, 'mixo', 'The scale this chord is built from. Lean on the 4th; touch the 3rd only in passing.'); add(7, 'dorian', 'The same seven notes, heard from the 5th: this chord is that minor 7 chord with this root in the bass.'); add(10, 'majpent', 'The major pentatonic a whole step below the root: it gives this chord its root, 2nd, 4th, 5th and ♭7th, and leaves the 3rd out.'); }
     else if (f === 'dom') { add(0, 'mixo', 'Major with a flat 7th: the scale this chord is built from.'); add(0, 'blues', 'Rub the ♭3 against the chord’s major 3rd.'); add(0, 'majpent', 'The sweet side of a dominant chord.'); }
     else if (f === 'hdim') add(0, 'locrian', 'The seventh mode of the major scale a half step up.');
     else if (f === 'dim') add(1, 'harm', 'The harmonic minor scale a half step up contains every note of the chord.');
     else if (f === 'aug') add(9, 'harm', 'This is the III+ chord of that harmonic minor scale.');
     else if (id === 'sus2') { add(0, 'major', 'No 3rd in the chord, so major…'); add(0, 'dorian', '…or minor both fit.'); }
-    else if (f === 'sus') { add(0, 'mixo', 'Lean on the 4th; touch the 3rd only in passing.'); add(0, 'dorian', 'A sus chord is often a minor 7 chord with its 5th in the bass.'); }
+    else if (f === 'sus') { add(0, 'mixo', 'Lean on the 4th; touch the 3rd only in passing.'); add(0, 'major', 'With no 3rd in the chord, the major scale fits as well.'); }
     else { add(0, 'minpent', 'Rock and blues.'); add(0, 'majpent', 'Brighter.'); }
     return out;
   };

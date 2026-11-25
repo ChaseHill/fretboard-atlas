@@ -416,7 +416,8 @@
       else playNotes(spec.notes.filter((n) => !n.dim), 0.34, !spec.byPitch); // in the order the lesson wrote them, at an unhurried pace
     };
     cur = { play, next: () => (lastStep ? nextL && go({ [lk()]: { id: nextL.id, step: 0 } }) : go({ [lk()]: { id: L.id, step: i + 1 } })),
-      prev: () => (i > 0 ? go({ [lk()]: { id: L.id, step: i - 1 } }) : li > 0 && go({ [lk()]: { id: LESSONS[li - 1].id, step: LESSONS[li - 1].steps.length - 1 } })) };
+      prev: () => (i > 0 ? go({ [lk()]: { id: L.id, step: i - 1 } }) : li > 0 && go({ [lk()]: { id: LESSONS[li - 1].id, step: LESSONS[li - 1].steps.length - 1 } })),
+      ok: (a) => (a === 'next' ? !(lastStep && !nextL) : a === 'prev' ? i > 0 || li > 0 : a === 'play' ? !!st.play : true) };
   }
 
   // ---------- chord insights ----------
@@ -509,7 +510,8 @@
     cur = { play: () => playVoicing(v), alt: () => playVoicing(v, 0.24), hear: (r, i) => hearMove(v, chordOf(r, i).voicings[0]),
       next: () => (vi < c.voicings.length - 1 ? go({ chords: { vi: vi + 1 } }) : ci < list.length - 1 && go({ chords: { id: list[ci + 1].id, vi: 0 } })),
       prev: () => (vi > 0 ? go({ chords: { vi: vi - 1 } }) : ci > 0 && go({ chords: { id: list[ci - 1].id, vi: 1e3 } })),
-      down: () => ci < list.length - 1 && go({ chords: { id: list[ci + 1].id, vi: 0 } }), up: () => ci > 0 && go({ chords: { id: list[ci - 1].id, vi: 0 } }) };
+      down: () => ci < list.length - 1 && go({ chords: { id: list[ci + 1].id, vi: 0 } }), up: () => ci > 0 && go({ chords: { id: list[ci - 1].id, vi: 0 } }),
+      ok: (a) => (a === 'next' ? vi < c.voicings.length - 1 || ci < list.length - 1 : a === 'prev' ? vi > 0 || ci > 0 : a === 'down' ? ci < list.length - 1 : a === 'up' ? ci > 0 : true) };
   }
 
   // ---------- Scales ----------
@@ -561,7 +563,7 @@
     });
     neck.show({ notes, window: pos && fs.length ? [Math.max(1, Math.min(...fs)), Math.max(...fs)] : null, capo });
     const toggle = () => (drill.off ? stopDrill() : drillNotes.length && runSequence(T.pattern(drillNotes.length, state.scales.pattern).map((k) => drillNotes[k]), state.scales.rate));
-    cur = { play: toggle, drill: toggle, next: () => pos < positions.length && go({ scales: { pos: pos + 1 } }), prev: () => pos > 0 && go({ scales: { pos: pos - 1 } }) };
+    cur = { play: toggle, drill: toggle, next: () => pos < positions.length && go({ scales: { pos: pos + 1 } }), prev: () => pos > 0 && go({ scales: { pos: pos - 1 } }), ok: (a) => (a === 'next' ? pos < positions.length : a === 'prev' ? pos > 0 : true) };
   }
 
   // ---------- Circle of fifths ----------
@@ -588,7 +590,7 @@
         <li>The <b>outer ring</b> is major keys. The <b>inner ring</b> is each one’s relative minor.</li>
         <li>The keys either side of yours are its <b>IV</b> and <b>V</b> chords.</li>
         <li>Three steps anticlockwise in a row is a <b>ii–V–I</b>.</li></ul>`,
-      crumbs: 'Circle of fifths', title: `Key of ${state.key} major`, chips: chipsHTML(sc.tones), lede: `${sig[0].toUpperCase() + sig.slice(1)}. Relative minor: ${esc(dia[5].root)} minor. Click any key on the circle.`,
+      crumbs: 'Circle of fifths', title: `Key of ${state.key} major`, chips: chipsHTML(sc.tones), lede: `${sig[0].toUpperCase() + sig.slice(1)}. Relative minor: ${esc(dia[5].root)} minor. Pick any key on the circle.`,
       tiles: tilesHTML([['Signature', sig], ['IV · I · V', `${esc(dia[3].root)} · ${state.key} · ${esc(dia[4].root)}`], ['Relative minor', esc(dia[5].root) + 'm']]),
       actions: capoHTML() + `<button class="btn" data-act="play">▶ Strum</button><button class="btn" data-act="sev">${sev ? 'Show triads' : 'Show 7th chords'}</button>`,
       extra: `<div class="circle-wrap">${circleSVG(sel)}</div>`,
@@ -599,7 +601,7 @@
         more: stringTable(v) + `<div class="nav"><button class="btn ghost" data-act="prev" ${ci === 0 ? 'disabled' : ''}>←</button><button class="btn primary" data-act="open-chord" data-root="${d.root}" data-id="${c.id}">All ${esc(c.name)} voicings</button><button class="btn ghost" data-act="next" ${ci === 6 ? 'disabled' : ''}>→</button></div>` }),
     });
     showVoicing(c, v);
-    cur = { play: () => playVoicing(v), next: () => ci < 6 && go({ circle: { ci: ci + 1 } }), prev: () => ci > 0 && go({ circle: { ci: ci - 1 } }) };
+    cur = { play: () => playVoicing(v), next: () => ci < 6 && go({ circle: { ci: ci + 1 } }), prev: () => ci > 0 && go({ circle: { ci: ci - 1 } }), ok: (a) => (a === 'next' ? ci < 6 : a === 'prev' ? ci > 0 : true) };
   }
 
   // ---------- Practice ----------
@@ -745,7 +747,7 @@
       tiles: tilesHTML([['Score', `${quiz.score} / ${quiz.total}`], ['Streak', quiz.streak], ['Best streak', quiz.best]]),
       actions: `<div class="stepper"><span>Level</span><button data-act="level" data-d="-1">−</button><b>${lv}</b><button data-act="level" data-d="1">+</button></div>${hear ? '<button class="btn" data-act="play">▶ Hear it</button>' : ''}<button class="btn" data-act="reset-score">↺ Reset score</button>`,
       railHead: `<span>Question ${quiz.total + (quiz.done ? 0 : 1)}</span>${verdict}`,
-      rail: `<p class="prompt">${prompt}</p>${quiz.msg ? `<p class="muted">${quiz.msg}</p>` : ''}<div class="thumbs">${rail}${next}</div>${rail ? '' : '<p class="muted">Click the neck where the note is. Fret numbers run along the front edge; the low E string is nearest you.</p>'}`,
+      rail: `<p class="prompt">${prompt}</p>${quiz.msg ? `<p class="muted">${quiz.msg}</p>` : ''}<div class="thumbs">${rail}${next}</div>${rail ? '' : '<p class="muted">Tap the neck where the note is. Fret numbers run along the front edge; the low E string is nearest you.</p>'}`,
       panel: stepCard({ no: 'Exercise', tag: 'Fretboard', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
     });
     neck.show({ notes, window: id === 'quiz' ? (q.f ? [q.f, q.f] : null) : win });
@@ -880,7 +882,7 @@
     next: () => cur.next && cur.next(), prev: () => cur.prev && cur.prev(), up: () => cur.up && cur.up(), down: () => cur.down && cur.down(),
     bpm: (d) => Metro.setBpm(Metro.bpm + +d.d),
   };
-  window.G.App = { can: (a) => typeof cur[a] === 'function' && (!cur.ok || cur.ok(a)) };
+  window.G.App = { can: (a) => typeof cur[a] === 'function' && (!cur.ok || cur.ok(a)), redraw: () => render() };
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-act]');
     if (Guide.on && el && !['guide', 'gseek', 'gprev', 'gnext', 'bpm', 'fold'].includes(el.dataset.act)) pauseGuide(); // taking the wheel pauses the guide; it resumes from here
