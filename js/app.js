@@ -231,7 +231,7 @@
   const Guide = { on: false, run: 0, idx: 0, lesson: null, at: 0, audio: null, tl: [], rate: [0.8, 1, 1.2].includes(+store.get('grate', 1)) ? +store.get('grate', 1) : 1, voice: String(store.get('gvoice', '') || '') };
   const wait = (ms) => new Promise((res) => setTimeout(res, ms));
   const { spoken } = window.G.Narr;
-  const SEG = { intro: ['Intro', '#lede'], main: ['Explain', '.step .body'], listen: ['Listen', '#stage'], idea: ['Key idea', '.step .idea'], tryIt: ['Your turn', '.step .try'], along: ['Play along', '#stage'], end: ['Wrap-up', '.howto:last-of-type'] };
+  const SEG = { intro: ['Intro', '#lede'], main: ['Explain', '.step .body, #textcol .body'], listen: ['Listen', '#stage'], idea: ['Key idea', '.step .idea, #textcol .idea'], tryIt: ['Your turn', '.step .try, #below .try'], along: ['Play along', '#stage'], end: ['Wrap-up', '.howto:last-of-type'] };
   function guideLine(L) {
     const kb = onKeys(), out = [];
     L.steps.forEach((_, i) => {

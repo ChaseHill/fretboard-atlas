@@ -102,7 +102,7 @@
         seg(P(x0 + 3, 4, z), P(x0 + 3, BD - 13, z), 'k-gloss', g);
         g.dataset.midi = m + 1; at[m + 1] = { x: cx, y: BD - 25, z, node: g };
       });
-      nav.querySelector('span').textContent = `${T.midiName(lo)} – ${T.midiName(hi)}`;
+      nav.querySelector(':scope > span').textContent = `${T.midiName(lo)} – ${T.midiName(hi)}`;
       nav.children[0].disabled = lo <= LO_MIN; nav.children[2].disabled = lo >= LO_MAX;
     }
     const nav = document.createElement('div');

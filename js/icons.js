@@ -39,9 +39,10 @@
       if (n.parentNode.closest('svg, select, option, input, textarea')) return;
       const frag = document.createDocumentFragment(), text = n.nodeValue;
       let last = 0, m;
+      // each icon sits in its own element name, so rules and scripts that look for a control's <span> label are not confused by it
       while ((m = RE.exec(text))) {
         if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
-        const span = document.createElement('span'); span.className = 'ic-wrap'; span.innerHTML = svg(m[0] === '❚❚' ? 'pause' : MAP[m[0]]);
+        const span = document.createElement('fa-icon'); span.className = 'ic-wrap'; span.innerHTML = svg(m[0] === '❚❚' ? 'pause' : MAP[m[0]]);
         frag.appendChild(span); last = m.index + m[0].length;
       }
       if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));

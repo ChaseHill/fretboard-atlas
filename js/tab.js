@@ -23,25 +23,26 @@
     const lay = document.getElementById('layout'), keysOnly = lay && lay.dataset.show === 'keys';
     if (!cols.length || keysOnly) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    const PER = 8, H = Y0 + 5 * LH + 14, rows = [];
-    for (let i = 0; i < cols.length; i += PER) rows.push(cols.slice(i, i + PER));
-    let step = 0, k = 0;
-    const svgs = rows.map((row, r) => {
-      const lead = r === 0 ? X0 : 16, W = lead + row.length * CW + 10;
-      let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="The same notes written as tablature${rows.length > 1 ? ', line ' + (r + 1) : ''}">`;
-      for (let i = 0; i < 6; i++) s += `<line class="tab-line" x1="${r === 0 ? 26 : 6}" y1="${Y0 + i * LH}" x2="${W - 4}" y2="${Y0 + i * LH}"/>`;
-      s += `<line class="tab-bar" x1="${r === 0 ? 26 : 6}" y1="${Y0}" x2="${r === 0 ? 26 : 6}" y2="${Y0 + 5 * LH}"/><line class="tab-bar" x1="${W - 4}" y1="${Y0}" x2="${W - 4}" y2="${Y0 + 5 * LH}"/>`;
-      if (r === 0) 'TAB'.split('').forEach((c, i) => { s += `<text class="tab-word" x="13" y="${Y0 + 12 + i * 19}">${c}</text>`; });
-      row.forEach((c, j) => {
-        const x = lead + j * CW + CW / 2, first = c.notes[0];
-        s += `<g class="tab-col" data-k="${k++}"><rect class="hit" x="${x - CW / 2 + 1}" y="2" width="${CW - 2}" height="${H - 4}" rx="5"/>`;
-        s += c.chord ? `<text class="tab-name" x="${x}" y="11">all</text>` : `<text class="tab-count r-${first.role || 'ext'}" x="${x}" y="12">${++step}</text>`;
-        c.notes.forEach((n) => { const y = Y0 + (5 - n.s) * LH, t = String(n.f); s += `<g class="tab-num"><rect x="${x - 4 - t.length * 2.6}" y="${y - 6}" width="${8 + t.length * 5.2}" height="12" rx="2"/><text x="${x}" y="${y + 4}">${t}</text></g>`; });
-        return (s += '</g>');
+    // Notation strip (design system): T A B at the left edge, the time signature drawn large, fret numbers on a
+    // knock-out so the line does not run through them, a stem and a count under every beat. One bar per drawing, so the
+    // strip wraps at bar lines and never scrolls sideways.
+    const step = 84, ty = 34, gap = 13, H = ty + 5 * gap + 52, bars = [];
+    for (let i = 0; i < cols.length; i += 4) bars.push(cols.slice(i, i + 4));
+    const svgs = bars.map((bar, b) => {
+      const lead = b === 0 ? 96 : 44, X = (j) => lead + j * step, W = lead + 3 * step + 52;
+      let s = `<svg class="tl-strip" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tablature, bar ${b + 1}">`;
+      bar.forEach((c, j) => { s += `<rect class="tab-hit" data-k="${b * 4 + j}" x="${X(j) - 20}" y="${ty - 12}" width="40" height="${5 * gap + 60}" rx="4"/>`; });
+      for (let i = 0; i < 6; i++) s += `<line class="ln" x1="14" y1="${ty + i * gap}" x2="${W - 8}" y2="${ty + i * gap}"/>`;
+      [14, W - 8].forEach((x) => { s += `<line class="bar" x1="${x}" y1="${ty}" x2="${x}" y2="${ty + 5 * gap}"/>`; });
+      if (b === 0) { 'TAB'.split('').forEach((ch, i) => { s += `<text class="tab" x="30" y="${ty + 15 + i * 20}">${ch}</text>`; }); s += `<text class="ts" x="64" y="${ty + 28}">4</text><text class="ts" x="64" y="${ty + 54}">4</text>`; }
+      bar.forEach((c, j) => {
+        c.notes.forEach((n) => { const cy = ty + (5 - n.s) * gap, t = String(n.f); s += `<rect class="ko" x="${X(j) - 4 - t.length * 3}" y="${cy - 7}" width="${8 + t.length * 6}" height="14"/><text class="fr" x="${X(j)}" y="${cy + 4.5}">${t}</text>`; });
+        s += `<line class="stem" x1="${X(j)}" y1="${ty + 5 * gap + 6}" x2="${X(j)}" y2="${ty + 5 * gap + 28}"/><text class="ct" x="${X(j)}" y="${ty + 5 * gap + 46}">${j + 1}</text>`;
       });
       return s + '</svg>';
     });
-    el.innerHTML = `<div class="tab-cap"><span><b>Tab</b> · the top line is string 1; numbers are frets; tap a column to hear it</span></div><div class="tab-rows">${svgs.join('')}</div>`;
+    const what = spec.seq && spec.seq.length ? 'In the order it is played' : cols[0].chord ? 'The whole shape, then one string at a time' : 'From the lowest note to the highest';
+    el.innerHTML = `<div class="tl"><div class="tl-eyebrow" style="margin-bottom: 6px">${what}</div><div class="tl-bars">${svgs.join('')}</div></div>`;
   }
   function sound(k) {
     const c = cols[k], A = G.Audio, T = G.T, neck = G.App && G.App.neck;
@@ -55,9 +56,9 @@
   };
   if (typeof document === 'undefined') return;
   document.addEventListener('click', (e) => {
-    const g = e.target.closest && e.target.closest('.tab-col');
+    const g = e.target.closest && e.target.closest('.tab-hit');
     if (!g) return;
-    document.querySelectorAll('.tab-col.on').forEach((n) => n.classList.remove('on'));
+    document.querySelectorAll('.tab-hit.on').forEach((n) => n.classList.remove('on'));
     g.classList.add('on'); sound(+g.dataset.k);
   });
 })();

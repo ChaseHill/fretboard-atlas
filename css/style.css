@@ -1137,7 +1137,7 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
 .ao-name { font: 800 11px var(--mono); fill: var(--ink); } .ao-note { font: italic 400 9.5px var(--mono); fill: var(--ink-2); }
 .ao-lead { stroke: var(--ink-2); stroke-width: 1; } .ao-dot { fill: var(--ink); }
 /* labels need room to be read: on anything narrower than a wide desktop they become the numbered list */
-@media (max-width: 1500px) {
+@media (max-width: 1299px) {
   .ao-lab, .ao-dot { display: none; } .ao-num { display: block; }
   .ao-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); list-style: none; counter-reset: ao; margin: 8px 0 0; padding: 0; gap: 6px 16px; }
   .ao-list li { counter-increment: ao; display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: var(--fs-small); line-height: 1.45; color: var(--ink-2); }
@@ -1147,3 +1147,55 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
 @media (max-width: 760px) { .ao-svg { width: 100%; margin: 0; } .ao-list { grid-template-columns: 1fr; } }
 .gx-sil { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; fill: none; }
 .ao-mark .ao-num text { font-family: var(--mono); }
+
+/* ================= page arrangement, as the Lesson Page design card draws it =================
+   Wide: running head; text column beside the picture; asides underneath in two columns. One arrangement for every tab. */
+.textcol:empty, .below:empty { display: none; }
+@media (min-width: 761px) {
+  .layout { grid-template-columns: 236px minmax(0, 1fr); }
+  .panel { grid-column: 2; position: static; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; align-items: start; }
+  .panel > .insight { grid-column: 1 / -1; }
+  .lesson { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 18px; padding: 16px 20px 18px; }
+  .lesson > * { min-width: 0; }
+  .lesson > .stage { margin-top: 0; }
+  /* the text column: heading, two or three short paragraphs, one key idea */
+  .textcol { padding-top: 2px; }
+  .textcol .step-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+  .textcol h2 { font-size: 18px; font-weight: 800; line-height: 1.2; margin: 0 0 6px; }
+  .textcol .body p { margin: 0 0 8px; color: var(--ink-2); font-size: 13px; line-height: 1.55; } .textcol .body p b { color: var(--ink); }
+  .textcol .idea { margin: 10px 0 0; border: 0; background: none; padding: 0; }
+  .textcol .idea b { display: block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin: 10px 0 2px; }
+  .textcol .idea p { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+  /* underneath: asides side by side, wide parts across both columns */
+  .below { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; align-items: start; }
+  .below > * { grid-column: 1 / -1; margin: 0; }
+  .below > .tl { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; align-items: start; }
+  .below > .tl > * { grid-column: 1 / -1; } .below > .tl > .tl-panel, .below > .tl > .tl-tip { grid-column: auto; }
+  .below > .tl > .tl-panel:only-of-type:last-child, .below > .tl > .tl-tip:only-child { grid-column: auto; }
+  .below .tl-steps { grid-template-columns: repeat(3, 1fr); } .below .tl-how { grid-template-columns: 1fr 1fr; }
+  .below > .try { grid-column: auto; } .below > .nav { grid-column: 1 / -1; max-width: 420px; }
+  .below > table.strings { max-width: 560px; }
+  .below > .hint { text-align: left; }
+  [data-opener] .textcol h2, [data-opener] .textcol .body { display: none; } /* the opener already carries them */
+}
+@media (min-width: 1100px) {
+  .lesson { grid-template-columns: 240px minmax(0, 1fr); }
+  .lesson > .crumbs, .lesson > .title-row, .lesson > #lede, .lesson > .below { grid-column: 1 / -1; }
+  .lesson > .textcol { grid-column: 1; } .lesson > .stage { grid-column: 2; }
+  .lesson > .textcol:empty + .stage { grid-column: 1 / -1; }
+}
+@media (min-width: 761px) and (max-width: 1099px) { .textcol { margin-bottom: 12px; max-width: 60ch; } }
+/* the tab under the neck is a notation strip: no box of its own, an eyebrow, the strip */
+.tabstrip { border: 0; background: none; padding: 8px 2px 0; border-radius: 0; }
+.tab-cap { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); padding: 0 0 4px; }
+.tab-cap b { font-weight: 700; } .tab-cap i { font-style: normal; font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 8px; }
+.tab-line { stroke: var(--ink-2); stroke-width: 1; opacity: 1; } .tab-bar { stroke: var(--ink); stroke-width: 1.4; }
+.tab-word { font: 800 11px var(--mono); fill: var(--ink); } .tab-num rect { fill: var(--paper-2); } .tab-num text { font: 800 12px var(--mono); fill: var(--ink); }
+.tab-count { font: 500 10px var(--mono); fill: var(--ink-2); }
+.ic-wrap { font-style: normal; }
+
+/* leader dots stay visible on dark parts; the tab under the neck is the notation strip itself */
+.ao-dot { stroke: var(--paper-2); stroke-width: 1; }
+.tabstrip { padding: 10px 0 0; } .tabstrip .tl-bars .tl-strip { flex: 0 1 330px; max-width: 360px; }
+.tab-hit { fill: transparent; cursor: pointer; } .tab-hit:hover, .tab-hit.on { fill: var(--accent-soft); }
+@media (max-width: 760px) { .tabstrip .tl-bars .tl-strip { flex: 1 1 280px; max-width: none; } }

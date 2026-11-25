@@ -26,11 +26,28 @@
     pager.classList.toggle('idle', !any); document.body.classList.toggle('no-pager', !any);
   };
   if (panel && under) {
+    const textcol = document.getElementById('textcol'), below = document.getElementById('below');
+    // Wide screen (design system: Lesson page): the step's heading and text form a narrow column beside the picture;
+    // what to look for, tips, strips and the things to do sit underneath; the remaining cards follow below.
+    const wide = () => {
+      if (!textcol || !below) return;
+      textcol.replaceChildren(); below.replaceChildren();
+      const step = panel.querySelector('.step');
+      if (!step) return;
+      const text = [], rest = [];
+      Array.from(step.childNodes).forEach((n) => {
+        if (n.nodeType !== 1) return;
+        (n.matches('.step-head, h2, .body, .idea') ? text : rest).push(n);
+      });
+      textcol.append(...text); below.append(...rest);
+      step.remove(); // its parts now live in the two slots
+    };
     const lift = () => {
       syncPager();
       const t = panel.querySelector('table.strings');
-      if (!narrow.matches) { if (under.firstChild) { under.replaceChildren(); if (window.G.App && window.G.App.redraw) window.G.App.redraw(); } return; } // on a wide screen everything stays where the app drew it
       under.replaceChildren();
+      if (!narrow.matches) { wide(); return; }
+      if (textcol) textcol.replaceChildren(); if (below) below.replaceChildren();
       const view = layout ? layout.dataset.view : '', step = panel.querySelector('.step');
       if (view === 'learn' && step) { step.classList.add('under-step'); under.appendChild(step); }
       else if ((view === 'practice' || view === 'circle') && railBox) {

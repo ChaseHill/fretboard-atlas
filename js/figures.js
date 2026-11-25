@@ -84,15 +84,17 @@
       s += seg([post[0], post[1], HZ + 3], [NUT - 2, yN, NZ + 4], cls, ` stroke-width="${w}"`) + seg([NUT - 2, yN, NZ + 4], [SADDLE, yS, TOP + 9], cls, ` stroke-width="${w}"`);
     }
     // labels: [name, note, the exact spot (x, y, z), where the text sits on screen, which way it reads]
+    // where string i sits at distance x along the neck (i = 0 is string 6, nearest the viewer)
+    const sy = (i, x) => { const t = (x - NUT) / (SADDLE - NUT); return (18 - i * 7.2) + ((27 - i * 10.8) - (18 - i * 7.2)) * t; };
     const parts = [
-      ['Head', 'holds the tuners', [88, -30, HZ], [300, 22], 'start'],
-      ['Tuning pegs', 'turn to tighten a string', [88, 63, HZ - 6], [170, 150], 'end'],
-      ['Nut', 'where open strings begin', [NUT - 2.5, -20, NZ + 3], [362, 52], 'start'],
-      ['Frets', 'each raises the note a half step', [fretX(6), 25.5, NZ], [270, 222], 'end'],
-      ['Strings', 'string 6 is the thick one', [fretX(11), -12, NZ + 4], [520, 104], 'start'],
-      ['Sound hole', 'lets the sound out', [HOLE - 30, -30, TOP], [624, 160], 'start'],
-      ['Bridge and saddle', 'where every string ends', [SADDLE, 36, TOP + 7], [440, 330], 'end'],
-      ['Body', 'its thin top makes it loud', [END - 110, 150, TOP], [470, 392], 'end'],
+      ['Head', 'holds the tuners', [26, 0, HZ], [286, 20], 'start'],
+      ['Tuning pegs', 'turn to tighten a string', [88, 63, HZ - 6], [168, 150], 'end'],
+      ['Nut', 'where open strings begin', [NUT - 2.5, -22, NZ + 3], [356, 50], 'start'],
+      ['Frets', 'each raises the note a half step', [fretX(5), hw(fretX(5)), NZ], [262, 226], 'end'],
+      ['Strings', 'string 6 is the thick one', [fretX(10), sy(5, fretX(10)), NZ + 4], [510, 100], 'start'],
+      ['Sound hole', 'lets the sound out', [HOLE, -34, TOP], [628, 150], 'start'],
+      ['Bridge and saddle', 'where the strings end', [SADDLE + 20, -70, TOP + 4], [720, 204], 'start'],
+      ['Body', 'its thin top makes it loud', [END - 120, 150, TOP], [470, 396], 'end'],
     ];
     let labels = '', marks = '';
     parts.forEach(([name, note, at, to, anchor], k) => {
