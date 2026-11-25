@@ -382,6 +382,7 @@
   function renderLearn() {
     const LESSONS = course(), done = doneOf(), kb = onKeys();
     const L = lesson(), i = Math.min(LS().step, L.steps.length - 1), st = L.steps[i];
+    const TL = window.G.Teach; if (TL) TL.reset();
     LS().step = i;
     const gbar = guideBarHTML();
     (done[L.id] = done[L.id] || [])[i] = 1; saveDone();
@@ -397,19 +398,19 @@
     const li = LESSONS.indexOf(L), lastStep = i === L.steps.length - 1, nextL = LESSONS[li + 1];
     ui({
       side, crumbs: `${L.group} / Lesson ${inGroup.indexOf(L) + 1} of ${inGroup.length}`, title: L.title,
-      chips: pill(`${L.mins} min`) + pill(L.level) + pill(`${L.steps.length} steps`), lede: L.lede,
+      chips: pill(`${L.mins} min`) + pill(L.level) + pill(`${L.steps.length} steps`), lede: i === 0 && TL ? TL.opener(L, LESSONS.indexOf(L) + 1) : L.lede,
       extra: gbar, actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : ''),
       railHead: `<span>In this lesson</span><button class="btn small" data-act="restart">↺ Restart lesson</button>`,
       rail: `<ol class="steps">${L.steps.map((s, k) => `<li class="${k === i ? 'on' : k < i ? 'past' : ''}"><button data-act="step" data-i="${k}"><b>${k + 1}</b><span>${s.title}</span></button></li>`).join('')}</ol>`,
       panel: stepCard({ no: `Lesson ${li + 1}.${i + 1} <small>step ${i + 1} of ${L.steps.length}</small>`, tag: st.tag, title: st.title,
-        body: (i === 0 ? `<div class="opener"><span class="opener-no">${li + 1}</span><div><b>In this lesson</b><ol>${L.steps.map((s, k) => `<li><button data-act="step" data-i="${k}"><i>${li + 1}.${k + 1}</i> ${s.title}</button></li>`).join('')}</ol></div></div>` : '') +
-          `<p>${st.body}</p>` + (st.figure && window.G.Figures && window.G.Figures[st.figure] ? `<figure class="figure">${window.G.Figures[st.figure]()}</figure>` : '') +
+        body: `<p>${st.body}</p>` + (st.figure && window.G.Figures && window.G.Figures[st.figure] ? `<figure class="figure">${window.G.Figures[st.figure]()}</figure>` : '') +
           (st.how ? `<ol class="howto-steps">${st.how.map((h) => `<li><span>${h}</span></li>`).join('')}</ol>` : ''), idea: st.idea,
-        more: (st.tip ? `<aside class="tip"><b>Tip</b><p>${st.tip}</p></aside>` : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
+        more: (TL ? TL.extras(st) : '') + (st.tip ? `<aside class="tip"><b>Tip</b><p>${st.tip}</p></aside>` : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
           navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson →` : 'Next →'), hint: KB }) +
         `<section class="card howto"><b>You’ll learn</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
          <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>`,
     });
+    if (TL) TL.mount(document);
     if (kb) neck.show({ notes: [] }, { notes: spec.notes }); else neck.show(spec);
     const play = () => {
       if (!st.play) return;

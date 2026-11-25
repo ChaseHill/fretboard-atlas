@@ -950,3 +950,54 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
 .tab-cap { font-size: 10.5px; color: var(--ink-2); padding: 0 2px 2px; display: flex; justify-content: space-between; gap: 8px; }
 @media (max-width: 760px) { .stage > .tabstrip { order: 3; } .stage > .under { order: 3; } .tabstrip svg { height: 96px; } }
 @media (max-width: 760px) { .figure { overflow-x: auto; } .figure .fig { min-width: 560px; } }
+
+/* ---------- teaching layouts (design system: "Teaching layouts") ---------- */
+.tl { display: grid; gap: 14px; margin: 12px 0; }
+.tl p { margin: 0 0 6px; } .tl-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.tl-open { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: center; margin: 6px 0 4px; }
+.tl-plate { border-radius: 16px; background: color-mix(in srgb, var(--ext) 13%, var(--paper-2)); padding: 18px 20px; }
+.tl-title { margin: 14px 0 12px; line-height: 1; } .tl-title span { display: block; font-size: 20px; font-weight: 400; } .tl-title b { display: block; font-size: 38px; font-weight: 800; letter-spacing: -.02em; }
+.tl-contents { list-style: none; margin: 0; padding: 8px 10px; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; display: grid; gap: 1px; counter-reset: tl; }
+.tl-contents button { all: unset; cursor: pointer; display: block; width: 100%; box-sizing: border-box; padding: 4px 6px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.tl-contents button::before { counter-increment: tl; content: counter(tl) "  "; color: var(--accent); font-weight: 400; }
+.tl-contents button:hover, .tl-contents button:focus-visible { background: var(--accent-soft); }
+.tl-lead { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 0; max-width: 46ch; }
+.tl-panel { background: color-mix(in srgb, var(--accent-soft) 62%, transparent); border-radius: 16px; padding: 12px 14px; }
+.tl-panel ul { margin: 6px 0 0; padding-left: 16px; } .tl-panel li { margin: 3px 0; color: var(--ink-2); font-size: 12px; } .tl-panel li b { color: var(--ink); }
+.tl-tip { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; } .tl-tip b { display: block; } .tl-tip p { color: var(--ink-2); font-size: 12px; margin: 2px 0 0; }
+.tl-boxrow { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; } .tl-boxrow figure { margin: 0; }
+.tl-small { text-align: center; } .tl-small svg { width: 118px; height: auto; display: block; margin-top: 4px; } .tl-big svg { width: min(100%, 400px); height: auto; display: block; }
+.tl-box text { font-family: var(--mono); } .tl-box .g { stroke: var(--ink); stroke-width: 1.2; } .tl-box .nut { stroke: var(--ink); stroke-width: 4; }
+.tl-box .fd { fill: var(--ink); } .tl-box .fn { fill: var(--card); font-weight: 800; text-anchor: middle; } .tl-box .mk { fill: var(--ink); font-weight: 700; text-anchor: middle; }
+.tl-box .op { fill: none; stroke: var(--ink); stroke-width: 1.4; } .tl-box .ld { stroke: var(--ink-2); stroke-width: 1; } .tl-box .dt { fill: var(--ink); }
+.tl-box .nm { font-size: 11px; font-weight: 800; fill: var(--ink); } .tl-box .nt { font-size: 9.5px; font-style: italic; fill: var(--ink-2); }
+.tl-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tl-step { display: grid; grid-template-columns: 22px 1fr; gap: 4px 6px; align-items: start; }
+.tl-step .n { font-size: 24px; font-weight: 400; line-height: 1; color: var(--accent); } .tl-step p { font-size: 11.5px; margin: 2px 0 0; color: var(--ink-2); } .tl-step p b { color: var(--ink); }
+.tl-pic { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--paper-2); } .tl-step .tl-pic { grid-column: 1 / -1; }
+.tl-pic svg { display: block; width: 100%; height: auto; pointer-events: none; }
+.tl-strip { width: 100%; height: auto; display: block; } .tl-strip text { font-family: var(--mono); fill: var(--ink); }
+.tl-strip .ln { stroke: var(--ink-2); stroke-width: 1; } .tl-strip .bar, .tl-strip .stem { stroke: var(--ink); stroke-width: 1.4; } .tl-strip .ko { fill: var(--card); }
+.tl-strip .fr { font-size: 12px; font-weight: 800; text-anchor: middle; } .tl-strip .ts { font-size: 22px; font-weight: 800; text-anchor: middle; } .tl-strip .tab { font-size: 11px; font-weight: 800; text-anchor: middle; }
+.tl-strip .ct { font-size: 10px; fill: var(--ink-2); text-anchor: middle; } .tl-strip .kb { stroke: var(--ink); stroke-width: 1; } .tl-strip .kn { font-size: 9px; font-weight: 800; text-anchor: middle; fill: #fff; } .tl-strip .kn.dark { fill: var(--ink); }
+.tl .k1 { background: var(--good); fill: var(--good); } .tl .k2 { background: var(--rootc); fill: var(--rootc); color: var(--ink); } .tl .k3 { background: var(--ext); fill: var(--ext); } .tl .k4 { background: var(--guide); fill: var(--guide); }
+.tl-bar { background: var(--ink); color: var(--paper-2); text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; padding: 5px; }
+.tl-how { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .tl-how > div { display: grid; gap: 6px; align-content: start; } .tl-how p { font-size: 12px; color: var(--ink-2); } .tl-how p b { color: var(--ink); }
+.tl-pic-wrap { position: relative; } .tl-pic-wrap .tl-key { position: absolute; left: 6px; bottom: 6px; margin: 0; }
+.tl-key { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 3px; border: 1px solid var(--ink); font-size: 11px; font-weight: 800; color: #fff; margin-right: 6px; vertical-align: -3px; }
+@media (max-width: 760px) {
+  .tl-open { grid-template-columns: 1fr; gap: 10px; } .tl-title b { font-size: 30px; } .tl-title span { font-size: 16px; } .tl-title { margin: 8px 0; }
+  .tl-contents button { padding: 8px 6px; } .tl-lead { font-size: 13px; }
+  .tl-steps { grid-template-columns: 1fr; } .tl-step { grid-template-columns: 22px 1fr 46%; } .tl-step .tl-pic { grid-column: 3; grid-row: 1; } .tl-step p { font-size: 12px; }
+  .tl-how { grid-template-columns: 1fr; } .tl-how > div { grid-template-columns: 46% 1fr; } .tl-big svg { width: 100%; }
+}
+
+/* earlier lesson parts restyled to the approved teaching layouts */
+.tip { border: 0; border-left: 3px solid var(--accent); border-radius: 0; background: none; padding: 2px 0 2px 12px; }
+.tip b { letter-spacing: .14em; color: var(--ink-2); } .tip p { color: var(--ink-2); }
+.howto-steps li::before { font-weight: 400; font-size: 24px; }
+.figure { border-radius: 16px; background: color-mix(in srgb, var(--ext) 9%, var(--paper-2)); padding: 12px; }
+.fig-card { border: 0; border-radius: 16px; background: color-mix(in srgb, var(--accent-soft) 62%, transparent); }
+.fig-card h5 { letter-spacing: .14em; }
+#lede .tl-open { margin-top: 8px; }
+@media (max-width: 760px) { .tl-stripwrap { overflow-x: auto; } .tl-strip { min-width: 620px; } }
