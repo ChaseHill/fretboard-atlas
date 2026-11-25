@@ -162,7 +162,7 @@
     }
     const verdict = quiz.done ? `<span class="verdict ${quiz.ok ? 'good' : 'bad'}">${quiz.ok ? 'Correct' : 'Not quite'}</span>` : '';
     const msg = quiz.done ? (d.id === 'kiv' ? `${nm(T.mod(q.root))} up to ${nm(T.mod(q.top))} is a <b>${IV[q.iv]}</b>: ${q.iv} half step${q.iv === 1 ? '' : 's'}.` : d.id === 'kname' ? `That key is <b>${nm(q.pc)}</b>.` : quiz.ok ? `Yes. Every ${nm(q.pc)} is marked.` : `That was ${nm(T.mod(quiz.pick))}. Every ${nm(q.pc)} is marked in gold.`) : '';
-    const next = quiz.done ? '<button class="btn primary" data-act="next">Next →</button>' : '<button class="btn ghost" data-kp="skip">Skip</button>';
+    const next = quiz.done ? '<button class="btn primary" data-act="next">Next ›</button>' : '<button class="btn ghost" data-kp="skip">Skip</button>';
     A.ui({
       side: side(A, d.id), crumbs: 'Practice / Keyboard', title: d.name, chips: A.pill(levels[quiz.lv - 1]), lede: d.lede,
       tiles: A.tilesHTML([['Score', `${quiz.score} / ${quiz.total}`], ['Streak', quiz.streak], ['Best streak', quiz.best]]),

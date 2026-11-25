@@ -20,7 +20,7 @@
     <div class="tu-note" aria-live="polite"><span id="tuName">–</span><small id="tuOct"></small></div>
     <p class="tu-read" id="tuRead">Tap a string to hear its note. Tap it again to stop.</p>
     <div class="tu-strings" id="tuStrings" role="group" aria-label="Strings: tap one to hear its pitch">${STRINGS.map(([m, nm, s]) => `<button data-tu="ref" data-m="${m}" aria-pressed="false"><b>${nm}</b><small>string ${s}</small></button>`).join('')}</div>
-    <p class="tu-foot"><b>How to tune by ear.</b> Play the same open string on your guitar while the tone sounds. If you hear a slow wobble, the two are close: turn the peg until the wobble slows and disappears. Tune up to the note rather than down to it, so the string holds. Standard tuning, A = 440 Hz. Nothing is recorded; the microphone is not used.</p>`;
+    <p class="tu-foot">Play the same open string while the tone sounds, and turn its peg until the slow wobble between the two disappears. Tune up to the note, not down to it. The microphone is not used and nothing is recorded.</p>`;
   document.body.appendChild(dlg);
   const $ = (id) => dlg.querySelector('#' + id);
 

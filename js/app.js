@@ -179,7 +179,7 @@
   const stringTable = (v) => '<table class="strings"><tr><th>String</th><th>Fret</th><th>Finger</th><th>Note</th><th>Degree</th></tr>' + v.frets.map((f, i, all) => (f === null
     ? `<tr class="mute"><td>${6 - i} · ${T.OPEN[i]}</td><td>×</td><td></td><td></td><td></td></tr>`
     : `<tr><td>${6 - i} · ${T.OPEN[i]}</td><td><b>${f === 0 ? 'open' : state.capo && f === state.capo ? 'capo' : f}</b></td><td>${T.guitarFingers(all, state.capo).fingers[i] || '–'}</td><td>${esc(v.notes[i].note)}</td><td><span class="deg ${v.notes[i].role}-bg">${esc(v.notes[i].deg)}</span></td></tr>`)).reverse().join('') + '</table>';
-  const navHTML = (prevOff, nextOff, nextLabel = 'Next →') => `<div class="nav"><button class="btn ghost" data-act="prev" ${prevOff ? 'disabled' : ''}>← Back</button><button class="btn primary" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button></div>`;
+  const navHTML = (prevOff, nextOff, nextLabel = 'Next ›') => `<div class="nav"><button class="btn ghost" data-act="prev" ${prevOff ? 'disabled' : ''}>← Back</button><button class="btn primary" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button></div>`;
   const stepCard = ({ no, tag, warn, title, body, idea, more = '', hint = '' }) => `<section class="card step">
     <div class="step-head"><span>${no}</span>${tag ? `<span class="tag${warn ? ' warn' : ''}">${tag}</span>` : ''}</div>
     <h2>${title}</h2><div class="body">${body}</div>${idea ? `<div class="idea"><b>Key idea</b><p>${idea}</p></div>` : ''}${more}
@@ -406,7 +406,7 @@
       panel: stepCard({ no: `Lesson ${li + 1}.${i + 1} <small>step ${i + 1} of ${L.steps.length}</small>`, tag: st.tag, title: st.title,
         body: `<p>${st.body}</p>`, idea: st.idea,
         more: (TL ? TL.extras(st) : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
-          navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson →` : 'Next →'), hint: KB }) +
+          navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson ›` : 'Next ›'), hint: KB }) +
         `<section class="card howto"><b>${lastStep ? 'You can now' : 'You’ll learn'}</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
          <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>`,
     });
@@ -507,7 +507,7 @@
       railHead: `<span>Voicings of ${esc(c.name)}</span><small>${vi + 1} of ${c.voicings.length}</small>`,
       rail: c.groups.map((g) => `<div class="group-label"><b>${esc(g.label)}</b>${g.hint ? ` · ${g.hint}` : ''}</div><div class="thumbs">${g.items.map((it) => thumbHTML(it, `data-act="voicing" data-i="${n}"`, n === vi, ++n)).join('')}</div>`).join(''),
       panel: stepCard({ no: `Voicing ${vi + 1} / ${c.voicings.length}`, tag: v.wide ? 'Big stretch' : v.stretch ? 'Stretch' : d.tag, warn: v.stretch, title: d.title, body: `<p>${d.body}</p><p class="fingers"><b>Suggested fingering.</b> ${fingerLine(v)}</p>`, idea: d.idea,
-        more: stringTable(v) + navHTML(vi === 0 && ci === 0, vi === c.voicings.length - 1 && ci === list.length - 1, vi === c.voicings.length - 1 && ci < list.length - 1 ? `Next: ${esc(list[ci + 1].name)} →` : 'Next →'),
+        more: stringTable(v) + navHTML(vi === 0 && ci === 0, vi === c.voicings.length - 1 && ci === list.length - 1, vi === c.voicings.length - 1 && ci < list.length - 1 ? `Next: ${esc(list[ci + 1].name)} →` : 'Next ›'),
         hint: '<kbd>←</kbd><kbd>→</kbd> voicing · <kbd>↑</kbd><kbd>↓</kbd> chord · <kbd>Space</kbd> strum' }) + (/^r\d+$/.test(c.id) ? '' : insightCard(state.key, c.id)),
     }));
     showVoicing(c, v);
@@ -716,7 +716,7 @@
     const q = quiz.q, id = ex.id, isIv = id === 'interval' || id === 'nameiv', lv = state.practice.level;
     const strName = (s) => `string ${6 - s} (${T.OPEN[s]})`;
     let prompt, notes = [], rail = '', win = null, hear = null;
-    const next = quiz.done ? '<button class="btn primary" data-act="next">Next →</button>' : '<button class="btn ghost" data-act="skip">Skip</button>';
+    const next = quiz.done ? '<button class="btn primary" data-act="next">Next ›</button>' : '<button class="btn ghost" data-act="skip">Skip</button>';
     const verdict = quiz.done ? `<span class="verdict ${quiz.ok ? 'good' : 'bad'}">${quiz.ok ? 'Correct' : 'Not quite'}</span>` : '';
     if (id === 'quiz') {
       const pcv = pcAt(q.s, q.f);
