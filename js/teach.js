@@ -62,11 +62,17 @@
     chordBox, tab,
     // the plate that opens a lesson: number, two-weight title, what is inside
     opener(L, n, tint) {
-      const words = String(L.title).split(' '), key = words.pop(), lead = words.join(' ');
-      return `<div class="tl-open"><div class="tl-plate"${tint ? ` style="--tint:${tint}"` : ''}><div class="tl-eyebrow">lesson ${n}</div>
-        <div class="tl-title">${lead ? `<span>${esc(lead)}</span>` : ''}<b>${esc(key)}</b></div>
-        <ol class="tl-contents">${L.steps.map((s, k) => `<li><button data-act="step" data-i="${k}">${s.title}</button></li>`).join('')}</ol></div>
-        <p class="tl-lead">${L.lede}</p></div>`;
+      const words = String(L.title).split(' '), key = words.pop(), lead = words.join(' '), first = L.steps[0];
+      // the first step's text in two short columns, split between sentences
+      const sentences = String(first.body).match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [first.body], half = Math.ceil(sentences.length / 2);
+      specs.push({ neck: { notes: [] }, box: [0, 0, 800, 545] });
+      return `<div class="tl tl-open"><div class="tl-plate"${tint ? ` style="--tint:${tint}"` : ''}><div class="ghost" data-tl-neck="${specs.length - 1}"></div>
+        <div class="tl-eyebrow">lesson ${n}</div>
+        <h2 class="tl-title">${lead ? `<span>${esc(lead)}</span>` : ''}<b>${esc(key)}</b></h2>
+        <div class="tl-contents">${L.steps.map((s, k) => `<button data-act="step" data-i="${k}">${s.title}</button>`).join('')}</div></div>
+        <div class="tl-open-side"><p class="tl-lead">${L.lede}</p>
+          <h3 class="tl-h"><small>Step ${n}.1</small>${first.title}</h3>
+          <div class="tl-cols tl-two"><p>${sentences.slice(0, half).join('').trim()}</p>${sentences.length > 1 ? `<p>${sentences.slice(half).join('').trim()}</p>` : ''}</div></div></div>`;
     },
     // everything a step adds beyond its text, in reading order
     extras(st) {

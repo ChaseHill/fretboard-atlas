@@ -186,7 +186,7 @@
     ${hint ? `<p class="hint">${hint}</p>` : ''}</section>`;
   const KB = '<kbd>←</kbd><kbd>→</kbd> step · <kbd>Space</kbd> play · <kbd>M</kbd> metronome';
   function ui(p) {
-    $('side').innerHTML = p.side; if (p.crumbsHTML) $('crumbs').innerHTML = p.crumbsHTML; else $('crumbs').textContent = p.crumbs; $('crumbs').classList.toggle('running', !!p.crumbsHTML); $('title').textContent = p.title;
+    $('side').innerHTML = p.side; if (p.crumbsHTML) $('crumbs').innerHTML = p.crumbsHTML; else $('crumbs').textContent = p.crumbs; $('crumbs').classList.toggle('running', !!p.crumbsHTML); $('layout').toggleAttribute('data-opener', !!p.opener); $('title').textContent = p.title;
     $('chips').innerHTML = p.chips || ''; $('lede').innerHTML = p.lede || '';
     $('tiles').innerHTML = p.tiles || ''; $('actions').innerHTML = p.actions || '';
     $('extra').innerHTML = p.extra || ''; $('railHead').innerHTML = p.railHead || ''; $('rail').innerHTML = p.rail || '';
@@ -399,7 +399,7 @@
     ui({
       side, crumbs: `${L.group} / Lesson ${inGroup.indexOf(L) + 1} of ${inGroup.length}`, title: L.title,
       chips: pill(`${L.mins} min`) + pill(L.level) + pill(`${L.steps.length} steps`), lede: i === 0 && TL ? TL.opener(L, LESSONS.indexOf(L) + 1, FAM_COLORS[groups.indexOf(L.group) % FAM_COLORS.length]) : L.lede,
-      crumbsHTML: `<span>Lesson ${LESSONS.indexOf(L) + 1} · ${L.title}</span><span>${st.title}</span>`,
+      crumbsHTML: `<span>Lesson ${LESSONS.indexOf(L) + 1} · ${L.title}</span><span>Step ${i + 1} of ${L.steps.length} · ${st.title}</span>`, opener: i === 0 && !!TL,
       extra: gbar + (st.object && window.G.Figures && window.G.Figures[st.object] ? window.G.Figures[st.object]() : ''), actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : ''),
       railHead: `<span>In this lesson</span><button class="btn small" data-act="restart">↺ Restart lesson</button>`,
       rail: `<ol class="steps">${L.steps.map((s, k) => `<li class="${k === i ? 'on' : k < i ? 'past' : ''}"><button data-act="step" data-i="${k}"><b>${k + 1}</b><span>${s.title}</span></button></li>`).join('')}</ol>`,

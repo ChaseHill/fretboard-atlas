@@ -1056,3 +1056,71 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
 .crumbs.running { display: flex; justify-content: space-between; gap: 12px; font-size: var(--fs-eyebrow); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .crumbs.running span:last-child { text-align: right; }
 @media (max-width: 760px) { [data-view="learn"] .crumbs.running { display: flex; } }
+/* the acoustic guitar figure: real proportions, a body with depth, one light from the upper left */
+.ao-shadow { fill: #000; opacity: .13; } .ao-side { fill: #8a6238; } .ao-edge { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; }
+.ao-body { fill: #d9a866; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; }
+.ao-binding { fill: none; stroke: #f1e7d0; stroke-width: 1.6; transform-box: fill-box; transform-origin: center; transform: scale(.972); opacity: .9; }
+.ao-guard { fill: #3a2a22; stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; opacity: .92; }
+.ao-rosette { fill: none; stroke: #3a2a22; stroke-width: 4; } .ao-hole { fill: #1c1512; stroke: var(--ink); stroke-width: 1.4; }
+.ao-neckside { fill: #9a6f42; stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; }
+.ao-headp { fill: #4a372c; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+.ao-shaft { stroke: #8d867a; stroke-width: 2.2; } .ao-pin { fill: #f1e7d0; stroke: var(--ink); stroke-width: .7; }
+.ao-fret { stroke: #d6cfc2; stroke-width: 1.5; stroke-linecap: round; } .ao-string { stroke: #e2ddd3; opacity: .95; }
+.ao-side { stroke: none; fill: #8a6238; }
+.ic { width: 16px !important; height: 16px !important; flex: none; } .ins-play .ic { width: 12px !important; height: 12px !important; }
+
+/* ================= teaching layouts, as published in the design system =================
+   These rules are taken from the design cards (tools/build-teaching-cards.js). Change the card first, then this. */
+.tl { font-size: 13px; line-height: 1.55; } .tl * { box-sizing: border-box; }
+.tl p { margin: 0 0 8px; color: var(--ink-2); } .tl p b, .tl li b { color: var(--ink); }
+.tl-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.tl-h { font-size: 18px; font-weight: 800; line-height: 1.2; margin: 0 0 6px; color: var(--ink); } .tl-h small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-right: 6px; }
+.tl-sub { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin: 10px 0 2px; }
+.tl-cols { display: grid; gap: 18px; } .tl-two { grid-template-columns: 1fr 1fr; }
+.tl-panel { background: color-mix(in srgb, var(--accent-soft) 62%, transparent); border-radius: 16px; padding: 14px 16px; border: 0; }
+.tl-panel ul { margin: 6px 0 0; padding-left: 16px; } .tl-panel li { margin: 3px 0; color: var(--ink-2); font-size: 12px; }
+.tl-tip { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; } .tl-tip b { display: block; color: var(--ink); }
+/* lesson opener */
+.tl-open { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; margin: 8px 0 4px; }
+.tl-plate { position: relative; overflow: hidden; border-radius: 16px; background: color-mix(in srgb, var(--tint, var(--ext)) 14%, var(--paper-2)); padding: 26px 28px; min-height: 300px; }
+.tl-plate .ghost { position: absolute; inset: -30px -120px auto -40px; opacity: .1; pointer-events: none; border: 0; background: none; }
+.tl-plate .ghost svg { display: block; width: 100%; height: auto; }
+.tl-plate > * { position: relative; } .tl-plate > .ghost { position: absolute; }
+.tl-title { margin: 34px 0 18px; line-height: 1; color: var(--ink); } .tl-title span { display: block; font-size: 26px; font-weight: 400; color: var(--ink); } .tl-title b { display: block; font-size: 50px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.tl-contents { list-style: none; counter-reset: none; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 14px; display: inline-grid; gap: 2px; font-weight: 700; font-size: 12px; text-align: center; margin: 0 0 0 150px; }
+.tl-contents button { all: unset; cursor: pointer; display: block; text-align: center; padding: 1px 6px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--ink); }
+.tl-contents button::before { content: none; } .tl-contents button:hover, .tl-contents button:focus-visible { background: var(--accent-soft); }
+.tl-open-side { padding: 20px 6px; } .tl-open-side .tl-lead { font-size: 15px; line-height: 1.6; color: var(--ink); margin: 0; max-width: none; } .tl-open-side .tl-h { margin-top: 22px; }
+/* running head */
+.crumbs.running { border-bottom: 1.5px solid var(--line); padding-bottom: 6px; margin-bottom: 14px; }
+/* numbered step strip */
+.tl-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tl-step { display: grid; grid-template-columns: 26px 1fr; gap: 4px 8px; align-items: start; }
+.tl-step .n { font-size: 26px; font-weight: 400; line-height: 1; color: var(--accent); } .tl-step p { font-size: 11.5px; margin: 2px 0 0; min-height: 36px; color: var(--ink-2); }
+.tl-step .tl-pic, .tl-how .tl-pic { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--paper-2); }
+.tl-steps-text .tl-step p { font-size: 11.5px; color: var(--ink-2); min-height: 0; }
+/* chord box, notation strip, keyed moments */
+.tl-box .fn { fill: var(--paper); } .tl-strip .ko { fill: var(--paper); } .tl-strip .ct { font-weight: 500; }
+.tl-bar { background: var(--ink); color: var(--paper); text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; padding: 5px; margin: 10px 0 12px; }
+.tl-how { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; } .tl-how > div { display: grid; grid-template-columns: 1fr 1.1fr; gap: 12px; align-items: start; }
+.tl-how .tl-pic { grid-column: auto; } .tl-how p { font-size: 12px; }
+/* the opening step: the plate carries the lesson's title, so the plain title row is not repeated */
+[data-opener] .title-row { display: none; } [data-opener] #lede { max-width: none; }
+/* the side panel is narrow: strips and "here's how" stack there, as they do on a phone */
+.panel .tl-steps { grid-template-columns: 1fr; } .panel .tl-how { grid-template-columns: 1fr; } .panel .tl-step p { min-height: 0; }
+@media (max-width: 1180px) { .tl-contents { margin-left: 0; } }
+@media (max-width: 760px) {
+  .tl-open { grid-template-columns: 1fr; gap: 6px; }
+  .tl-plate { padding: 18px 18px 20px; min-height: 0; } .tl-title { margin: 18px 0 14px; } .tl-title span { font-size: 22px; } .tl-title b { font-size: 40px; }
+  .tl-contents { display: grid; margin: 0; } .tl-contents button { padding: 7px 6px; }
+  .tl-open-side { padding: 10px 2px 0; } .tl-open-side .tl-lead { font-size: 14px; } .tl-two { grid-template-columns: 1fr; gap: 0; }
+  .tl-steps, .tl-how { grid-template-columns: 1fr; } .tl-step p { min-height: 0; font-size: 12px; }
+  .tl-step { grid-template-columns: 26px 1fr 46%; } .tl-step .tl-pic { grid-column: 3; grid-row: 1; } .tl-steps-text .tl-step { grid-template-columns: 26px 1fr; }
+  .tl-how > div { grid-template-columns: 46% 1fr; }
+  [data-opener] .under-step .body, [data-opener] .under-step h2 { display: none; } /* already in the opener */
+  .ao-svg { width: 112%; margin: 0 -6%; }
+}
+/* small fixes found on the way */
+.reset .ic-wrap { width: auto; } .reset .btn { white-space: nowrap; }
+.tl-contents { margin-left: min(150px, 18%); }
+@media (max-width: 1180px) { .tl-contents { margin-left: 0; } }
