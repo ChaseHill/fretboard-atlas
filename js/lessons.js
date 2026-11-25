@@ -219,4 +219,6 @@
         st('I: Cmaj7', 'ii–V–I', 'The B stays and becomes the 7th of Cmaj7. The F falls one fret to E, the 3rd. Three chords, and your hand barely moved.', 'Good voice leading is the smallest possible motion between chords.', () => ({ notes: pt('C', '4:2 3:4', 'deg'), window: [2, 4], mute: true }), 'strum', 'Play all three in time, four beats each, with the metronome at 80. Then start the same shapes two frets higher: that is ii–V–I in D.', { label: 'Rootless Cmaj9 voicings', hash: '#chords-C-maj9-1' }),
       ] },
   ];
+  // helpers for the other lesson files
+  G.LessonKit = { st, pt, seq, ch, sc, allOf, chromatic, naturals, openStrings };
 })();

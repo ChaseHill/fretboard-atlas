@@ -117,6 +117,7 @@
       setPick(fn) { pick = fn; svg.classList.toggle('pickable', !!fn); },
       // notes: [{s: 0..5 (string 6→1), f, label, role, dim}], window: [lo, hi] frets, mute: mark unused strings ×, ghosts: [{s, f, label}]
       show({ notes = [], window: w = null, mute = false, ghosts: gh = [], capo = 0 } = {}) {
+        if (G.Tab) G.Tab.update(arguments[0] || {}); // the same notes, written as tablature under the neck
         capoAt = capo;
         capoG.classList.toggle('off', !capo);
         const cdx = (capo ? capo : -1.6) * FW;

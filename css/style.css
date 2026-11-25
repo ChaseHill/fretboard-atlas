@@ -902,3 +902,51 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
   .instruments, [data-view="chords"] .instruments, [data-view="practice"] .instruments { max-height: min(270px, 31dvh); }
 }
 @media (max-width: 760px) and (max-height: 760px) { .under td, .under th { padding: 2px 6px; } .under table { font-size: 11.5px; } .lesson { padding-top: 6px; } }
+
+/* ---------- fuller lesson format: opener, labelled figures, numbered how-to steps, tips ---------- */
+.step-head small { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ink-2); margin-left: 6px; }
+.opener { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; border: 1.5px solid var(--line); border-radius: 10px; background: var(--paper-2); padding: 12px 14px; margin: 10px 0; }
+.opener-no { font-size: 44px; font-weight: 800; line-height: .9; color: var(--accent); min-width: 34px; text-align: center; }
+.opener b { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.opener ol { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+.opener button { background: none; border: 0; padding: 3px 0; font: inherit; color: var(--ink); cursor: pointer; text-align: left; }
+.opener button:hover { color: var(--accent); } .opener i { font-style: normal; font-weight: 700; color: var(--ink-2); margin-right: 6px; font-size: 11px; }
+.figure { margin: 12px 0; }
+.fig { display: block; width: 100%; height: auto; }
+.fig-shadow { fill: #000; opacity: .12; }
+.fig-body { fill: var(--roast, #c9995e); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.fig-rosette { fill: none; stroke: var(--ink); stroke-width: 5; opacity: .55; } .fig-hole { fill: var(--board, #2f2723); stroke: var(--ink); stroke-width: 1.5; }
+.fig-guard { fill: var(--board, #2f2723); stroke: var(--ink); stroke-width: 1.5; opacity: .9; }
+.fig-bridge, .fig-neck, .fig-head { fill: var(--board, #2f2723); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+.fig-head { fill: #4a372c; } .fig-saddle, .fig-nut { fill: var(--bone, #f1e7d0); stroke: var(--ink); stroke-width: 1; }
+.fig-fret { stroke: var(--fret, #cfc6b8); stroke-width: 1.6; } .fig-dot { fill: var(--inlay, #f1e7d0); } .fig-pin { fill: var(--bone, #f1e7d0); stroke: var(--ink); stroke-width: .6; }
+.fig-string { stroke: var(--string, #d2ccc2); } .fig-metal { fill: var(--fret, #cfc6b8); stroke: var(--ink); stroke-width: 1.2; } .fig-post { fill: var(--fret, #cfc6b8); stroke: var(--ink); stroke-width: .8; }
+.fig-mark circle { fill: var(--accent); stroke: #fff; stroke-width: 1.6; } .fig-mark text { fill: #fff; font: 800 10.5px var(--mono); text-anchor: middle; }
+.fig-key { list-style: none; counter-reset: fk; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 16px; }
+.fig-key li { counter-increment: fk; display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.fig-key li::before { content: counter(fk); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: 10.5px; }
+.fig-key b { color: var(--ink); }
+.fig-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.fig-card { border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--paper-2); }
+.fig-card h4 { margin: 0 0 4px; font-size: 13px; } .fig-card p { margin: 0 0 6px; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.fig-card h5 { margin: 8px 0 2px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.fig-card ul { margin: 0; padding-left: 16px; font-size: 12px; line-height: 1.45; }
+.howto-steps { list-style: none; counter-reset: hs; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.howto-steps li { counter-increment: hs; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; font-size: 12.5px; line-height: 1.5; }
+.howto-steps li::before { content: counter(hs); font-size: 22px; font-weight: 800; line-height: 1; color: var(--accent); text-align: center; }
+.tip { border-radius: 16px 16px 16px 4px; background: var(--accent-soft); border: 1.5px solid var(--line); padding: 10px 14px; margin: 10px 0; }
+.tip b { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; } .tip p { margin: 3px 0 0; font-size: 12.5px; line-height: 1.5; }
+@media (max-width: 760px) { .fig-key, .fig-cards { grid-template-columns: 1fr; } .opener-no { font-size: 36px; } .howto-steps li, .tip p, .fig-key li { font-size: 13px; } }
+/* ---------- tab strip: the notes on screen written as tablature, each column tappable ---------- */
+.tabstrip { margin: 6px 0 2px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 8px 4px; overflow-x: auto; }
+.tabstrip svg { display: block; height: 104px; min-width: 100%; }
+.tab-line { stroke: var(--ink-2); stroke-width: 1; opacity: .55; } .tab-bar { stroke: var(--ink); stroke-width: 1.4; }
+.tab-name { font: 700 9px var(--mono); fill: var(--ink-2); text-anchor: middle; } .tab-word { font: 800 12px var(--mono); fill: var(--ink); text-anchor: middle; }
+.tab-col { cursor: pointer; } .tab-col rect.hit { fill: transparent; } .tab-col:hover rect.hit, .tab-col.on rect.hit { fill: var(--accent-soft); }
+.tab-num rect { fill: var(--card); } .tab-num text { font: 800 11.5px var(--mono); fill: var(--ink); text-anchor: middle; }
+.tab-col.on .tab-num text { fill: var(--accent); }
+.tab-step circle { fill: var(--accent); } .tab-step text { font: 800 8.5px var(--mono); fill: #fff; text-anchor: middle; }
+.tab-step.r-root circle { fill: var(--rootc); } .tab-step.r-root text { fill: var(--ink); } .tab-step.r-guide circle { fill: var(--guide); } .tab-step.r-fifth circle { fill: var(--fifth); } .tab-step.r-ext circle { fill: var(--ext); }
+.tab-cap { font-size: 10.5px; color: var(--ink-2); padding: 0 2px 2px; display: flex; justify-content: space-between; gap: 8px; }
+@media (max-width: 760px) { .stage > .tabstrip { order: 3; } .stage > .under { order: 3; } .tabstrip svg { height: 96px; } }
+@media (max-width: 760px) { .figure { overflow-x: auto; } .figure .fig { min-width: 560px; } }

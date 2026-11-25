@@ -401,8 +401,11 @@
       extra: gbar, actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : ''),
       railHead: `<span>In this lesson</span><button class="btn small" data-act="restart">↺ Restart lesson</button>`,
       rail: `<ol class="steps">${L.steps.map((s, k) => `<li class="${k === i ? 'on' : k < i ? 'past' : ''}"><button data-act="step" data-i="${k}"><b>${k + 1}</b><span>${s.title}</span></button></li>`).join('')}</ol>`,
-      panel: stepCard({ no: `Step ${i + 1} / ${L.steps.length}`, tag: st.tag, title: st.title, body: `<p>${st.body}</p>`, idea: st.idea,
-        more: `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
+      panel: stepCard({ no: `Lesson ${li + 1}.${i + 1} <small>step ${i + 1} of ${L.steps.length}</small>`, tag: st.tag, title: st.title,
+        body: (i === 0 ? `<div class="opener"><span class="opener-no">${li + 1}</span><div><b>In this lesson</b><ol>${L.steps.map((s, k) => `<li><button data-act="step" data-i="${k}"><i>${li + 1}.${k + 1}</i> ${s.title}</button></li>`).join('')}</ol></div></div>` : '') +
+          `<p>${st.body}</p>` + (st.figure && window.G.Figures && window.G.Figures[st.figure] ? `<figure class="figure">${window.G.Figures[st.figure]()}</figure>` : '') +
+          (st.how ? `<ol class="howto-steps">${st.how.map((h) => `<li><span>${h}</span></li>`).join('')}</ol>` : ''), idea: st.idea,
+        more: (st.tip ? `<aside class="tip"><b>Tip</b><p>${st.tip}</p></aside>` : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
           navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson →` : 'Next →'), hint: KB }) +
         `<section class="card howto"><b>You’ll learn</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
          <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>`,
@@ -882,7 +885,7 @@
     next: () => cur.next && cur.next(), prev: () => cur.prev && cur.prev(), up: () => cur.up && cur.up(), down: () => cur.down && cur.down(),
     bpm: (d) => Metro.setBpm(Metro.bpm + +d.d),
   };
-  window.G.App = { can: (a) => typeof cur[a] === 'function' && (!cur.ok || cur.ok(a)), redraw: () => render() };
+  window.G.App = { can: (a) => typeof cur[a] === 'function' && (!cur.ok || cur.ok(a)), redraw: () => render(), neck };
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-act]');
     if (Guide.on && el && !['guide', 'gseek', 'gprev', 'gnext', 'bpm', 'fold'].includes(el.dataset.act)) pauseGuide(); // taking the wheel pauses the guide; it resumes from here
