@@ -27,7 +27,10 @@
     dry = ctx.createGain();
     bodyIn.connect(hp); hp.connect(eq.low); eq.low.connect(eq.mid); eq.mid.connect(eq.nasal); eq.nasal.connect(eq.shelf);
     eq.shelf.connect(dry);
-    dry.connect(comp); comp.connect(master); master.connect(ctx.destination);
+    dry.connect(comp); comp.connect(master);
+    const limit = ctx.createDynamicsCompressor(); // a brick wall just under full scale
+    limit.threshold.value = -4; limit.knee.value = 0; limit.ratio.value = 20; limit.attack.value = 0.002; limit.release.value = 0.12;
+    master.connect(limit); limit.connect(ctx.destination);
     clickBus = ctx.createGain(); clickBus.connect(master);
     // keys path: no guitar body EQ; a slow tremolo that also drifts left and right, like a suitcase Rhodes
     keysIn = ctx.createGain();
@@ -126,7 +129,7 @@
       const r = A.render(midi, A.settings.tone, ctx.sampleRate);
       const buf = ctx.createBuffer(1, r.data.length, ctx.sampleRate);
       buf.getChannelData(0).set(r.data);
-      c = { buf, rate: r.rate, gain: levelGain(r.data, ctx.sampleRate, 0.17) }; cache.set(key, c);
+      c = { buf, rate: r.rate, gain: levelGain(r.data, ctx.sampleRate, A.settings.tone === 'soft' ? 0.105 : 0.14) }; cache.set(key, c);
     }
     const at = Math.max(when || 0, ctx.currentTime);
     const src = ctx.createBufferSource(), g = ctx.createGain();
@@ -148,7 +151,7 @@
     if (!c) {
       const r = A.render(midi, tone, ctx.sampleRate), buf = ctx.createBuffer(1, r.data.length, ctx.sampleRate);
       buf.getChannelData(0).set(r.data);
-      c = { buf, rate: r.rate, gain: levelGain(r.data, ctx.sampleRate, 0.15) }; cache.set(id, c);
+      c = { buf, rate: r.rate, gain: levelGain(r.data, ctx.sampleRate, 0.16) }; cache.set(id, c);
     }
     const at = Math.max(when || 0, ctx.currentTime), src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = c.buf; src.playbackRate.value = c.rate;

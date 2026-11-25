@@ -87,7 +87,7 @@
     });
     A.neck.show(neckFor(tones, v.notes.map((x) => x.midi)), { notes: v.notes.map((x) => ({ midi: x.midi, label: lab(A, x), role: x.role, hand: x.hand })) });
     const first = (r, i) => T.keyVoicings(r, i).find((x) => x.kind === v.kind) || T.keyVoicings(r, i)[0];
-    A.setCur({ play: () => play(A, v.notes), alt: () => play(A, v.notes, 0.24),
+    A.setCur({ ok: (a) => (a === 'next' ? vi < vs.length - 1 || ci < list.length - 1 : a === 'prev' ? vi > 0 || ci > 0 : a === 'down' ? ci < list.length - 1 : a === 'up' ? ci > 0 : true), play: () => play(A, v.notes), alt: () => play(A, v.notes, 0.24),
       hear: (r, i) => { const t = first(r, i).notes; play(A, v.notes); Audio.at(Audio.now() + 1.0, () => { A.keys.show({ notes: t.map((x) => ({ midi: x.midi, label: esc(x.deg), role: x.role, hand: x.hand })) }); A.untooSoon(); play(A, t); }); },
       next: () => (vi < vs.length - 1 ? A.go({ chords: { vi: vi + 1 } }) : ci < list.length - 1 && A.go({ chords: { id: list[ci + 1].id, vi: 0 } })),
       prev: () => (vi > 0 ? A.go({ chords: { vi: vi - 1 } }) : ci > 0 && A.go({ chords: { id: list[ci - 1].id, vi: 1e3 } })),
@@ -162,7 +162,7 @@
         more: noteTable(v) + `<div class="nav"><button class="btn ghost" data-act="prev" ${ci === 0 ? 'disabled' : ''}>←</button><button class="btn primary" data-act="open-chord" data-root="${kroot}" data-id="${id}">All ${esc(name)} voicings</button><button class="btn ghost" data-act="next" ${ci === 6 ? 'disabled' : ''}>→</button></div>` }) + A.insightCard(kroot, id),
     });
     A.neck.show(neckFor(T.tones(kroot, q.degs), v.notes.map((x) => x.midi)), { notes: v.notes.map((x) => ({ midi: x.midi, label: lab(A, x), role: x.role, hand: x.hand })) });
-    A.setCur({ play: () => play(A, v.notes), next: () => ci < 6 && A.go({ circle: { ci: ci + 1 } }), prev: () => ci > 0 && A.go({ circle: { ci: ci - 1 } }),
+    A.setCur({ ok: (a) => (a === 'next' ? ci < 6 : a === 'prev' ? ci > 0 : true), play: () => play(A, v.notes), next: () => ci < 6 && A.go({ circle: { ci: ci + 1 } }), prev: () => ci > 0 && A.go({ circle: { ci: ci - 1 } }),
       hear: (r, i) => { const t = (T.keyVoicings(r, i).find((x) => x.kind === 'lhroot') || T.keyVoicings(r, i)[0]).notes; play(A, v.notes); Audio.at(Audio.now() + 1.0, () => { A.untooSoon(); play(A, t); }); } });
   };
 

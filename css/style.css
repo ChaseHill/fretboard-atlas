@@ -871,3 +871,34 @@ ul.ins { gap: 8px; margin: 8px 0; } ul.ins li { gap: 8px; }
   .title-row .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; } .title-row .chips > * { flex: none; }
   [data-view="circle"] .circle { width: min(100%, 230px, 26dvh); }
 }
+
+/* ---------- critic round 3 ---------- */
+@media (max-width: 760px) {
+  /* note chips wrap under the title: nothing is cut and nothing scrolls sideways */
+  .title-row { flex-wrap: wrap; row-gap: 4px; } .title-row h1 { flex: 0 1 auto; }
+  .title-row .chips { flex-wrap: wrap; overflow: visible; gap: 4px; } .title-row .chips > * { flex: 0 0 auto; }
+  .title-row .chips .chip, .title-row .chips > * { font-size: 11px; }
+  /* comfortable touch sizes */
+  .pager .btn, .tab { height: 44px; } .pager.phone-only { bottom: calc(57px + env(safe-area-inset-bottom, 0px)); }
+  body { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); } body.no-pager { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+  #mBpm { height: 36px; } .sidebar .tree button, .sidebar li button { min-height: 40px; }
+  .gtick { min-width: 18px; min-height: 18px; }
+  .ins-link, .ins-play { min-height: 40px; } .ins-play { width: 40px; }
+}
+/* a phone held sideways keeps the phone arrangement: one column, instrument first */
+@media (max-height: 500px) and (max-width: 950px) and (orientation: landscape) {
+  .layout { grid-template-columns: minmax(0, 1fr); } .panel, #chart { grid-column: 1; position: static; }
+  .sidebar { position: static; max-height: none; } .topbar { flex-wrap: nowrap; }
+  .tabs { margin-left: 8px; flex-wrap: nowrap; } .tab { padding: 6px 10px; } .brand span { display: none; }
+  #mTap, #mSig, #mDots { display: none; }
+  .instruments { max-height: 62dvh; overflow: auto; }
+}
+@media (max-width: 760px) {
+  /* note chips: one compact row of their own under the title */
+  .title-row .chips { flex: 1 1 100%; flex-wrap: wrap; gap: 3px; }
+  .title-row .chip { padding: 1px 6px 1px 2px; gap: 3px; font-size: 10.5px; box-shadow: none; }
+  .title-row .chip b { min-width: 18px; padding: 0 3px; font-size: 10px; line-height: 16px; }
+  [data-view="chords"] .crumbs, [data-view="scales"] .crumbs, [data-view="circle"] .crumbs { display: none; }
+  .instruments, [data-view="chords"] .instruments, [data-view="practice"] .instruments { max-height: min(270px, 31dvh); }
+}
+@media (max-width: 760px) and (max-height: 760px) { .under td, .under th { padding: 2px 6px; } .under table { font-size: 11.5px; } .lesson { padding-top: 6px; } }

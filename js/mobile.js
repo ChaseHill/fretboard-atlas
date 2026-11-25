@@ -29,7 +29,7 @@
     const lift = () => {
       syncPager();
       const t = panel.querySelector('table.strings');
-      if (!narrow.matches) { if (t) under.replaceChildren(); return; } // on a wide screen everything stays where it was drawn
+      if (!narrow.matches) { if (under.firstChild) { under.replaceChildren(); if (window.G.App && window.G.App.redraw) window.G.App.redraw(); } return; } // on a wide screen everything stays where the app drew it
       under.replaceChildren();
       const view = layout ? layout.dataset.view : '', step = panel.querySelector('.step');
       if (view === 'learn' && step) { step.classList.add('under-step'); under.appendChild(step); }
@@ -66,8 +66,9 @@
   // The voicing pictures sit in one sideways row on a phone: keep the chosen one in the middle of it.
   const rail = document.getElementById('rail');
   if (rail) {
-    const seek = () => { const t = rail.querySelector('.thumb.on'), r = t && t.parentElement; if (r && r.scrollWidth > r.clientWidth + 4) r.scrollLeft = t.offsetLeft - r.offsetLeft - (r.clientWidth - t.offsetWidth) / 2; };
+    const seek = () => { const t = document.querySelector('#under .thumb.on') || rail.querySelector('.thumb.on'), r = t && t.parentElement; if (r && r.scrollWidth > r.clientWidth + 4) r.scrollLeft = t.offsetLeft - r.offsetLeft - (r.clientWidth - t.offsetWidth) / 2; };
     new MutationObserver(seek).observe(rail, { childList: true, subtree: true });
+    const underBox = document.getElementById('under'); if (underBox) new MutationObserver(seek).observe(underBox, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     seek();
   }
   const pop = document.querySelector('#settings .pop'), metro = document.getElementById('metro'), themeBtn = document.getElementById('themeBtn');
@@ -94,14 +95,21 @@
     const svg = host.querySelector('svg'), sr = svg && svg.getBoundingClientRect();
     if (!sr || !sr.width) return;
     // Read where each peg is going (its transform), not where it is: pegs slide, and a measurement mid-slide would be wrong.
-    const vb = svg.viewBox.baseVal, k = sr.width / vb.width, off = sr.left - (box.getBoundingClientRect().left - box.scrollLeft), half = 16 * k;
+    const vb = svg.viewBox.baseVal;
+    if (onKeys) {
+      const xs = (lit.length ? lit : all).map((p) => { const mm = /translate\(\s*(-?[\d.]+)/.exec(p.style.transform); return mm ? +mm[1] : null; }).filter((x) => x !== null);
+      const span = xs.length ? Math.max(...xs) - Math.min(...xs) + 40 : 0, room = box.clientWidth - 16, full = 700;
+      const need = span * (full / vb.width) > room ? Math.max(430, Math.floor(room * vb.width / span)) : full;
+      if (host.style.minWidth !== need + 'px') { host.style.minWidth = need + 'px'; last = ''; }
+    }
+    const sr2 = svg.getBoundingClientRect(), k = sr2.width / vb.width, off = sr2.left - (box.getBoundingClientRect().left - box.scrollLeft), half = 16 * k;
     let lo = Infinity, hi = -Infinity, ySum = 0, yN = 0;
     (lit.length ? lit : all).forEach((p) => { const m = /translate\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)/.exec(p.style.transform); if (!m) return; const x = off + (+m[1] - vb.x) * k; lo = Math.min(lo, x - half); hi = Math.max(hi, x + half); ySum += (+m[2] - vb.y) * k; yN++; });
     const key = Math.round(lo) + ':' + Math.round(hi);
     if (lo === Infinity || key === last) return; // same notes as before: leave the view where the player put it
     last = key;
     const w = box.clientWidth, left = (lo + hi) / 2 - w / 2;
-    const top = sr.top - (box.getBoundingClientRect().top - box.scrollTop) + ySum / yN - box.clientHeight / 2;
+    const top = sr2.top - (box.getBoundingClientRect().top - box.scrollTop) + ySum / yN - box.clientHeight / 2;
     box.scrollTo({ left: Math.max(0, Math.min(box.scrollWidth - w, left)), top: Math.max(0, top), behavior: jump ? 'instant' : 'smooth' });
     jump = false;
   };

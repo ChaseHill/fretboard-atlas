@@ -215,7 +215,7 @@
    ]
   },
   {
-   "text": "even knowing where the pitches are on the instrument - I've always felt like that's massively overlooked,",
+   "text": "… even knowing where the pitches are on the instrument - I've always felt like that's massively overlooked,",
    "who": "Julian Lage",
    "instrument": "guitar",
    "source": "Julian Lage unlocks the secret of mastering guitar (from the Broken Record podcast), MusicRadar",
@@ -248,7 +248,7 @@
    ]
   },
   {
-   "text": "it's that classic thing that a phrase doesn't really start till you stop.",
+   "text": "… it's that classic thing that a phrase doesn't really start till you stop.",
    "who": "Julian Lage",
    "instrument": "guitar",
    "source": "Julian Lage 'Speak To Me' interview, MusicRadar",
@@ -784,18 +784,7 @@
    ]
   },
   {
-   "text": "There was always music under the prayer, supporting it, not getting in the way.",
-   "who": "Robert Glasper",
-   "instrument": "piano",
-   "source": "Soundboard: The Steinway & Sons Podcast - Robert Glasper (on playing in church), Steinway & Sons",
-   "url": "https://www.steinway.com/soundboard/soundboard-robert-glasper",
-   "topics": [
-    "jazz",
-    "keys-touch"
-   ]
-  },
-  {
-   "text": "winners forget they're in a race. They just love to run.",
+   "text": "… winners forget they're in a race. They just love to run.",
    "who": "Robert Glasper",
    "instrument": "piano",
    "source": "Robert Glasper on his path to the piano: 'It became a part of me', GBH News (Morning Edition)",

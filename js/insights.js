@@ -60,10 +60,10 @@
       go(7, 'm7', 'Usually comes after', 'The ii chord. ii → V → I is the most common three-chord move in jazz.');
     } else if (f === 'maj') {
       go(5, M, 'Up a fourth (I → IV)', 'The most common move away from home.');
-      go(7, tri ? 'maj' : '7', 'To the V', 'Sets up the return home.');
+      go(7, tri ? 'maj' : '7', 'To the V', tri ? 'Sets up the return home.' : 'Sets up the return home. It is also the chord that most often comes just before this one.');
       go(9, m, 'To the relative minor (vi)', 'Shares most of its notes, so the change is gentle.');
       go(2, m, 'To the ii', 'The start of a ii–V–I back to this chord.');
-      go(7, '7', 'Usually comes after', 'Its own V7, the chord that points at it.');
+      if (tri) go(7, '7', 'Usually comes after', 'Its own V7, the chord that points at it.');
     } else if (f === 'min') {
       go(5, '7', 'ii → V', 'Treat it as a ii chord: the V7 is a fourth up.');
       go(5, m, 'Up a fourth (i → iv, or vi → ii)', 'Roots moving in fourths is the engine of most progressions.');
@@ -113,8 +113,8 @@
       out.push(Object.assign(at(root, 0, o.id), { kind: 'step', label: `${d < 0 ? 'Lower' : 'Raise'} the ${MOVE_WORD[num] || num}`, why: `One note moves ${Math.abs(d) === 1 ? 'a half step' : 'a whole step'}; everything else stays.` }));
     });
     const sub = (semi, qid, label, why) => out.push(Object.assign(at(root, semi, qid), { kind: 'sub', label, why }));
-    if (f === 'maj') { sub(9, simple(id) ? 'm' : 'm7', 'Relative minor', 'Built a 6th up (three frets down). It can replace this chord, or extend it.'); sub(4, simple(id) ? 'm' : 'm7', 'Mediant', 'The iii chord: the top three notes of the major 7th.'); }
-    if (f === 'min') sub(3, simple(id) ? 'maj' : 'maj7', 'Relative major', 'Built a minor 3rd up. The same scale, heard from its bright side.');
+    if (f === 'maj') { sub(9, simple(id) ? 'm' : 'm7', 'Relative minor', 'Built a 6th up (three frets down). It can replace this chord, or extend it.'); sub(4, simple(id) ? 'm' : 'm7', 'Mediant', simple(id) ? 'The iii chord: it shares this chord’s 3rd and 5th.' : 'The iii chord: this chord’s 3rd, 5th and 7th, with its 9th on top.'); }
+    if (f === 'min' && id !== 'mMaj7' && id !== 'm6') sub(3, simple(id) ? 'maj' : 'maj7', 'Relative major', 'Built a minor 3rd up. The same scale, heard from its bright side.');
     if (f === 'dom' && id !== '7sus4') { sub(6, '7', 'Tritone substitute', 'Same 3rd and 7th, with the root a tritone away. Gives a bass line that falls by half step.'); sub(4, 'dim7', 'Diminished on the 3rd', 'A diminished 7th built on this chord’s 3rd is this chord with a ♭9 and no root.'); }
     const seen = new Set();
     return out.filter((r) => { const k = r.root + r.id; if (seen.has(k)) return false; seen.add(k); return true; });

@@ -94,7 +94,7 @@
     v.frets.forEach((f, i) => {
       if (f === null || f < start) return;
       const cx = x0 + i * sx, cy = y0 + (f - start + 0.5) * fy, d = esc(v.notes[i].deg);
-      s += `<circle class="f-${v.notes[i].role}" cx="${cx}" cy="${cy}" r="3.3"/><text class="cb-deg t-${v.notes[i].role}" x="${cx}" y="${cy + 2}" ${d.length > 2 ? 'style="font-size:4.2px"' : ''}>${d}</text>`;
+      s += `<circle class="f-${v.notes[i].role}" cx="${cx}" cy="${cy}" r="2.65"/><text class="cb-deg t-${v.notes[i].role}" x="${cx}" y="${cy + 1.7}" style="font-size:${d.length > 2 ? 3.2 : d.length > 1 ? 3.8 : 4.6}px">${d}</text>`;
     });
     return s + '</svg>';
   }
@@ -589,14 +589,14 @@
         <li><b>Clockwise</b> goes up a fifth and adds one sharp.</li><li><b>Anticlockwise</b> goes up a fourth and adds one flat.</li>
         <li>The <b>outer ring</b> is major keys. The <b>inner ring</b> is each one’s relative minor.</li>
         <li>The keys either side of yours are its <b>IV</b> and <b>V</b> chords.</li>
-        <li>Three steps anticlockwise in a row is a <b>ii–V–I</b>.</li></ul>`,
+        <li>Two steps anticlockwise in a row is a <b>ii–V–I</b>.</li></ul>`,
       crumbs: 'Circle of fifths', title: `Key of ${state.key} major`, chips: chipsHTML(sc.tones), lede: `${sig[0].toUpperCase() + sig.slice(1)}. Relative minor: ${esc(dia[5].root)} minor. Pick any key on the circle.`,
       tiles: tilesHTML([['Signature', sig], ['IV · I · V', `${esc(dia[3].root)} · ${state.key} · ${esc(dia[4].root)}`], ['Relative minor', esc(dia[5].root) + 'm']]),
       actions: capoHTML() + `<button class="btn" data-act="play">▶ Strum</button><button class="btn" data-act="sev">${sev ? 'Show triads' : 'Show 7th chords'}</button>`,
       extra: `<div class="circle-wrap">${circleSVG(sel)}</div>`,
       railHead: `<span>The seven chords of ${state.key} major</span><small>${sev ? 'seventh chords' : 'triads'}</small>`,
-      rail: `<div class="thumbs">${chords.map((cc, k) => thumbHTML(cc.voicings[0], `data-act="dia" data-i="${k}"`, k === ci, null, `${dia[k].roman} · ${esc(cc.name)}`)).join('')}</div>`,
-      panel: stepCard({ no: `Chord ${ci + 1} / 7`, tag: d.fn, title: `${d.roman}: ${esc(c.name)}`, body: `<p>${FN_TEXT[d.fn]}</p><p>Built on note ${ci + 1} of the ${state.key} major scale, using only notes from that scale.</p>`,
+      rail: `<div class="thumbs">${chords.map((cc, k) => thumbHTML(cc.voicings[0], `data-act="dia" data-i="${k}"`, k === ci, null, `${sev ? dia[k].roman.replace('°', 'ø') : dia[k].roman} · ${esc(cc.name)}`)).join('')}</div>`,
+      panel: stepCard({ no: `Chord ${ci + 1} / 7`, tag: d.fn, title: `${sev ? d.roman.replace('°', 'ø') : d.roman}: ${esc(c.name)}`, body: `<p>${FN_TEXT[d.fn]}</p><p>Built on note ${ci + 1} of the ${state.key} major scale, using only notes from that scale.</p>`,
         idea: 'Every major key has the same pattern of chords: I ii iii IV V vi vii°. Learn it once as numerals.',
         more: stringTable(v) + `<div class="nav"><button class="btn ghost" data-act="prev" ${ci === 0 ? 'disabled' : ''}>←</button><button class="btn primary" data-act="open-chord" data-root="${d.root}" data-id="${c.id}">All ${esc(c.name)} voicings</button><button class="btn ghost" data-act="next" ${ci === 6 ? 'disabled' : ''}>→</button></div>` }),
     });
@@ -668,10 +668,10 @@
     { id: 'quiz', name: 'Name that note', lede: 'One peg appears on the neck. Pick its note name, and say it out loud as you answer.',
       title: 'Finding notes fast', body: 'Work from landmarks instead of counting up from the nut every time.', idea: 'Know the open strings, fret 5 (the next string’s open note, except on string 3) and fret 12 (the open note again). Everything else is one or two frets from a landmark.',
       tips: ['B–C and E–F are one fret apart. All other natural notes are two.', 'Strings 6 and 1 have the same note names at every fret.', 'Aim for under two seconds per answer before raising the level.'] },
-    { id: 'find', name: 'Find the note', lede: 'You are given a note and a string. Click the fret where that note lives.',
+    { id: 'find', name: 'Find the note', lede: 'You are given a note and a string. Tap the fret where that note lives.',
       title: 'From name to place', body: 'Naming a note you can see is recognition. Finding a note you are asked for is recall, and it is the skill you use when reading or improvising.', idea: 'Start from the open string and walk the natural notes: on the A string, A-B-C is frets 0-2-3. With practice you jump straight there.',
       tips: ['Do this with the guitar in your hands: click, then play the note.', 'Work one string per day for a week.', 'Sharps are one fret above the natural; flats one fret below.'] },
-    { id: 'findall', name: 'Find them all', lede: 'Find the same note once on every string. Click the six places.',
+    { id: 'findall', name: 'Find them all', lede: 'Find the same note once on every string. Tap the six places.',
       title: 'One note, six strings', body: 'This is the exercise guitar teachers assign more than any other, because it ties the whole neck together.', idea: 'Use octave shapes: from strings 6 or 5, go two strings up and two frets up. From strings 4 or 3, two strings up and three frets up. Strings 6 and 1 share the same fret.',
       tips: ['On the instrument, do it with a metronome: one note per click, low string to high and back.', 'Jazz teachers call this the “note of the day”.', 'Each note appears once per string below fret 12.'] },
     { id: 'interval', name: 'Find the interval', lede: 'From the gold root, click the note that is the named interval above it.',
@@ -804,7 +804,7 @@
     if (hadK) { p.shift(); if (VIEWS[p[0]]) state.inst = 'keys'; }
     if (!VIEWS[p[0]]) return;
     state.view = p[0];
-    const key = (x) => { const k = T.KEYS.find((n) => T.slug(n) === x); if (k) state.key = k; };
+    const key = (x) => { const want = String(x || '').toLowerCase().replace('#', 's').replace('♯', 's').replace('♭', 'b'), k = T.KEYS.find((n) => T.slug(n).toLowerCase() === want); if (k) state.key = k; };
     if (p[0] === 'learn') {
       const st = { id: p[1], step: (parseInt(p[2], 10) || 1) - 1 };
       if (KL.some((l) => l.id === p[1])) { state.klearn = st; state.inst = 'keys'; } else if (LESSONS.some((l) => l.id === p[1])) { state.learn = st; if (!hadK) state.inst = 'guitar'; }
@@ -928,7 +928,7 @@
 
   // settings
   { const a = obj(store.get('audio2', {})), s = Audio.settings; // each field checked: a bad volume would otherwise silence everything
-    if (typeof a.tone === 'string') s.tone = a.tone; if (typeof a.keysTone === 'string') s.keysTone = a.keysTone; if (typeof a.tremolo === 'boolean') s.tremolo = a.tremolo;
+    if (['soft', 'steel', 'nylon', 'electric'].includes(a.tone)) s.tone = a.tone; if (['rhodes', 'soft'].includes(a.keysTone)) s.keysTone = a.keysTone; if (typeof a.tremolo === 'boolean') s.tremolo = a.tremolo;
     if (Number.isFinite(a.volume)) s.volume = Math.max(0, Math.min(1, a.volume)); }
   Metro.bpm = Math.max(30, Math.min(260, +store.get('bpm', 90) || 90)); Metro.click = store.get('click', true) !== false;
   $('sKeysTone').value = Audio.settings.keysTone; $('sTrem').checked = Audio.settings.tremolo;
@@ -936,10 +936,6 @@
   $('sTrem').addEventListener('change', (e) => { Audio.settings.tremolo = e.target.checked; saveAudio(); });
   const fillVoices = () => {
     const nv = $('sNarr'); if (nv) { const b = bestVoice(); nv.textContent = b ? b.name.replace(/Microsoft | Online \(Natural\)| - English.*/g, '') : ('speechSynthesis' in window ? 'your device’s voice' : 'no voice on this browser'); }
-    if (!$('sVoice')) return;
-    if (!('speechSynthesis' in window)) { $('sVoice').innerHTML = '<option>No voices on this browser</option>'; $('sVoice').disabled = true; return; }
-    const vs = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
-    $('sVoice').innerHTML = '<option value="">Default voice</option>' + vs.map((v) => `<option value="${esc(v.name)}"${v.name === Guide.voice ? ' selected' : ''}>${esc(v.name.replace(/Microsoft | Online \(Natural\)| - English.*/g, ''))}</option>`).join('');
   };
   fillVoices();
   if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = fillVoices;
@@ -961,7 +957,7 @@
     store.set('theme', document.documentElement.dataset.theme);
   });
   const savedTheme = store.get('theme', null);
-  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+  if (savedTheme === 'light' || savedTheme === 'dark') document.documentElement.dataset.theme = savedTheme;
 
   readHash();
   metroUI();
