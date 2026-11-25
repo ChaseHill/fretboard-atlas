@@ -1,0 +1,13 @@
+# Only the website is published. Everything else in this folder stays on this computer.
+/*
+!/.gitignore
+!/.gitattributes
+!/.nojekyll
+!/index.html
+!/css/
+!/js/
+!/audio/
+audio/narration/manifest.json
+*.log
+.DS_Store
+Thumbs.db
