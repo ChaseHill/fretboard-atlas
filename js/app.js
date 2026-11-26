@@ -580,35 +580,48 @@
     const arc = (r, a0, a1) => 'M' + pol(r, a0) + ' A' + r + ',' + r + ' 0 0 ' + (a1 > a0 ? 1 : 0) + ' ' + pol(r, a1);
     const key = T.CIRCLE[sel], dia = T.diatonic(key), ci = state.circle.ci, FNC = { Tonic: 'ton', Subdominant: 'sub', Dominant: 'dom' };
     const fam = { maj: { 11: 3, 0: 0, 1: 4 }, min: { 11: 1, 0: 5, 1: 2 } }; // steps round from the key -> which chord of the key
-    let s = '<svg class="circle" viewBox="-205 -212 410 422" role="img" aria-label="Circle of fifths, key of ' + key + '"><defs><marker id="cArrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" class="c-arrowhead"/></marker></defs>';
-    s += '<path class="c-arrow" d="' + arc(197, -76, -48) + '" marker-end="url(#cArrow)"/><path class="c-arrow" d="' + arc(197, -104, -132) + '" marker-end="url(#cArrow)"/>';
-    s += '<text class="c-dir" x="203" y="-198" text-anchor="end">clockwise: one more sharp</text><text class="c-dir" x="-203" y="-198">anticlockwise: one more flat</text>';
+    // Two thin rings with a disc for every key: majors outside, relative minors inside. Each letter has one colour wherever it
+    // appears; a sharp or flat note is split between the colours of the two letters it lies between. Beside each major key is
+    // its signature on a staff.
+    const NC = { 0: '#4fa64a', 2: '#5b9fd6', 4: '#2b2f86', 5: '#b23a93', 7: '#cf2a3f', 9: '#e2872b', 11: '#f0cc2e' };
+    const dot = (cx, cy, r, pc) => NC[pc] ? '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + NC[pc] + '"/>' :
+      '<g transform="rotate(24 ' + cx + ' ' + cy + ')"><path fill="' + NC[pc - 1] + '" d="M' + cx + ' ' + (cy - r) + ' A' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (+cy + r) + ' Z"/><path fill="' + NC[(pc + 1) % 12] + '" d="M' + cx + ' ' + (cy - r) + ' A' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (+cy + r) + ' Z"/></g>';
+    const SHS = [8, 5, 9, 6, 3, 7, 4], FLS = [4, 7, 3, 6, 2, 5, 1]; // staff steps above the bottom line, in the order sharps and flats are added
+    const staff = (cx, cy, n, sharp) => { const g = 4.4, x0 = cx - 24, base = cy + 2 * g; let o = '';
+      for (let j = 0; j < 5; j++) o += '<line x1="' + x0.toFixed(1) + '" x2="' + (cx + 24).toFixed(1) + '" y1="' + (base - j * g).toFixed(1) + '" y2="' + (base - j * g).toFixed(1) + '"/>';
+      o += '<text class="clef" x="' + (x0 + 0.5).toFixed(1) + '" y="' + (base + 2.6).toFixed(1) + '">\u{1D11E}</text>';
+      for (let j = 0; j < n; j++) o += '<text class="acc" x="' + (x0 + 16 + j * 5.2).toFixed(1) + '" y="' + (base - (sharp ? SHS : FLS)[j] * g / 2 + (sharp ? 3.2 : 2)).toFixed(1) + '">' + (sharp ? '♯' : '♭') + '</text>';
+      return o + '<text class="cnt" x="' + cx.toFixed(1) + '" y="' + (cy - 2 * g - 6.5).toFixed(1) + '">' + (n ? n + (sharp ? ' sharp' : ' flat') + (n > 1 ? 's' : '') : 'no sharps or flats') + '</text>'; };
+    const ALT = { 'B': 'C♭', 'F♯': 'G♭', 'G♭': 'F♯', 'D♭': 'C♯', 'C♯': 'D♭' };
+    let s = '<svg class="circle cfifths" viewBox="-272 -272 544 544" role="img" aria-label="Circle of fifths, key of ' + key + '">';
+    s += '<text class="c-dir" x="268" y="-258" text-anchor="end">clockwise: one more sharp</text><text class="c-dir" x="-268" y="-258">anticlockwise: one more flat</text>';
+    s += '<path class="cf-band" d="' + wedge(66, 176, (sel - 1.5) * 30 - 90, (sel + 1.5) * 30 - 90) + '"/><circle class="cf-ring" r="150"/><circle class="cf-ring" r="84"/>';
     T.CIRCLE.forEach((k, i) => {
-      const a0 = i * 30 - 105, d = (i - sel + 12) % 12, mid = a0 + 15;
-      const cell = (ring, r0, r1, rName, rNum, name) => {
-        const di = fam[ring][d], inFam = di !== undefined, [tx, ty] = pol(rName, mid), [nx, ny] = pol(rNum, mid);
-        const hue = ring === 'maj' ? i * 30 : ((i + 3) % 12) * 30, tint = state.circle.col ? ' style="fill:hsl(' + hue + ' 62% ' + (inFam ? 62 : 78) + '%)"' : ''; // one colour per note: A minor wears the colour of A
-        return '<g class="cw ' + ring + (state.circle.col ? ' tinted' : '') + (inFam ? ' fam ' + FNC[dia[di].fn] : '') + (inFam && di === ci ? ' cur' : '') + '" ' + (inFam ? 'data-act="dia" data-i="' + di + '"' : 'data-act="key" data-k="' + k + '"') + '><title>' + (inFam ? dia[di].roman + ' chord of ' + key + ': play it' : 'Go to the key of ' + k) + '</title><path' + tint + ' d="' + wedge(r0, r1, a0, a0 + 30) + '"/>' +
-          '<text class="' + (ring === 'maj' ? 'cmaj' : 'cmin') + '" x="' + tx + '" y="' + (+ty + (ring === 'maj' ? 6 : 4)) + '">' + name + '</text>' + (inFam ? '<text class="c-num" x="' + nx + '" y="' + (+ny + 3.5) + '">' + dia[di].roman + '</text>' : '') + '</g>';
+      const d = (i - sel + 12) % 12, a = i * 30 - 90, n = i === 0 ? 0 : i <= 6 ? i : 12 - i, [gx, gy] = pol(236, a);
+      const cell = (ring, R, r, rName, name, pc) => {
+        const di = fam[ring][d], inFam = di !== undefined, [cx, cy] = pol(R, a), [tx, ty] = pol(rName, a), big = ring === 'maj';
+        return '<g class="cf ' + ring + (inFam ? ' fam' : '') + (d === 0 && big ? ' sel' : '') + (inFam && di === ci ? ' cur' : '') + '" ' + (inFam ? 'data-act="dia" data-i="' + di + '"' : 'data-act="key" data-k="' + k + '"') + '><title>' + (inFam ? dia[di].roman + ' chord of ' + key + ': play it' : 'Go to the key of ' + k) + '</title>' +
+          dot(cx, cy, r, pc) + '<circle class="cf-rim" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>' + (inFam && di === ci ? '<circle class="cf-halo" cx="' + cx + '" cy="' + cy + '" r="' + (r + 4.5) + '"/>' : '') +
+          (inFam ? '<text class="cf-rom" x="' + cx + '" y="' + (+cy + (big ? 4.5 : 3.2)) + '">' + dia[di].roman + '</text>' : '') +
+          '<text class="cf-name" x="' + tx + '" y="' + (+ty + (big ? 5.5 : 4)) + '">' + name + '</text>' + (big && ALT[k] ? '<text class="cf-alt" x="' + tx + '" y="' + (+ty + 16) + '">(' + ALT[k] + ')</text>' : '') + '</g>';
       };
-      const [sx, sy] = pol(179, mid);
-      s += '<g class="c-sig' + (d === 0 ? ' on' : '') + '" data-act="key" data-k="' + k + '"><title>Go to the key of ' + k + '</title><path d="' + wedge(168, 190, a0, a0 + 30) + '"/><text x="' + sx + '" y="' + (+sy + 3.5) + '">' + T.sigShort(k) + '</text></g>';
-      s += cell('maj', 118, 168, d in fam.maj ? 136 : 143, 157, k) + cell('min', 72, 118, d in fam.min ? 90 : 95, 106, esc(T.spell(k, '6')) + 'm');
+      s += '<g class="cf-sig' + (d === 0 ? ' on' : '') + '" data-act="key" data-k="' + k + '"><title>Go to the key of ' + k + '</title><rect x="' + (gx - 28).toFixed(1) + '" y="' + (gy - 22).toFixed(1) + '" width="56" height="36" rx="5"/>' + staff(+gx, +gy, n, i <= 6) + '</g>';
+      const mn = T.spell(k, '6');
+      s += cell('maj', 150, 21, d === 0 ? 191 : 186, k, T.pc(k)) + cell('min', 84, 12, 112, esc(mn) + 'm', T.pc(mn));
     });
-    s += '<path class="c-family" d="' + wedge(72, 168, (sel - 1) * 30 - 105, (sel + 2) * 30 - 105) + '"/>';
-    s += '<circle r="72" class="hub"/><text class="hub-a" y="6">' + key + '</text><text class="hub-b" y="26">major · ' + T.sigShort(key) + '</text><text class="hub-b" y="-28">key of</text></svg>';
+    s += '<text class="hub-a" y="6">' + key + '</text><text class="hub-b" y="24">major · ' + T.sigShort(key) + '</text><text class="hub-b" y="-26">key of</text></svg>';
     // the reading panel
     const SH = ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'], FL = ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭'], acc = sel === 0 ? [] : sel <= 6 ? SH.slice(0, sel) : FL.slice(0, 12 - sel);
     const nm = (d) => esc(d.root) + (d.roman === d.roman.toLowerCase() ? (/°/.test(d.roman) ? '°' : 'm') : '');
     const left = T.CIRCLE[(sel + 11) % 12], right = T.CIRCLE[(sel + 1) % 12];
-    const progs = [['I – IV – V – I', [0, 3, 4, 0], 'The three majors side by side: home, away, tension, home.'], ['I – V – vi – IV', [0, 4, 5, 3], 'The four-chord song. Everything stays inside the outlined block.'], ['ii – V – I', [1, 4, 0], 'The jazz cadence. The roots step anticlockwise: ' + esc(dia[1].root) + ', ' + esc(dia[4].root) + ', ' + esc(dia[0].root) + '.'], ['vi – ii – V – I', [5, 1, 4, 0], 'Four roots in a row anticlockwise, falling home.']];
+    const progs = [['I – IV – V – I', [0, 3, 4, 0], 'The three majors side by side: home, away, tension, home.'], ['I – V – vi – IV', [0, 4, 5, 3], 'The four-chord song. Everything stays inside the shaded block.'], ['ii – V – I', [1, 4, 0], 'The jazz cadence. The roots step anticlockwise: ' + esc(dia[1].root) + ', ' + esc(dia[4].root) + ', ' + esc(dia[0].root) + '.'], ['vi – ii – V – I', [5, 1, 4, 0], 'Four roots in a row anticlockwise, falling home.']];
     return s + '<div class="cread">' +
-      '<section><small>What is in this key</small><b>' + (acc.length ? acc.join(' ') : 'No sharps or flats') + '</b><p>' + (acc.length ? 'Play ' + (acc.length === 1 ? 'that note' : 'those notes') + ' in place of the natural one; every other note is natural. The outside ring gives the count for each key.' : 'Seven natural notes. Each step clockwise adds one sharp; each step anticlockwise adds one flat.') + '</p></section>' +
-      '<section><small>The chords that belong together</small><p>The outlined block is the family of ' + key + ' major: the key itself, its two neighbours, and the three minors under them. Click one to hear it.</p><div class="cfam">' +
+      '<section><small>What is in this key</small><b>' + (acc.length ? acc.join(' ') : 'No sharps or flats') + '</b><p>' + (acc.length ? 'Play ' + (acc.length === 1 ? 'that note' : 'those notes') + ' in place of the natural one; every other note is natural. The staff beside each key shows its signature.' : 'Seven natural notes. Each step clockwise adds one sharp; each step anticlockwise adds one flat.') + '</p></section>' +
+      '<section><small>The chords that belong together</small><p>The shaded block is the family of ' + key + ' major: the key itself, its two neighbours, and the three minors under them. Click one to hear it.</p><div class="cfam">' +
         [0, 1, 2, 3, 4, 5, 6].map((i) => '<button class="cchip ' + FNC[dia[i].fn] + (i === ci ? ' on' : '') + '" data-act="dia" data-i="' + i + '"><i>' + dia[i].roman + '</i>' + nm(dia[i]) + '</button>').join('') +
         '</div><p class="cfn"><span class="ton">home</span><span class="sub">moving away</span><span class="dom">tension, wants home</span></p></section>' +
       '<section><small>Hear it move</small><div class="cprogs">' + progs.map(([t, seq, why]) => '<button class="cprog" data-act="prog" data-seq="' + seq.join(',') + '"><b>' + t + '</b><span>' + seq.map((i) => nm(dia[i])).join(' · ') + '</span><em>' + why + '</em></button>').join('') + '</div></section>' +
-      '<section><small>Colour</small><div class="cnext"><button class="btn small' + (state.circle.col ? ' on' : '') + '" data-act="ccol">' + (state.circle.col ? 'Colour by job' : 'Colour by note') + '</button></div><p>' + (state.circle.col ? 'Each note has one colour wherever it appears, so every minor key wears the colour of the major key with the same letter.' : 'Colours show each chord’s job in this key. Switch to give every note its own colour.') + '</p></section>' +
+      '<section><small>Colour</small><p>Each letter has one colour wherever it appears, so A minor wears the colour of A major. A sharp or flat note is split between the colours of the two letters either side of it.</p></section>' +
       '<section><small>Next door: the easiest keys to move to</small><div class="cnext"><button class="btn small" data-act="key" data-k="' + left + '">← ' + left + ' · ' + T.signature(left) + '</button><button class="btn small" data-act="key" data-k="' + right + '">' + right + ' · ' + T.signature(right) + ' →</button></div><p>Each shares six of its seven notes with ' + key + '.</p></section></div>';
   }
   const FN_TEXT = { Tonic: 'Home. Progressions start here and come back here.', Subdominant: 'Moves away from home, and often leads on to the V chord.', Dominant: 'Tension. It wants to resolve to the I chord.' };
@@ -937,7 +950,6 @@
     sev: () => go({ circle: { sev: !state.circle.sev } }),
     dia: (d) => { go({ circle: { ci: +d.i } }); cur.play(); },
     tri: (d) => { go({ practice: { bar: +d.i } }); if (cur.play) cur.play(); },
-    ccol: () => go({ circle: { col: !state.circle.col } }),
     prog: (d) => { const tok = (progTok = (progTok || 0) + 1); d.seq.split(',').map(Number).forEach((i, n) => setTimeout(() => { if (tok !== progTok || state.view !== 'circle') return; go({ circle: { ci: i } }); if (cur.play) cur.play(); }, n * 1050)); }, // play a progression chord by chord, lighting each on the wheel
     'open-chord': (d) => { go({ view: 'chords', key: T.KEYS[T.pc(d.root)], chords: { id: d.id, vi: 0, chart: false } }); window.scrollTo(0, 0); },
     practice: (d) => { quiz = null; go({ practice: { id: d.id, bar: 0 } }); },

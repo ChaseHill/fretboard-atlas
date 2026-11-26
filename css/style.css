@@ -1431,3 +1431,31 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
 #rail > .cfam { margin: 4px 0 8px; }
 
 .gx-tick { fill: var(--ink); opacity: .55; }
+
+/* Circle of fifths: discs on two rings, one colour per letter, signatures on staves */
+.circle-wrap .circle.cfifths { width: min(100%, 360px); }
+@media (min-width: 761px) { .circle-wrap { grid-template-columns: minmax(300px, 520px) minmax(0, 1fr); } .circle-wrap .circle.cfifths { width: 100%; } }
+.cf-ring { fill: none; stroke: var(--ink); stroke-width: 1; }
+.cf-band { fill: var(--accent-soft); stroke: var(--ink); stroke-width: 1.1; stroke-dasharray: 3 3; stroke-linejoin: round; pointer-events: none; }
+.cf { cursor: pointer; }
+.cf-rim { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.cf:hover .cf-rim { stroke-width: 2.6; }
+.cf.cur .cf-rim { stroke-width: 3; }
+.cf-halo { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+.cf-name { font-weight: 800; font-size: 16px; fill: var(--ink); text-anchor: middle; }
+.cf.min .cf-name { font-size: 11.5px; }
+.cf:not(.fam) .cf-name { opacity: .72; }
+.cf.sel .cf-name { font-size: 20px; }
+.cf-alt { font: 700 8.5px var(--mono); fill: var(--ink-2); text-anchor: middle; }
+.cf-rom { font: 800 12px var(--mono); fill: #fff; stroke: #1c1a17; stroke-width: 2.8; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; pointer-events: none; }
+.cf.min .cf-rom { font-size: 8.5px; stroke-width: 2.2; }
+.cf-sig { cursor: pointer; }
+.cf-sig rect { fill: transparent; stroke: none; }
+.cf-sig:hover rect { fill: var(--accent-soft); }
+.cf-sig.on rect { fill: var(--card); stroke: var(--ink); stroke-width: 1.2; }
+.cf-sig line { stroke: var(--ink); stroke-width: .6; }
+.cf-sig .clef { font: 21px "Segoe UI Symbol", "Noto Music", "Apple Symbols", "Noto Sans Symbols2", serif; fill: var(--ink); }
+.cf-sig .acc { font: 700 11px "Segoe UI Symbol", var(--mono); fill: var(--ink); text-anchor: middle; }
+.cf-sig .cnt { font: 700 7.5px var(--mono); fill: var(--ink-2); text-anchor: middle; letter-spacing: .04em; }
+.cf-sig.on .cnt { fill: var(--ink); }
+@media (min-width: 761px) and (max-width: 999px) { .circle-wrap { grid-template-columns: minmax(0, 1fr); } .circle-wrap .circle.cfifths { width: min(100%, 440px); } }
