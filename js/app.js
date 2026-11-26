@@ -675,7 +675,7 @@
     followOff(); followOff = null;
     if (window.G.Listen) window.G.Listen.stop();
     neck.setActive(null);
-    document.querySelectorAll('[data-act="follow"]').forEach((b) => { b.textContent = '● Play it yourself'; });
+    document.querySelectorAll('[data-act="follow"]').forEach((b) => { b.textContent = b.dataset.label || '● Play it yourself'; });
     if (!quiet) followSay('Stopped listening.');
   }
   // targets: [{ midis: [...], at: () => show this one on the neck }]
@@ -828,7 +828,10 @@
   EXS.push(
     { id: 'eariv', choice: true, name: 'Intervals by ear', lede: 'Two notes sound, the lower one first. Name the distance between them before you look.',
       title: 'Hearing distance', body: 'Listen as many times as you like, sing both notes, then answer. The pegs appear once you have chosen.', idea: 'Give each interval a sound you know: a major 3rd is the start of a major chord, a 5th is open and hollow, an octave is the same note again.',
-      tips: ['Level 1 is thirds, the 5th and the octave. Level 2 is steps, the 4th, tritone and 5th. Level 3 is all twelve.', 'Sing the lower note, then the upper. If you can sing it you can name it.', 'After answering, play the two notes on your own guitar.'] },
+      tips: ['Six levels. The first five each compare two or three intervals of similar size; the sixth mixes all twelve.', 'Do not move up a level until you score nine out of ten.', 'Sing the lower note, then the upper. After answering, play the two notes on your own guitar.'] },
+    { id: 'earroot', choice: true, name: 'Find the root by ear', lede: 'A chord sounds. Name its root, or play the root on your guitar and let the app listen.',
+      title: 'Hearing the root', body: 'The root is the note the chord seems to stand on. Hum the lowest, most settled note you hear, then find it. This is the first step in working out any song by ear.', idea: 'Sing the note that feels like the floor of the chord. Slide a finger along the low E string until it matches.',
+      tips: ['Level 1 is major triads, level 2 minor triads, level 3 both, level 4 seventh chords.', 'With “Answer on your guitar”, play one clear note and let it ring.', 'Any octave of the right note counts.'] },
     { id: 'earchord', choice: true, chordish: true, name: 'Chord quality by ear', lede: 'A chord sounds on a root you are not told. Say what kind of chord it is.',
       title: 'Hearing chord colour', body: 'Major is bright and settled, minor darker. Among the sevenths, the major 7 is soft, the dominant 7 restless, the minor 7 mellow.', idea: 'Listen for the 3rd first, major or minor. Then listen for the 7th on top.',
       tips: ['Level 1 is major against minor. Level 2 is the three everyday sevenths. Level 3 adds half-diminished and diminished.', 'Press “Hear it” again after you answer and connect the sound to the name.', 'Try to sing the 3rd of each chord.'] },
@@ -841,6 +844,9 @@
     { id: 'secq', choice: true, sec: 'Jazz', name: 'Secondary dominants and related ii chords', lede: 'Questions about the V7 of each chord in a key, and the ii chord that goes with any dominant.',
       title: 'Dominants that point', body: 'A secondary dominant is a fifth above its target. A related ii is a fourth below its dominant.', idea: 'To find the V7 of a chord, go up a fifth from its root: next string, two frets higher. To find the related ii of a dominant, go down a fourth: same fret, next string lower.',
       tips: ['Level 1 asks for the V7 of a chord. Level 2 asks what a dominant is aiming at. Level 3 asks for related ii chords.', 'Say the pair aloud: “E minor seven, A seven”.', 'Then find each pair on strings 6 and 5.'] },
+    { id: 'subq', choice: true, sec: 'Jazz', name: 'Substitutes and chord scales', lede: 'Questions on tritone substitutes, the mode that fits each chord of a key, and the right scale for a dominant chord.',
+      title: 'Choosing notes for a chord', body: 'Three questions settle most scale choices: what kind of chord is it, what key is it in for the moment, and if it is a dominant, where is it going?', idea: 'A dominant that resolves down a fifth takes Mixolydian. One that resolves any other way takes Lydian ♭7.',
+      tips: ['Level 1 is tritone substitutes. Level 2 is the mode of each chord in a key. Level 3 is scales for dominants.', 'For level 2, work out the chord’s numeral first.', 'Then play the scale over the chord and hear it.'] },
     { id: 'tensq', choice: true, sec: 'Jazz', name: 'Which tensions fit?', lede: 'You are given a kind of chord. Pick the tension that fits it, or the one that does not.',
       title: 'Available tensions', body: 'A tension works when it lies a major ninth above a note of the chord. One that lies a minor ninth above a chord note clashes. Dominant chords are the exception and take altered notes too.', idea: '9 fits almost everything. 11 belongs to minor chords. ♯11 and 13 belong to major and dominant chords.',
       tips: ['Level 1 is major 7 and minor 7. Level 2 adds dominant 7. Level 3 adds half-diminished and sus4.', 'Read the question carefully: some ask for the note that does not fit.', 'Play each answer on your guitar over the chord.'] },
@@ -934,11 +940,24 @@
   // ---------- quizzes answered from a list: ears and keys ----------
   const shuffled = (a) => a.map((x) => [Math.random(), x]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
   const CHOICE = {
-    eariv: { levels: ['Thirds, 5th and octave', 'Steps, 4th, tritone and 5th', 'All twelve intervals'], make(lv) {
-      const set = [[3, 4, 7, 12], [1, 2, 5, 6, 7], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]][lv - 1], iv = pickOf(set), s = rnd(4), f = 1 + rnd(7), tg = [];
+    eariv: { levels: ['Half step or whole step', 'Minor or major 3rd', '4th, tritone or 5th', 'Minor or major 6th', '7ths and the octave', 'All twelve intervals'], make(lv) {
+      const set = [[1, 2], [3, 4], [5, 6, 7], [8, 9], [10, 11, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]][lv - 1], iv = pickOf(set), s = rnd(4), f = 1 + rnd(7), tg = [];
       for (let t = s; t < 6; t++) { const ft = T.TUNING[s] + f + iv - T.TUNING[t]; if (ft >= 0 && ft <= 15) tg.push({ s: t, f: ft }); }
       const b = tg.sort((x, y) => Math.abs(x.f - f) - Math.abs(y.f - f))[0];
       return { opts: set.map((n) => [IVS[n], IVN[n]]), iv: set.indexOf(iv), a: { s, f }, b, prompt: 'What is the interval between the two notes?', after: `${iv === 12 ? 'An' : 'A'} ${IVN[iv]}.` };
+    } },
+    earroot: { levels: ['Major triads', 'Minor triads', 'Major and minor', 'Seventh chords'], make(lv) {
+      const q = pickOf([['maj'], ['m'], ['maj', 'm'], ['maj7', 'm7', '7']][lv - 1]), root = pickOf(T.KEYS), c = T.chord(root, q), pool = c.voicings.filter((x) => x.kind === 'caged' && !x.stretch), rp = T.pc(root);
+      const others = shuffled([c.tones[1].note, c.tones[2].note, T.KEYS[T.mod(rp + 5)], T.KEYS[T.mod(rp + 2)]].filter((x, i, a) => T.pc(x) !== rp && a.findIndex((y) => T.pc(y) === T.pc(x)) === i)).slice(0, 3), opts = shuffled([root].concat(others));
+      return { opts: opts.map((x) => [x, '']), iv: opts.indexOf(root), v: pickOf(pool.length ? pool : c.voicings), rootPc: rp, prompt: 'What is the root of this chord?', after: `It was ${esc(c.name)}.` };
+    } },
+    subq: { levels: ['Tritone substitutes', 'The mode of each chord in a key', 'Scales for dominant chords'], make(lv) {
+      let right, wrong, prompt, after;
+      if (lv === 1) { const r = pickOf(T.KEYS), s = T.KEYS[T.mod(T.pc(r) + 6)]; right = s + '7'; wrong = [5, 7, 1].map((x) => T.KEYS[T.mod(T.pc(r) + x)] + '7'); prompt = `What is the tritone substitute of <b>${esc(r)}7</b>?`; after = `${esc(r)}7 and ${esc(s)}7 share their 3rd and 7th.`; }
+      else if (lv === 2) { const M = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'], k = pickOf(['C', 'G', 'D', 'F', 'B♭']), d = T.diatonic(k), i = rnd(7); right = M[i]; wrong = shuffled(M.filter((x) => x !== right)).slice(0, 3); prompt = `In the key of ${esc(k)}, which mode fits <b>${esc(T.chord(d[i].root, d[i].sev).name)}</b>?`; after = `It is the ${esc(d[i].roman)} chord: ${esc(d[i].root)} ${right}.`; }
+      else { const Q = [['the V7 of the key', 'Mixolydian'], ['the V7 of IV', 'Mixolydian'], ['the V7 of V', 'Mixolydian'], ['a tritone substitute', 'Lydian ♭7'], ['♭VII7, the back-door dominant', 'Lydian ♭7'], ['IV7 in a major key', 'Lydian ♭7'], ['the V7 of vi', 'Mixolydian with ♭9 and ♭13'], ['the V7 of iii', 'Mixolydian with ♭9 and ♭13'], ['a V7 marked “alt”', 'Altered']], S = ['Mixolydian', 'Lydian ♭7', 'Mixolydian with ♭9 and ♭13', 'Altered'], x = pickOf(Q); right = x[1]; wrong = S.filter((y) => y !== right); prompt = `Which scale suits <b>${x[0]}</b>?`; after = 'Down a fifth: Mixolydian, darker if the target is minor. Any other resolution: Lydian ♭7.'; }
+      const opts = lv === 3 ? [right].concat(wrong).sort() : shuffled([right].concat(wrong));
+      return { opts: opts.map((x) => [x, '']), iv: opts.indexOf(right), prompt, after };
     } },
     earchord: { levels: ['Major or minor', 'Major 7, dominant 7, minor 7', 'Five kinds of seventh'], make(lv) {
       const set = [['maj', 'm'], ['maj7', '7', 'm7'], ['maj7', '7', 'm7', 'm7b5', 'dim7']][lv - 1], qi = rnd(set.length), root = pickOf(T.KEYS), c = T.chord(root, set[qi]), pool = c.voicings.filter((x) => x.kind === 'caged' && !x.stretch);
@@ -1004,7 +1023,17 @@
       panel: stepCard({ no: 'Exercise', tag: hear ? 'Ear training' : ex.sec ? 'Harmony' : 'Keys', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
     });
     neck.show(show);
-    cur = { play: hear || undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChoiceQuestion(id); render(); if (cur.play) cur.play(); } } };
+    const byGuitar = async () => {
+      if (followOff) return stopFollow();
+      const LS = window.G.Listen; if (!LS || quiz.done) return;
+      stopPlayback(); followSay('Opening the guitar input…');
+      if (!(await LS.start(LS.deviceId ? LS.deviceId() : ''))) return followSay(esc(LS.error) + ' Choose the input in the settings menu (⚙).');
+      followSay('Listening: play the root, one clear note.');
+      document.querySelectorAll('[data-act="follow"]').forEach((b) => { b.textContent = '■ Stop listening'; });
+      followOff = LS.subscribe((p) => { if (p.note == null || p.steady < 4 || quiz.q !== q) return; const ok = T.mod(p.note) === q.rootPc; stopFollow(true); quiz.pick = ok ? q.iv : -1; mark(ok); render(); followSay(`You played ${esc(T.noteName(p.note))}.`); });
+    };
+    if (id === 'earroot' && canListen() && !quiz.done) $('actions').insertAdjacentHTML('beforeend', '<button class="btn" data-act="follow" data-label="● Answer on your guitar">● Answer on your guitar</button>');
+    cur = { play: hear || undefined, follow: id === 'earroot' ? byGuitar : undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChoiceQuestion(id); render(); if (cur.play) cur.play(); } } };
   }
 
   // ---------- one-minute changes: a timer, a tap for every clean change, and a saved best for each pair ----------
@@ -1197,6 +1226,7 @@
     if (((window.G.KeyViews || {}).practiceIds || []).includes(state.practice.id)) state.practice.id = T.WARMUPS[0].id; // arriving from a keyboard-only exercise
     const id = state.practice.id, w = T.WARMUPS.find((x) => x.id === id), prog = T.PROGS.find((x) => x.id === id), ex = EXS.find((x) => x.id === id) || EXS[0], lib = window.G.Drills && window.G.Drills.byId[id];
     if (id !== 'minute') stopMinute();
+    state.practice.level = Math.max(1, Math.min((CHOICE[id] || { levels: [0, 0, 0] }).levels.length, state.practice.level));
     if (id === 'minute') renderMinute(); else if (lib) renderLibDrill(lib); else if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'triads') renderTriads(ex); else if (ex.id === 'walk') renderWalk(ex); else if (ex.choice) renderChoiceQuiz(ex); else if (ex.chord) renderChordQuiz(ex); else renderExercise(ex);
   }
 
@@ -1293,7 +1323,7 @@
     bar: (d) => { go({ practice: { bar: +d.i } }); playVoicing(barVoicings(progBars(T.PROGS.find((x) => x.id === state.practice.id)))[+d.i].v); },
     answer: (d) => { quiz.pick = +d.i; mark(quiz.pick === (quiz.id === 'quiz' ? pcAt(quiz.q.s, quiz.q.f) : quiz.q.iv)); render(); },
     skip: () => { newQuestion(quiz.id); render(); },
-    level: (d) => { quiz = null; go({ practice: { level: Math.max(1, Math.min(3, state.practice.level + +d.d)) } }); },
+    level: (d) => { quiz = null; go({ practice: { level: Math.max(1, Math.min((CHOICE[state.practice.id] || { levels: [0, 0, 0] }).levels.length, state.practice.level + +d.d)) } }); },
     wstring: (d) => go({ practice: { string: Math.max(1, Math.min(6, state.practice.string + +d.d)) } }),
     goto: (d) => { location.hash = d.h; window.scrollTo(0, 0); },
     follow: () => cur.follow && cur.follow(),

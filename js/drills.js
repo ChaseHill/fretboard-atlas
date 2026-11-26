@@ -340,6 +340,7 @@
     warmups: ['chromatic', 'spider', 'skip', 'climb'], hands: ['gsfingers', 'pkalt', 'fspima'], practise: ['gscount', 'chromatic', 'chpairs', 'rhladder'], picking: ['chromatic', 'skip'], fretboard: ['quiz', 'find', 'findall', 'walk'], alphabet: ['quiz', 'find'], intervals: ['interval', 'nameiv', 'eariv'], ear: ['eariv', 'earchord', 'earfn'],
     keysig: ['keyquiz'], circle: ['keyquiz'], families: ['three', 'pop', 'fifties', 'earfn'], diatonic: ['canon', 'sens', 'cycle4', 'earfn'], blues: ['blues', 'quick'], triadscale: ['triads'], triads: ['triads'],
     sevenths: ['namechord', 'chordtone', 'earchord'], minorkeys: ['m145', 'andalu', 'mpop', 'borrow'], iivi: ['jazz', 'm251', 'chain'], turnarounds: ['turn', 'turn6', 'three6', 'tritone', 'jblues', 'fast', 'rhythm'],
+    tritone: ['subq', 'tritone', 'jztritone'], dimchords: ['dimpass', 'jzdim', 'jblues'], chordscales: ['subq', 'scmodes', 'scdrone', 'jzbebop'], modes: ['subq'], ear: ['earroot'], triads: ['earroot'],
     function: ['earfn', 'fnq', 'cycle4', 'three'], secdom: ['secq', 'turn6', 'exdom', 'jzcycle'], relatedii: ['secq', 'three6', 'chain'], interchange: ['borrow', 'backdoor', 'cliche'], bluesvar: ['blues', 'quick', 'jblues', 'mblues', 'sctarget'], extensions: ['tensq', 'chordtone'],
     jazz: ['jazz'], rootless: ['jazz', 'turn'], drop2: ['jazz', 'cycle4'], swing: ['jazz'],
   };
