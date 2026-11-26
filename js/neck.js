@@ -89,13 +89,28 @@
       opens[i] = el('circle', { class: 'open-ring', cx: lx, cy: ly, r: 9.5 }, svg); // ringed when this string is played open, as on a chord chart
       labels[i] = el('text', { class: 'nlabel', x: lx, y: ly + 4 }, svg);
     }
-    // capo: a padded bar across the strings with a clamp over the front edge; it slides along the neck
-    const capoG = el('g', { class: 'capo off' }, svg), CX0 = -11, CX1 = -2, CZ = 11, cy0 = y0 - 3, cy1 = y1 + 3;
-    const cface = (p, cls) => el('polygon', { points: pts(p), class: cls, stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-linejoin': 'round' }, capoG);
-    cface([P(CX0, cy1 + 7, CZ), P(CX1, cy1 + 7, CZ), P(CX1, cy1 + 7, -THICK - 3), P(CX0, cy1 + 7, -THICK - 3)], 'capo-side');
-    cface([P(CX1, cy1, CZ), P(CX1, cy1 + 7, CZ), P(CX1, cy1 + 7, -THICK - 3), P(CX1, cy1, -THICK - 3)], 'capo-end');
-    cface([P(CX1, cy0, CZ), P(CX1, cy1 + 7, CZ), P(CX1, cy1 + 7, 2.5), P(CX1, cy0, 2.5)], 'capo-end');
-    cface([P(CX0, cy0, CZ), P(CX1, cy0, CZ), P(CX1, cy1 + 7, CZ), P(CX0, cy1 + 7, CZ)], 'capo-top');
+    // capo: a spring (trigger) capo. A padded arm lies across the strings; at the front edge it turns down through a
+    // pivot and becomes the lower handle, while the jaw from under the neck comes up through the same pivot as the
+    // upper handle. A coil spring between the handles holds it shut. Each part is a side profile (y, z) given depth along x.
+    const capoG = el('g', { class: 'capo off' }, svg), CX0 = -11, CX1 = -2, cy0 = y0 - 3, F = y1; // F: the front edge of the neck
+    const cq = (p, cls) => el('polygon', { points: pts(p), class: cls, stroke: 'var(--ink)', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }, capoG);
+    const part = (prof, top, front, cls) => { // top / front: which edges of the profile face up or toward the player
+      top.forEach((i) => cq([P(CX0, ...prof[i]), P(CX0, ...prof[i + 1]), P(CX1, ...prof[i + 1]), P(CX1, ...prof[i])], 'capo-top'));
+      front.forEach((i) => cq([P(CX0, ...prof[i]), P(CX0, ...prof[i + 1]), P(CX1, ...prof[i + 1]), P(CX1, ...prof[i])], 'capo-side'));
+      cq(prof.map((p) => P(CX1, ...p)), cls || 'capo-end');
+    };
+    part([[cy0 + 2, 5.2], [F + 2, 5.2], [F + 2, 2.4], [cy0 + 2, 2.4]], [0], [1], 'capo-pad'); // rubber pad on the strings
+    part([[cy0, 9.6], [F + 5, 9.6], [F + 13, 2.5], [F + 46, -8], [F + 47, -12.5], [F + 11, -2.6], [F + 3, 5.2], [cy0, 5.2]], [0, 1, 2], [3]); // arm and lower handle
+    part([[F + 44, -6.6], [F + 49, -6.2], [F + 50, -13.4], [F + 45, -13.6]], [0], [1], 'capo-grip'); // its rubber grip
+    part([[F + 8, 2.6], [F + 48, 19], [F + 50, 14.6], [F + 12, -2.2]], [0], [1]); // upper handle
+    part([[F + 43, 18.6], [F + 49.5, 21.2], [F + 52, 14.2], [F + 46, 12]], [0], [1], 'capo-grip');
+    { const lo = (y) => 2.5 - (y - 13) * 10.5 / 33, hi = (y) => -2.2 + (y - 12) * 16.8 / 38, zig = []; // the coil spring between the handles
+      for (let k = 0; k < 8; k++) { const y = 18 + k * 2.6; zig.push(P(CX1, F + y, k % 2 ? hi(y) - 0.6 : lo(y) + 0.6)); }
+      el('polyline', { points: pts(zig), class: 'capo-spring' }, capoG);
+      const pv = P(CX1, F + 11, 0);
+      el('circle', { r: 4.1, class: 'capo-pivot', transform: 'matrix(-0.866 0.5 0 -1 ' + pv[0].toFixed(1) + ' ' + pv[1].toFixed(1) + ')' }, capoG);
+      el('circle', { r: 1.3, class: 'capo-rivet', transform: 'matrix(-0.866 0.5 0 -1 ' + pv[0].toFixed(1) + ' ' + pv[1].toFixed(1) + ')' }, capoG);
+      const h0 = P(CX0 + 1.5, cy0 + 4, 9.7), h1 = P(CX0 + 1.5, F + 3, 9.7); el('line', { x1: h0[0], y1: h0[1], x2: h1[0], y2: h1[1], class: 'capo-shine' }, capoG); }
     const pegLayer = el('g', {}, svg);
     let capoAt = 0;
 

@@ -43,6 +43,7 @@
     const seg = (a, b, cls, parent = svg) => el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), class: cls }, parent);
     const X0 = -14, X1 = L + 14, YB = -50, YF = KD + 8, LID = 48; // the harp cover stands well clear of the black keys, so the name plate and knobs are never hidden behind them
     el('polygon', { points: pts([P(X0, YB, fz), P(X1, YB, fz), P(X1 + THICK, YB + THICK / 2, fz), P(X1 + THICK, YF + THICK / 2, fz), P(X0 + THICK, YF + THICK / 2, fz), P(X0, YF, fz)]), fill: '#000', opacity: '.16' }, svg); // one hard shadow, lower right
+    { const H = LID + THICK; el('polygon', { points: pts([P(X1, YB, fz), P(X1 + H, YB + H / 2, fz), P(X1 + H, -3 + H / 2, fz), P(X1, -3 + THICK / 2, fz)]), fill: '#000', opacity: '.16' }, svg); } // the tall cover throws a longer shadow than the case
     // case: the tolex box the keys sit in, with chrome corner caps
     face([P(X0, YF), P(X1, YF), P(X1, YF, -THICK), P(X0, YF, -THICK)], 'kb-case-side');
     face([P(X1, YB), P(X1, YF), P(X1, YF, -THICK), P(X1, YB, -THICK)], 'kb-case-end');

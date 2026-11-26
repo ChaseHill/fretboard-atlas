@@ -1391,3 +1391,12 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
   [data-opener] .textcol { grid-template-columns: minmax(0, 1fr); }
   [data-opener] .textcol > .idea { grid-column: 1 / -1; grid-row: auto; max-width: 72ch; }
 }
+
+/* ---------- spring capo, plain inlays, a position window that cannot be missed ---------- */
+.capo-top { fill: #6a6a78; } .capo-side { fill: #3a3a44; } .capo-end { fill: #4c4c58; }
+.capo-pad, .capo-grip { fill: #17171b; }
+.capo-pivot { fill: #c9c4ba; stroke: var(--ink); stroke-width: 1.2; } .capo-rivet { fill: #6f6a62; }
+.capo-spring { fill: none; stroke: #d8d3c8; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; paint-order: stroke; filter: drop-shadow(0 .6px 0 rgba(0,0,0,.6)); }
+.capo-shine { stroke: #fff; stroke-width: 1; opacity: .45; stroke-linecap: round; }
+.inlay { opacity: 1; stroke: none; } .inlay-shine { display: none; }
+.window { opacity: 1; fill-opacity: .2; stroke: var(--guide); stroke-width: 2.2; stroke-linejoin: round; }
