@@ -29,7 +29,8 @@
   const IV = { 1: 'minor 2nd', 2: 'major 2nd', 3: 'minor 3rd', 4: 'major 3rd', 5: '4th', 6: 'tritone', 7: '5th', 8: 'minor 6th', 9: 'major 6th', 10: 'minor 7th', 11: 'major 7th', 12: 'octave' };
   const IV_LEVELS = [[3, 4, 5, 7, 12], [2, 3, 4, 5, 7, 9, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]], IV_NAMES = ['3rds, 4th, 5th, octave', 'Common intervals', 'All twelve intervals'];
   const NAT = [0, 2, 4, 5, 7, 9, 11], NOTE_LEVELS = ['White keys', 'All twelve keys'];
-  const IDS = WARM.map((w) => w.id).concat(DRILLS.map((d) => d.id));
+  const KD = G.KeyDrills || { list: [], byId: {}, forLesson: () => [] };
+  const IDS = WARM.map((w) => w.id).concat(DRILLS.map((d) => d.id), KD.list.map((d) => d.id));
   const best = (id) => { try { return +JSON.parse(localStorage.getItem('fa.best-' + id)) || 0; } catch (e) { return 0; } };
   const saveBest = (id, n) => { try { localStorage.setItem('fa.best-' + id, JSON.stringify(n)); } catch (e) { /* storage unavailable */ } };
   const rnd = (list, not) => { let x; do x = list[Math.floor(Math.random() * list.length)]; while (list.length > 1 && x === not); return x; };
@@ -37,11 +38,63 @@
 
   const side = (A, id) => {
     const item = (pid, name) => `<li><button data-act="practice" data-id="${pid}" class="${pid === id ? 'on' : ''}">${name}</button></li>`;
-    return `<div class="side-head"><span>Practice</span></div><div class="tree always">
-      <div class="fam open"><button disabled>${A.folder(0)}<span>Warm-ups</span></button><ul>${WARM.map((w) => item(w.id, w.name)).join('')}</ul></div>
-      ${T.progGroups().map(([g, ps]) => `<div class="fam open"><button disabled>${A.folder(2)}<span>${g}</span></button><ul>${ps.map((p) => item(p.id, p.name)).join('')}</ul></div>`).join('')}
-      <div class="fam open"><button disabled>${A.folder(3)}<span>Keyboard</span></button><ul>${DRILLS.map((x) => item(x.id, x.name)).join('')}</ul></div></div>`;
+    const secs = sections(), n = secs.reduce((a, s) => a + s[1].length, 0);
+    return `<div class="side-head"><span>Practice</span><small>${n} drills</small></div><div class="tree always">` + secs.map(([g, items], gi) => {
+      const open = items.some((x) => x[0] === id) || A.openFolders.has('K' + g);
+      return `<div class="fam${open ? ' open' : ''}" data-fold="K${g}"><button data-act="fold"><span class="chev">›</span>${A.folder(gi + 1)}<span>${String(gi + 1).padStart(2, '0')}. ${g}</span><small>${items.length}</small></button><ul>${items.map((x) => item(x[0], x[1])).join('')}</ul></div>`;
+    }).join('') + '</div>';
   };
+  // everything in keyboard Practice, filed under the lesson sections: [section, [[id, name], ...]]
+  const sections = () => {
+    const lib = (g) => KD.list.filter((d) => d.group === g).map((d) => [d.id, d.name]), pg = (g) => T.PROGS.filter((p) => (p.group || 'Chord changes') === g).map((p) => [p.id, p.name]);
+    return [
+      ['Technique', WARM.map((w) => [w.id, w.name]).concat(lib('Technique'))],
+      ['Foundations', DRILLS.map((d) => [d.id, d.name]).concat(lib('Foundations'))],
+      ['Chords', lib('Chords').concat(pg('Chord changes'), pg('Minor keys'))],
+      ['Scales & keys', lib('Scales & keys')],
+      ['Jazz', pg('Jazz changes').concat(lib('Jazz'))],
+    ];
+  };
+  V.practiceName = (id) => { for (const s of sections()) { const x = s[1].find((y) => y[0] === id); if (x) return x[1]; } return ''; };
+  V.lessonDrills = (lessonId) => [...new Set(KD.forLesson(lessonId))].map((d) => [d, V.practiceName(d)]).filter((x) => x[1]);
+
+  // ---------- the keyboard drill library (js/keydrills.js) ----------
+  function libDrill(A, d) {
+    const st = A.state, p = st.practice, Metro = G.Metro, nv = (d.vars || []).length, vi = Math.max(0, Math.min(nv - 1, (p.vars || {})[d.id] | 0));
+    const made = d.make({ key: st.key, v: vi }), evs = Array.isArray(made) ? made : made.ev, swing = !Array.isArray(made) && made.swing;
+    const lab = (n) => (st.labels === 'note' ? esc(n.note) : n.finger != null && n.finger !== '' && (d.group === 'Technique' || st.labels === 'finger') ? n.finger : esc(n.label));
+    let t = 0, key = null; const fk = evs.find((e) => e.g != null || e.name) || {}, kOf = (e) => (e.g != null ? 'g' + e.g : e.name ? 'n' + e.name : null);
+    const segs = [], tl = evs.map((e) => { const k = kOf(e) || (key == null ? kOf(fk) || '' : key); key = k; const o = Object.assign({ t, k }, e); t += e.d; return o; });
+    const len = Math.max(1, Math.ceil(t - 1e-6));
+    tl.forEach((e) => { let sg = segs.find((x) => x.k === e.k); if (!sg) segs.push((sg = { k: e.k, name: '', notes: [] })); e.seg = sg; if (e.name) sg.name = e.name; (e.n || []).forEach((n) => { if (!sg.notes.some((m) => m.midi === n.midi)) sg.notes.push({ midi: n.midi, label: lab(n), role: n.role, hand: n.hand }); }); });
+    const first = tl.length ? tl[0].seg : { notes: [], name: '' }, from = d.from.map((id) => (G.KEYLESSONS || []).find((l) => l.id === id)).filter(Boolean);
+    A.ui({
+      side: A.keysHTML() + side(A, d.id), crumbs: 'Practice / ' + d.group, title: `${d.name} in ${st.key}`, chips: A.pill(d.level) + A.pill(len + ' beats') + (swing ? A.pill('swung') : ''), lede: d.text,
+      tiles: A.tilesHTML([['Now', `<span id="drillNow">${esc(first.name || (nv ? d.vars[vi] : st.key + ' major'))}</span>`], ['Start at', d.tempo[0] + ' BPM'], ['Aim for', d.tempo[1] + ' BPM']]),
+      actions: '<button class="btn" data-act="drill">▶ Play</button>',
+      railHead: '<span>This drill</span><small>' + d.group + '</small>',
+      rail: (nv ? `<div class="drillbar"><label>Variation <select data-change="dvar" aria-label="Variation">${d.vars.map((nm, k) => `<option value="${k}"${k === vi ? ' selected' : ''}>${esc(nm)}</option>`).join('')}</select></label></div>` : '') +
+        `<p class="muted">Start at ${d.tempo[0]} beats a minute. When three passes in a row are even and relaxed, add four. The target is ${d.tempo[1]}. Pick the key in the list.</p>` +
+        (from.length ? `<p class="muted">It goes with ${from.length > 1 ? 'these lessons' : 'this lesson'}:</p><p>${from.map((l) => `<button class="ins-link" data-act="goto" data-h="#k-learn-${l.id}-1">${l.title}</button>`).join(' ')}</p>` : ''),
+      panel: A.stepCard({ no: 'Drill', tag: d.group, title: d.name, body: `<p>${d.text}</p>`, idea: d.tip, more: '<ul class="plain-list"><li>Play along at your own keyboard. The app keeps time and lights the keys.</li><li>Hands separately first, then together.</li><li>Stop if anything aches.</li></ul>', hint: '<kbd>Space</kbd> play or stop · <kbd>M</kbd> metronome' }),
+    });
+    show(A, first.notes);
+    let shown = first;
+    const toggle = () => {
+      if (A.drill.off) return A.stopDrill();
+      A.startDrill(Metro.TPB, (i, time) => {
+        const b = i % len, beat = 60 / Metro.bpm;
+        tl.forEach((e) => {
+          if (e.t < b - 1e-6 || e.t >= b + 1 - 1e-6) return;
+          let off = e.t - b; if (swing && Math.abs(off - 0.5) < 1e-6) off = 2 / 3;
+          const when = time + off * beat;
+          if (e.seg !== shown) { const sg = e.seg; shown = sg; Audio.at(when - 0.03, () => { if (!A.drill.off) return; show(A, sg.notes); const el = document.getElementById('drillNow'); if (el && sg.name) el.textContent = sg.name; }); }
+          (e.n || []).forEach((n, k) => { Audio.key(n.midi, when, (e.vel || 0.85) * (n.hand === 'L' ? 0.85 : 1)); Audio.at(when, () => A.drill.off && (k || e.n.length > 1 ? A.keys.pulse(n.midi) : A.keys.setActive(n.midi))); });
+        });
+      });
+    };
+    A.setCur({ play: toggle, drill: toggle });
+  }
   const show = (A, notes) => A.neck.show({ notes: [] }, { notes });
   const voicingOf = (root, id) => { const vs = T.keyVoicings(root, T.baseQuality(root, id)); return vs && vs[0]; };
 
@@ -191,8 +244,8 @@
     ctx = null;
     const prog = T.PROGS.find((x) => x.id === p.id);
     if (!prog && !IDS.includes(p.id)) p.id = WARM[0].id; // arriving from a guitar-only exercise
-    const w = WARM.find((x) => x.id === p.id), d = DRILLS.find((x) => x.id === p.id);
-    if (w) warmup(A, w); else if (prog) changes(A, prog); else drillPage(A, d);
+    const w = WARM.find((x) => x.id === p.id), d = DRILLS.find((x) => x.id === p.id), lib = KD.byId[p.id];
+    if (lib) libDrill(A, lib); else if (w) warmup(A, w); else if (prog) changes(A, prog); else drillPage(A, d);
   };
   V.practiceIds = IDS;
   document.addEventListener('click', (e) => {

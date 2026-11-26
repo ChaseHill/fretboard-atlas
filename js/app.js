@@ -408,7 +408,7 @@
         more: (TL ? TL.extras(st) : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
           navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson ›` : 'Next ›'), hint: KB }) +
         `<section class="card howto"><b>${lastStep ? 'You can now' : 'You’ll learn'}</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
-         <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>${kb || !lessonDrills(L.id).length ? '' : `<section class="card howto"><b>Drills for this lesson</b><p class="muted">Each opens in the Practice tab and plays in time with the metronome.</p><p>${lessonDrills(L.id).map(([d, nm]) => `<button class="ins-link" data-act="goto" data-h="#practice-${state.key}-${d}">${nm}</button>`).join(' ')}</p></section>`}`,
+         <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>${!lessonDrills(L.id).length ? '' : `<section class="card howto"><b>Drills for this lesson</b><p class="muted">Each opens in the Practice tab and plays in time with the metronome.</p><p>${lessonDrills(L.id).map(([d, nm]) => `<button class="ins-link" data-act="goto" data-h="#${kb ? 'k-' : ''}practice-${state.key}-${d}">${nm}</button>`).join(' ')}</p></section>`}`,
     });
     if (TL) TL.mount(document);
     if (kb) neck.show({ notes: [] }, { notes: spec.notes }); else neck.show(spec);
@@ -665,7 +665,7 @@
   };
   const practiceName = (id) => { for (const s of practiceSections()) { const x = s[1].find((y) => y[0] === id); if (x) return x[1]; } return ''; };
   // the drills that go with a lesson, as links (shown under the lesson's practice routine)
-  const lessonDrills = (lessonId) => { const DR = window.G.Drills, ids = DR ? [...new Set(DR.forLesson(lessonId))] : []; return ids.map((d) => [d, practiceName(d)]).filter((x) => x[1]); };
+  const lessonDrills = (lessonId) => { if (onKeys()) return window.G.KeyViews && window.G.KeyViews.lessonDrills ? window.G.KeyViews.lessonDrills(lessonId) : []; const DR = window.G.Drills, ids = DR ? [...new Set(DR.forLesson(lessonId))] : []; return ids.map((d) => [d, practiceName(d)]).filter((x) => x[1]); };
   function practiceSide() {
     const id = state.practice.id, item = (pid, name) => `<li><button data-act="practice" data-id="${pid}" class="${pid === id ? 'on' : ''}">${name}</button></li>`;
     const secs = practiceSections(), n = secs.reduce((a, s) => a + s[1].length, 0);
