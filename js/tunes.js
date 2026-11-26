@@ -5,7 +5,7 @@
 (() => {
   'use strict';
   const G = (window.G = window.G || {});
-  const POS = { e: [6, 0], f: [6, 1], g: [6, 3], a: [5, 0], b: [5, 2], c: [5, 3], d: [4, 0], e1: [4, 2], f1: [4, 3], fs1: [4, 4], g1: [3, 0], a1: [3, 2], b1: [2, 0], c2: [2, 1], d2: [2, 3], e2: [1, 0], f2: [1, 1], fs2: [1, 2], g2: [1, 3] };
+  const POS = { e: [6, 0], f: [6, 1], g: [6, 3], a: [5, 0], b: [5, 2], c: [5, 3], d: [4, 0], e1: [4, 2], f1: [4, 3], fs1: [4, 4], g1: [3, 0], a1: [3, 2], b1: [2, 0], c2: [2, 1], d2: [2, 3], e2: [1, 0], f2: [1, 1], fs2: [1, 2], g2: [1, 3], a2: [1, 5] };
   const parse = (str) => str.split(/\s+/).filter((t) => t && t !== '|').map((t) => { const [n, d] = t.split(':'), p = n === 'r' ? [0, 0] : POS[n]; if (!p) throw new Error('unknown note ' + n); return [p[0], p[1], d ? +d : 1]; });
   const list = [];
   // chords: one entry per full bar, 'C' or 'C G7' for two in a bar; they are what a second guitar strums under the tune
@@ -23,6 +23,12 @@
   tune('s6a', 'Sixth String Bass', OWN, 2, 'e f g f | e:2 a:2 | g a b a | e:4', { strings: 'String 6: E, F and G' });
   tune('s8a', 'Eighth-Note Steps', OWN, 2, 'c2:.5 d2:.5 e2 e2:.5 f2:.5 g2 | g2:.5 f2:.5 e2 d2:2 | c2:.5 d2:.5 e2:.5 f2:.5 g2 e2 | d2:2 c2:2', { strings: 'Strings 2 and 1, with eighth notes' });
   tune('srun', 'All Six Strings', OWN, 2, 'e:.5 f:.5 g:.5 a:.5 b:.5 c:.5 d:.5 e1:.5 | f1:.5 g1:.5 a1:.5 b1:.5 c2:.5 d2:.5 e2:.5 f2:.5 | g2:2 e2:2 | c2:2 g1:2 | e1:2 c:2 | e:4', { strings: 'Every natural note of first position' });
+
+  // ---- composing models: a period, a sentence and a small three-part piece ----
+  const MODEL = 'A composing model written for this app';
+  tune('period', 'An Eight-Bar Period', MODEL, 2, 'c2 e2 g2:2 | f2 e2 d2:2 | e2:.5 f2:.5 g2 e2 c2 | d2:4 | c2 e2 g2:2 | f2 e2 d2:2 | e2 g2 f2 d2 | c2:4', { chords: 'C | G7 | C | G | C | G7 | C G7 | C' });
+  tune('sentence', 'An Eight-Bar Sentence', MODEL, 2, 'g1 c2 e2 c2 | d2:2 g1:2 | g1 b1 d2 b1 | c2:2 g1:2 | e2 d2 c2 d2 | f2 e2 d2 e2 | g2 f2 e2 d2 | c2:4', { chords: 'C | G | G | C | C | Dm | G7 | C' });
+  tune('ternary', 'A Small Three-Part Piece', MODEL, 2, 'c2 e2 g2:2 | f2 e2 d2:2 | e2:.5 f2:.5 g2 e2 c2 | d2:4 | c2 e2 g2:2 | f2 e2 d2:2 | e2 g2 f2 d2 | c2:4 | g1 b1 d2 f2 | e2:2 d2:2 | b1 d2 g2 a2 | g2:2 d2:2 | c2 e2 g2:2 | f2 e2 d2:2 | e2 g2 f2 d2 | c2:4', { chords: 'C | G7 | C | G | C | G7 | C G7 | C | G7 | G7 | G7 | G7 | C | G7 | C G7 | C' });
 
   // ---- traditional and classical melodies in the public domain ----
   tune('buns', 'Hot Cross Buns', 'Traditional', 1, 'e2 d2 c2:2 | e2 d2 c2:2 | c2:.5 c2:.5 c2:.5 c2:.5 d2:.5 d2:.5 d2:.5 d2:.5 | e2 d2 c2:2', { chords: 'C | C | C | G7 C' });

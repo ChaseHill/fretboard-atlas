@@ -317,8 +317,8 @@
     (c) => lead(twoFive(c.key), 'shell').flatMap((v) => { const b = bassOf(v), u = upperOf(v); return [E([b].concat(u), 1.5, { name: v.name }), E(u, 0.5, { vel: 0.7, name: v.name }), E(b, 1, { name: v.name }), E(u, 1, { vel: 0.7, name: v.name })]; }), jz);
 
   // ======================= tunes to read (js/tunes.js), each also a drill that plays in time =======================
-  const TUNE_FROM = { s1a: ['read1'], s1b: ['read1'], s2a: ['read2'], s2b: ['read2'], buns: ['read2'], mary: ['read2'], clair: ['read2'], ode: ['read2', 'staff'], saints: ['read2'], s3a: ['read3'], twinkle: ['read3'], jingle: ['read3', 'rhythm'], s8a: ['read3', 'rhythm'], s4a: ['read4'], aura: ['read4', 'keysig'], yankee: ['read4'], grace: ['read4', 'rhythm'], s5a: ['read5'], s6a: ['read5'], srun: ['read5', 'firstnotes'] };
-  (G.Tunes ? G.Tunes.list : []).forEach((t) => D('tn' + t.id, FD, (/written for this app/.test(t.credit) ? 'Study: ' : 'Tune: ') + t.title, t.level > 1 ? 'Intermediate' : 'Beginner', TUNE_FROM[t.id] || ['staff'],
+  const TUNE_FROM = { s1a: ['read1'], s1b: ['read1'], s2a: ['read2'], s2b: ['read2'], buns: ['read2'], mary: ['read2'], clair: ['read2'], ode: ['read2', 'staff'], saints: ['read2'], s3a: ['read3'], twinkle: ['read3'], jingle: ['read3', 'rhythm'], s8a: ['read3', 'rhythm'], s4a: ['read4'], aura: ['read4', 'keysig'], yankee: ['read4'], grace: ['read4', 'rhythm'], s5a: ['read5'], s6a: ['read5'], srun: ['read5', 'firstnotes'], period: ['period', 'accomp'], sentence: ['sentence'], ternary: ['smallform'] };
+  (G.Tunes ? G.Tunes.list : []).forEach((t) => D('tn' + t.id, FD, (/composing model/.test(t.credit) ? 'Model: ' : /written for this app/.test(t.credit) ? 'Study: ' : 'Tune: ') + t.title, t.level > 1 ? 'Intermediate' : 'Beginner', TUNE_FROM[t.id] || ['staff'],
     `${t.title}. ${t.credit}. Read it from the staff in its lesson, then play it here in time.${t.chords ? ' The list on the right adds a second guitar: strum the chords while the app plays the tune, or play the tune while the app strums.' : ''}${t.time === 3 ? ' It is in three: set the metronome to 3/4 at the top.' : ''}`, 'Count one bar before you start, and keep your eyes a note ahead of your fingers.',
     (c) => {
       if (!t.chords || !c.v) return t.notes.map(([s, f, d]) => (s ? E(N(s, f), d) : R(d)));
@@ -341,6 +341,7 @@
     keysig: ['keyquiz'], circle: ['keyquiz'], families: ['three', 'pop', 'fifties', 'earfn'], diatonic: ['canon', 'sens', 'cycle4', 'earfn'], blues: ['blues', 'quick'], triadscale: ['triads'], triads: ['triads'],
     sevenths: ['namechord', 'chordtone', 'earchord'], minorkeys: ['m145', 'andalu', 'mpop', 'borrow'], iivi: ['jazz', 'm251', 'chain'], turnarounds: ['turn', 'turn6', 'three6', 'tritone', 'jblues', 'fast', 'rhythm'],
     tritone: ['subq', 'tritone', 'jztritone'], dimchords: ['dimpass', 'jzdim', 'jblues'], chordscales: ['subq', 'scmodes', 'scdrone', 'jzbebop'], modes: ['subq'], ear: ['earroot'], triads: ['earroot'],
+    cphrase: ['scframe', 'scarps', 'tndyn'], motive: ['scphrase', 'jzcells', 'tnaccent'], accomp: ['stdown', 'fspima', 'staltbass', 'stbass'], smallform: ['tnperiod'],
     function: ['earfn', 'fnq', 'cycle4', 'three'], secdom: ['secq', 'turn6', 'exdom', 'jzcycle'], relatedii: ['secq', 'three6', 'chain'], interchange: ['borrow', 'backdoor', 'cliche'], bluesvar: ['blues', 'quick', 'jblues', 'mblues', 'sctarget'], extensions: ['tensq', 'chordtone'],
     jazz: ['jazz'], rootless: ['jazz', 'turn'], drop2: ['jazz', 'cycle4'], swing: ['jazz'],
   };
