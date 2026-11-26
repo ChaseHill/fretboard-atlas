@@ -1299,3 +1299,19 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
   .below > table.strings { grid-column: 1 / -1; }
   .below > table.strings + .nav { grid-column: 1 / -1; max-width: 420px; }
 }
+
+/* ---------- played notes look pressed ---------- */
+.kb-well { fill: #5d5142; }
+.key { transition: transform .09s ease-out; }
+.key.lit { transform: translateY(4px); }
+.key.lit .k-top { stroke-width: 1.3; }
+.key.hit { animation: keydip .32s ease-out; }
+.key.lit.hit { animation: keydipheld .32s ease-out; }
+@keyframes keydip { 0% { transform: translateY(5px); } 100% { transform: translateY(0); } }
+@keyframes keydipheld { 0% { transform: translateY(7px); } 100% { transform: translateY(4px); } }
+.peg.cur .lift { transform: translateY(3px); }
+.peg.ring .lift { animation: pegpress .34s ease-out; }
+@keyframes pegpress { 0% { transform: translateY(5px); } 100% { transform: translateY(0); } }
+.open-ring { fill: none; stroke: var(--guide); stroke-width: 2; opacity: 0; transition: opacity .2s; }
+.open-ring.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .key, .key.hit, .key.lit.hit, .peg.ring .lift { animation: none; transition: none; } }

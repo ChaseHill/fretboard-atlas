@@ -18,7 +18,7 @@
   G.Neck = function (container) {
     const L = NFRET * FW, y0 = -EDGE, y1 = 5 * SW + EDGE;
     const svg = el('svg', { viewBox: `0 0 ${VW} ${VH}`, role: 'img', 'aria-label': 'Guitar neck' }, container);
-    const strs = [], glows = [], labels = [], fretnos = [], pegs = [];
+    const strs = [], glows = [], labels = [], opens = [], fretnos = [], pegs = [];
     let byKey = {}, cur = null;
 
     // floor grid on the ground plane, fading out toward the edges, to give the neck something to sit on
@@ -86,6 +86,7 @@
       if (i < 3) el('line', Object.assign({ class: 'wind', 'stroke-width': sw }, at), svg); // winding on the bass strings
       el('line', { class: 'str-shine', x1: a[0], y1: a[1] - sw * 0.3, x2: b[0], y2: b[1] - sw * 0.3, 'stroke-width': Math.max(0.4, sw * 0.26) }, svg); // the light along the top of the string
       const [lx, ly] = P(-HEAD - 16, stringY(i), 0);
+      opens[i] = el('circle', { class: 'open-ring', cx: lx, cy: ly, r: 9.5 }, svg); // ringed when this string is played open, as on a chord chart
       labels[i] = el('text', { class: 'nlabel', x: lx, y: ly + 4 }, svg);
     }
     // capo: a padded bar across the strings with a clamp over the front edge; it slides along the neck
@@ -141,6 +142,7 @@
           const on = used.has(i) || !mute;
           strs[i].classList.toggle('on', used.has(i)); glows[i].classList.toggle('on', used.has(i));
           labels[i].classList.toggle('on', on);
+          opens[i].classList.toggle('on', notes.some((n) => n.s === i && n.f === 0 && !n.dim) && !capo);
           labels[i].textContent = on ? G.T.OPEN[i] : '×';
         }
         if (w) win.setAttribute('points', pts([P((Math.max(w[0], 1) - 1) * FW, y0, 0.5), P(w[1] * FW, y0, 0.5), P(w[1] * FW, y1, 0.5), P((Math.max(w[0], 1) - 1) * FW, y1, 0.5)]));

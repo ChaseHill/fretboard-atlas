@@ -4,7 +4,7 @@
   'use strict';
   const G = (window.G = window.G || {});
   const NS = 'http://www.w3.org/2000/svg';
-  const WW = 32, KD = 114, BW = 18, BD = 70, WH = 9, BH = 10, NW = 22, THICK = 14, OX = 128, OY = 66, VW = 800, VH = 545;
+  const WW = 32, KD = 114, BW = 18, BD = 70, WH = 9, BH = 10, NW = 22, THICK = 14, OX = 128, OY = 82, VW = 800, VH = 561, DEP = 4; // DEP: how far a held key sinks
   const P = (x, y, z = 0) => [OX + (x - y) * 0.866, OY + (x + y) * 0.5 - z];
   const pts = (arr) => arr.map((p) => p.map((n) => n.toFixed(1)).join(',')).join(' ');
   const el = (tag, attrs, parent) => {
@@ -41,7 +41,7 @@
     }
     const face = (p, cls, parent = svg, sw = 1.4) => el('polygon', { points: pts(p), class: cls, stroke: 'var(--ink)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, parent);
     const seg = (a, b, cls, parent = svg) => el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), class: cls }, parent);
-    const X0 = -14, X1 = L + 14, YB = -50, YF = KD + 8, LID = 32;
+    const X0 = -14, X1 = L + 14, YB = -50, YF = KD + 8, LID = 48; // the harp cover stands well clear of the black keys, so the name plate and knobs are never hidden behind them
     el('polygon', { points: pts([P(X0, YB, fz), P(X1, YB, fz), P(X1 + THICK, YB + THICK / 2, fz), P(X1 + THICK, YF + THICK / 2, fz), P(X0 + THICK, YF + THICK / 2, fz), P(X0, YF, fz)]), fill: '#000', opacity: '.16' }, svg); // one hard shadow, lower right
     // case: the tolex box the keys sit in, with chrome corner caps
     face([P(X0, YF), P(X1, YF), P(X1, YF, -THICK), P(X0, YF, -THICK)], 'kb-case-side');
@@ -55,7 +55,7 @@
     seg(P(X0 + 2, -5, LID), P(X1 - 2, -5, LID), 'kb-lid-edge');
     // ribbed aluminium rail, with one control plate: name, input jack, two knobs with dotted scales
     for (let z = 3; z <= LID - 3; z += 2.6) { seg(P(X0 + 1.5, -3, z - 0.9), P(X1 - 1.5, -3, z - 0.9), 'kb-rail-lo'); seg(P(X0 + 1.5, -3, z), P(X1 - 1.5, -3, z), 'kb-rail-hi'); }
-    const XP = 24, ZP = 4, PH = LID - 8, po = P(XP, -3, ZP), plate = el('g', { class: 'kb-plate', transform: `matrix(0.866 0.5 0 1 ${po[0].toFixed(1)} ${po[1].toFixed(1)})` }, svg); // sheared onto the rail's face
+    const XP = 24, ZP = 22, PH = 22, po = P(XP, -3, ZP), plate = el('g', { class: 'kb-plate', transform: `matrix(0.866 0.5 0 1 ${po[0].toFixed(1)} ${po[1].toFixed(1)})` }, svg); // sheared onto the rail's face
     el('rect', { x: 0, y: -PH, width: 250, height: PH, rx: 3, class: 'kb-plate-bg' }, plate);
     const ptext = (x, y, t, cls) => { el('text', { x, y, class: cls }, plate).textContent = t; };
     ptext(12, -11.5, 'ATLAS', 'kb-name'); ptext(12.5, -5, 'STAGE 73', 'kb-sub');
@@ -70,6 +70,7 @@
     const MAT = G.Peg.mat, sh = G.Peg.shade, CH = WH + 3;
     const solid = (parent, x0, x1, ya, yb, zb, zt, top, sw = 1.4) => { const f = (p, fill) => el('polygon', { points: pts(p), fill, stroke: 'var(--ink)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, parent); f([P(x0, yb, zt), P(x1, yb, zt), P(x1, yb, zb), P(x0, yb, zb)], sh(top, 0.18)); f([P(x1, ya, zt), P(x1, yb, zt), P(x1, yb, zb), P(x1, ya, zb)], sh(top, 0.5)); f([P(x0, ya, zt), P(x1, ya, zt), P(x1, yb, zt), P(x0, yb, zt)], top); };
     solid(svg, X0 + 3, 0, -3, KD + 1, 0, CH, MAT.walnut);
+    el('polygon', { points: pts([P(0, 0, WH), P(L, 0, WH), P(L, KD, WH), P(0, KD, WH)]), class: 'kb-well' }, svg); // the dark of the key bed, seen beside a key that is held down
     const keyLayer = el('g', {}, svg), frontLayer = el('g', {}, svg), labelLayer = el('g', {}, svg), pegLayer = el('g', {}, svg);
     solid(frontLayer, L, X1 - 3, -3, KD + 1, 0, CH, MAT.walnut);
     solid(frontLayer, 0, L, KD + 1, YF, 0, 5, MAT.tolex, 1);
@@ -123,7 +124,7 @@
         const n = notes[i];
         g.classList.toggle('off', !n);
         if (!n) return;
-        const [x, y] = P(n.at.x, n.at.y, n.at.z);
+        const [x, y] = P(n.at.x, n.at.y, n.at.z - (n.dim ? 0 : DEP)); // a held key is down, and its peg rides down with it
         g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
         G.Peg.set(g, n, n.hand === 'L' ? ' lh' : '');
         byMidi[n.midi] = g; g.dataset.midi = n.midi;

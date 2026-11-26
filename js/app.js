@@ -502,7 +502,7 @@
     const d = describe(c, v);
     let n = 0;
     ui(Object.assign(head, {
-      tiles: tilesHTML([['Bass note', `${esc(v.bass.deg)} · ${esc(v.bass.note)}`], ['Strings', [...v.strings].join('-')], ['Frets', v.lo === v.hi ? v.hi : `${v.lo || 'open'}–${v.hi}`], ['Notes', noteLine(v)]]),
+      tiles: tilesHTML([['Position', v.open ? 'Open' : 'Fret ' + (v.lo || 1)], ['Bass note', `${esc(v.bass.deg)} · ${esc(v.bass.note)}`], ['Strings', [...v.strings].join('-')], ['Frets', v.lo === v.hi ? v.hi : `${v.lo || 'open'}–${v.hi}`], ['Notes', noteLine(v)]]),
       actions: capoHTML() + `<button class="btn" data-act="play">▶ Strum</button><button class="btn" data-act="alt">♪ Arpeggio</button><button class="btn" data-act="chart">▦ Chart</button>`,
       railHead: `<span>Voicings of ${esc(c.name)}</span><small>${vi + 1} of ${c.voicings.length}</small>`,
       rail: c.groups.map((g) => `<div class="group-label"><b>${esc(g.label)}</b>${g.hint ? ` · ${g.hint}` : ''}</div><div class="thumbs">${g.items.map((it) => thumbHTML(it, `data-act="voicing" data-i="${n}"`, n === vi, ++n)).join('')}</div>`).join(''),
