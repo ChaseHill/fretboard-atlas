@@ -323,19 +323,20 @@
     (c) => {
       if (!t.chords || !c.v) return t.notes.map(([s, f, d]) => (s ? E(N(s, f), d) : R(d)));
       // two parts on one timeline: the tune, and a chord strummed on every beat of each full bar
-      const at = new Map(), put = (x, k, v) => { const key = Math.round(x * 12); if (!at.has(key)) at.set(key, { x }); at.get(key)[k] = v; };
-      let x = 0; t.notes.forEach(([s, f, d]) => { if (s && c.v === 1) put(x, 'n', N(s, f)); else put(x, 'r', 1); x += d; });
+      const tm = new Map(), put = (x, k, v) => { const key = Math.round(x * 12); if (!tm.has(key)) tm.set(key, { x }); tm.get(key)[k] = v; };
+      const solo = c.v === 3;
+      let x = 0; t.notes.forEach(([s, f, d]) => { if (s && (c.v === 1 || solo)) put(x, 'n', N(s, f)); else put(x, 'r', 1); x += d; });
       const total = x; let bar = 0;
-      for (let b = t.pickup || 0; b < total - 1e-6; b += t.time, bar++) { const names = t.chords[bar] || t.chords[t.chords.length - 1]; for (let k = 0; k < t.time && b + k < total - 1e-6; k++) { const nm = names[Math.min(names.length - 1, Math.floor(k * names.length / t.time))]; put(b + k, 'ch', { nm, vel: k ? 0.4 : 0.6 }); } }
-      const pts = [...at.values()].sort((a, b) => a.x - b.x);
-      return pts.map((p, i) => { const d = (i + 1 < pts.length ? pts[i + 1].x : total) - p.x, e = p.n ? E(p.n, d) : R(d); if (p.ch) { e.frets = fr(oc(p.ch.nm)); e.name = p.ch.nm; e.svel = p.ch.vel; } return e; });
-    }, Object.assign({ tempo: [60, 100] }, t.chords ? { vars: ['The tune alone', 'The tune with chords: a duet', 'Chords only: you play the tune'] } : {})));
+      for (let b = t.pickup || 0; b < total - 1e-6; b += t.time, bar++) { const names = t.chords[bar] || t.chords[t.chords.length - 1]; for (let k = 0; k < t.time && b + k < total - 1e-6; k++) { const nm = names[Math.min(names.length - 1, Math.floor(k * names.length / t.time))]; if (!solo) put(b + k, 'ch', { nm, vel: k ? 0.4 : 0.6 }); else if (k === 0 || (t.time === 4 && k === 2)) put(b + k, 'bs', Object.assign(at(oc(nm), OPEN[nm][1]), { label: 'p', role: 'root', nm })); } }
+      const pts = [...tm.values()].sort((a, b) => a.x - b.x);
+      return pts.map((p, i) => { const d = (i + 1 < pts.length ? pts[i + 1].x : total) - p.x, e = p.n || p.bs ? E([p.n, p.bs].filter(Boolean), d) : R(d); if (p.ch) { e.frets = fr(oc(p.ch.nm)); e.name = p.ch.nm; e.svel = p.ch.vel; } return e; });
+    }, Object.assign({ tempo: [60, 100] }, t.chords ? { vars: ['The tune alone', 'The tune with chords: a duet', 'Chords only: you play the tune'].concat(t.notes.every((n) => n[0] <= 3) ? ['Fingerstyle solo: the tune over a thumb bass'] : []) } : {})));
 
   // ---------- what the rest of the app sees ----------
   const byId = Object.fromEntries(list.map((d) => [d.id, d]));
   // practice items that existed before the library, filed under the lessons they belong to
   const OTHER = {
-    changes: ['minute'], openchords: ['minute'], colour: ['minute'],
+    changes: ['minute'], openchords: ['minute'], colour: ['minute'], solobass: ['tnclair', 'tnmary', 'tnode', 'tntwinkle', 'tnsaints', 'tnjingle', 'fspinch', 'fsalt', 'ms6ths'],
     warmups: ['chromatic', 'spider', 'skip', 'climb'], hands: ['gsfingers', 'pkalt', 'fspima'], practise: ['gscount', 'chromatic', 'chpairs', 'rhladder'], picking: ['chromatic', 'skip'], fretboard: ['quiz', 'find', 'findall', 'walk'], alphabet: ['quiz', 'find'], intervals: ['interval', 'nameiv', 'eariv'], ear: ['eariv', 'earchord', 'earfn'],
     keysig: ['keyquiz'], circle: ['keyquiz'], families: ['three', 'pop', 'fifties', 'earfn'], diatonic: ['canon', 'sens', 'cycle4', 'earfn'], blues: ['blues', 'quick'], triadscale: ['triads'], triads: ['triads'],
     sevenths: ['namechord', 'chordtone', 'earchord'], minorkeys: ['m145', 'andalu', 'mpop', 'borrow'], iivi: ['jazz', 'm251', 'chain'], turnarounds: ['turn', 'turn6', 'three6', 'tritone', 'jblues', 'fast', 'rhythm'],
