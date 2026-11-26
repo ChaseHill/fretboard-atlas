@@ -123,7 +123,7 @@
         const n = notes[i];
         g.classList.toggle('off', !n);
         if (!n) return;
-        const [x, y] = P(n.at.x, n.at.y, n.at.z - (n.dim ? 0 : DEP)); // a held key is down, and its peg rides down with it
+        const [x, y] = P(n.at.x, n.at.y, n.at.z); // the peg rests on the key; both dip only while the note sounds
         g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
         G.Peg.set(g, n, n.hand === 'L' ? ' lh' : '');
         byMidi[n.midi] = g; g.dataset.midi = n.midi;
