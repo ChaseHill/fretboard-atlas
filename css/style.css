@@ -1458,4 +1458,4 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
 .cf-sig.on .cnt { fill: var(--ink); }
 @media (min-width: 761px) and (max-width: 999px) { .circle-wrap { grid-template-columns: minmax(0, 1fr); } .circle-wrap .circle.cfifths { width: min(100%, 440px); } }
 
-.kb-print { font: 800 9px var(--mono); letter-spacing: .22em; fill: #6d6355; pointer-events: none; }
+.kb-well { fill: #17171a; }
