@@ -998,8 +998,8 @@
           let off = e.t - b; if (swing && Math.abs(off - 0.5) < 1e-6) off = 2 / 3;
           const when = time + off * beat;
           if (e.seg !== shown) { const sg = e.seg; shown = sg; Audio.at(when - 0.03, () => { if (!drill.off) return; showSeg(sg); const el = $('drillNow'); if (el && sg.name) el.textContent = sg.name; }); }
-          if (e.frets) strum(e.frets, { when, gap: 0.014, vel: e.vel || 0.85, up: !!e.up }).forEach((h) => Audio.at(h.at, () => neck.pulse(h.s, h.f)));
-          else (e.n || []).forEach((n, k) => { sound(n.s, n.f, when, e.vel || 0.9); Audio.at(when, () => drill.off && (k || e.n.length > 1 ? neck.pulse(n.s, n.f) : neck.setActive(n.s, n.f))); });
+          if (e.frets) strum(e.frets, { when, gap: 0.014, vel: e.svel || e.vel || 0.85, up: !!e.up }).forEach((h) => Audio.at(h.at, () => neck.pulse(h.s, h.f)));
+          if (!e.frets || e.svel) (e.n || []).forEach((n, k) => { sound(n.s, n.f, when, e.vel || 0.9); Audio.at(when, () => drill.off && (k || e.n.length > 1 ? neck.pulse(n.s, n.f) : neck.setActive(n.s, n.f))); });
         });
       });
     };

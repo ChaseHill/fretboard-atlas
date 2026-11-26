@@ -319,8 +319,17 @@
   // ======================= tunes to read (js/tunes.js), each also a drill that plays in time =======================
   const TUNE_FROM = { s1a: ['read1'], s1b: ['read1'], s2a: ['read2'], s2b: ['read2'], buns: ['read2'], mary: ['read2'], clair: ['read2'], ode: ['read2', 'staff'], saints: ['read2'], s3a: ['read3'], twinkle: ['read3'], jingle: ['read3', 'rhythm'], s8a: ['read3', 'rhythm'], s4a: ['read4'], aura: ['read4', 'keysig'], yankee: ['read4'], grace: ['read4', 'rhythm'], s5a: ['read5'], s6a: ['read5'], srun: ['read5', 'firstnotes'] };
   (G.Tunes ? G.Tunes.list : []).forEach((t) => D('tn' + t.id, FD, (/written for this app/.test(t.credit) ? 'Study: ' : 'Tune: ') + t.title, t.level > 1 ? 'Intermediate' : 'Beginner', TUNE_FROM[t.id] || ['staff'],
-    `${t.title}. ${t.credit}. Read it from the staff in its lesson, then play it here in time.${t.time === 3 ? ' It is in three: set the metronome to 3/4 at the top.' : ''}`, 'Count one bar before you start, and keep your eyes a note ahead of your fingers.',
-    () => t.notes.map(([s, f, d]) => (s ? E(N(s, f), d) : R(d))), { tempo: [60, 100] }));
+    `${t.title}. ${t.credit}. Read it from the staff in its lesson, then play it here in time.${t.chords ? ' The list on the right adds a second guitar: strum the chords while the app plays the tune, or play the tune while the app strums.' : ''}${t.time === 3 ? ' It is in three: set the metronome to 3/4 at the top.' : ''}`, 'Count one bar before you start, and keep your eyes a note ahead of your fingers.',
+    (c) => {
+      if (!t.chords || !c.v) return t.notes.map(([s, f, d]) => (s ? E(N(s, f), d) : R(d)));
+      // two parts on one timeline: the tune, and a chord strummed on every beat of each full bar
+      const at = new Map(), put = (x, k, v) => { const key = Math.round(x * 12); if (!at.has(key)) at.set(key, { x }); at.get(key)[k] = v; };
+      let x = 0; t.notes.forEach(([s, f, d]) => { if (s && c.v === 1) put(x, 'n', N(s, f)); else put(x, 'r', 1); x += d; });
+      const total = x; let bar = 0;
+      for (let b = t.pickup || 0; b < total - 1e-6; b += t.time, bar++) { const names = t.chords[bar] || t.chords[t.chords.length - 1]; for (let k = 0; k < t.time && b + k < total - 1e-6; k++) { const nm = names[Math.min(names.length - 1, Math.floor(k * names.length / t.time))]; put(b + k, 'ch', { nm, vel: k ? 0.4 : 0.6 }); } }
+      const pts = [...at.values()].sort((a, b) => a.x - b.x);
+      return pts.map((p, i) => { const d = (i + 1 < pts.length ? pts[i + 1].x : total) - p.x, e = p.n ? E(p.n, d) : R(d); if (p.ch) { e.frets = fr(oc(p.ch.nm)); e.name = p.ch.nm; e.svel = p.ch.vel; } return e; });
+    }, Object.assign({ tempo: [60, 100] }, t.chords ? { vars: ['The tune alone', 'The tune with chords: a duet', 'Chords only: you play the tune'] } : {})));
 
   // ---------- what the rest of the app sees ----------
   const byId = Object.fromEntries(list.map((d) => [d.id, d]));

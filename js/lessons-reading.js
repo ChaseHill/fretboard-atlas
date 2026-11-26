@@ -13,7 +13,7 @@
   // a step that shows new notes on the staff
   const notesStep = (title, tag, body, idea, sc, tryIt, more) => st(title, tag, body, idea, pegs(sc.notes), 'pick', tryIt, null, Object.assign({ score: sc }, more || {}));
   // a step built round one tune
-  const tuneStep = (id, tag, body, idea, tryIt) => { const t = TU.byId[id]; return st(t.title, tag, body, idea, pegs(t.notes), 'pick', tryIt, { label: 'Play it in time', hash: '#practice-C-tn' + id }, { score: t }); };
+  const tuneStep = (id, tag, body, idea, tryIt) => { const t = TU.byId[id]; return st(t.title, tag, body, idea, pegs(t.notes), 'pick', tryIt, { label: t.chords ? 'Play it in time, or as a duet' : 'Play it in time', hash: '#practice-C-tn' + id }, Object.assign({ score: t }, t.chords ? { tip: 'The letters above the staff are chords for a second guitar. In Practice the app can strum them while you play the tune, or play the tune while you strum.' } : {})); };
 
   const read1 = { id: 'read1', group: GROUP, title: 'Reading: The First String', mins: 12, level: 'Beginner',
     lede: 'Reading starts small: three notes on one string. Learn where each sits on the staff, play two short studies that use nothing else, and you are reading music.',

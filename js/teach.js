@@ -60,14 +60,16 @@
   function score(t) {
     const T = G.T, time = t.time || 4, bars = [], INK = 'var(--ink)', step = 46, sy = 80, ty = 134, tg = 11;
     let cur = [], pos = 0, left = t.pickup || time, first = true;
-    t.notes.forEach(([s, f, d]) => { cur.push({ s, f, d, at: pos }); pos += d; left -= d; if (left <= 1e-6) { bars.push({ notes: cur, len: pos, pick: first && !!t.pickup }); cur = []; pos = 0; left = time; first = false; } });
-    if (cur.length) bars.push({ notes: cur, len: pos });
+    let full = 0;
+    t.notes.forEach(([s, f, d]) => { cur.push({ s, f, d, at: pos }); pos += d; left -= d; if (left <= 1e-6) { const pick = first && !!t.pickup; bars.push({ notes: cur, len: pos, pick, chords: pick || !t.chords ? null : t.chords[full] }); if (!pick) full++; cur = []; pos = 0; left = time; first = false; } });
+    if (cur.length) bars.push({ notes: cur, len: pos, chords: t.chords ? t.chords[full] : null });
     return '<div class="tl-bars">' + bars.map((b, bi) => {
       const lead = bi === 0 ? 76 : 26, W = 76 + time * step + 14, X = (at) => lead + at * ((W - lead - 14) / time) + 12, H = 222, off = b.pick ? time - t.pickup : 0;
       let s = `<svg class="tl-strip tl-score" viewBox="0 0 ${W} ${H}" role="img" aria-label="Staff and tablature, bar ${bi + 1}">`;
       for (let i = 0; i < 5; i++) s += `<line class="ln" x1="8" y1="${sy - i * 10}" x2="${W - 6}" y2="${sy - i * 10}"/>`;
       for (let i = 0; i < 6; i++) s += `<line class="ln" x1="8" y1="${ty + i * tg}" x2="${W - 6}" y2="${ty + i * tg}"/>`;
       [8, W - 6].forEach((x) => { s += `<line class="bar" x1="${x}" y1="${sy - 40}" x2="${x}" y2="${sy}"/><line class="bar" x1="${x}" y1="${ty}" x2="${x}" y2="${ty + 5 * tg}"/>`; });
+      (b.chords || []).forEach((c, k, a) => { s += `<text class="fr" x="${X(k * time / a.length)}" y="16" style="font-size:13px">${esc(c)}</text>`; });
       if (bi === 0) {
         s += `<text x="12" y="${sy - 1}" font-size="44" style="font-family:'Segoe UI Symbol','Noto Music','Apple Symbols',serif">𝄞</text><text class="ts" x="60" y="${sy - 21}">${time}</text><text class="ts" x="60" y="${sy - 1}">4</text>`;
         'TAB'.split('').forEach((c, i) => { s += `<text class="tab" x="22" y="${ty + 14 + i * 16}">${c}</text>`; });
