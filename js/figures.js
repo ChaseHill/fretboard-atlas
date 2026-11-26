@@ -14,7 +14,7 @@
   // side; z up from the floor. All three axes are drawn at the same scale.
   const NUT = 190, SCALE = 648, fretX = (n) => NUT + SCALE * (1 - Math.pow(2, -n / 12));
   const HEEL = fretX(17), POCKET = 652, SADDLE = NUT + SCALE, FBEND = fretX(22) + 6;
-  const K = 0.62, OX = 652, OY = 40, TOP = 44, NZ = TOP + 8, HZ = NZ - 5, SZ = TOP + 10;
+  const K = 0.54, OX = 610, OY = 62, TOP = 44, NZ = TOP + 8, HZ = NZ - 5, SZ = TOP + 10;
   const BODY = '#cf4631', GUARD = '#f6f0e2', COVER = '#fbf7ee', MAPLE = '#dcae6a', CHROME = '#d9d4ca';
   const P = (gx, gy, z = 0) => [OX + (-gy - gx) * 0.866 * K, OY + (gx - gy) * 0.5 * K - z * K];
   const f1 = (n) => n.toFixed(1), pt = (x, y, z) => P(x, y, z).map(f1).join(' ');
@@ -50,6 +50,12 @@
     return out.sort((p, q) => p[0] - q[0]).map((p) => p[1]).join('');
   };
   const box = (c, z0, z1, hex, cls = 'gx-detail') => walls(c, z0, z1, hex, true) + `<path class="${cls}"${fill(hex)} d="${poly(c, z1)}"/>`;
+  // an upright cylinder: side, then top
+  const cyl = (cx, cy, r, z0, z1, side, top) => { const [x, y0] = P(cx, cy, z0), y1 = P(cx, cy, z1)[1], rx = r * 1.2247 * K, ry = r * 0.7071 * K;
+    return `<path class="gx-detail" style="fill:${side}" d="M${f1(x - rx)} ${f1(y1)} L${f1(x - rx)} ${f1(y0)} A${f1(rx)} ${f1(ry)} 0 0 0 ${f1(x + rx)} ${f1(y0)} L${f1(x + rx)} ${f1(y1)} Z"/><ellipse class="gx-detail" style="fill:${top}" cx="${f1(x)}" cy="${f1(y1)}" rx="${f1(rx)}" ry="${f1(ry)}"/>`; };
+  // a rectangle with rounded corners (r), or with fully round ends when r is half its width
+  const rrect = (x0, x1, y0, y1, r) => { const out = [], c = [[x1 - r, y1 - r, 0], [x0 + r, y1 - r, 90], [x0 + r, y0 + r, 180], [x1 - r, y0 + r, 270]];
+    c.forEach(([cx, cy, a0]) => { for (let k = 0; k <= 5; k++) { const a = (a0 + k * 18) * Math.PI / 180; out.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } }); return out; };
   const pill = (x, hl, hw, sl = 0) => smooth([[x - hw - sl, hl - 5], [x - hw + 3 - sl, hl], [x + hw - 3 - sl, hl], [x + hw - sl, hl - 5], [x + hw + sl, -hl + 5], [x + hw - 3 + sl, -hl], [x - hw + 3 + sl, -hl], [x - hw + sl, -hl + 5]], 3);
 
   // Outlines traced from the reference drawing (a front view), pixel by pixel, then scaled so nut to tail is 804 mm.
@@ -74,19 +80,21 @@
     // pickguard with a bevelled edge and its screws
     s += `<path class="gx-edge"${fill(shade(GUARD, 0.2))} d="${poly(guard, TOP + 0.8)}"/><path${fill(GUARD)} d="${poly(inset(guard, 2), TOP + 1.6)}"/>`;
     [[644, 44], [740, 58], [836, 60], [640, -112], [760, -104], [884, -132], [668, -40], [848, -52]].forEach(([x, y]) => { s += disc(x, y, 2, TOP + 1.8, 'gx-detail', fill(CHROME)); });
-    // pickups: two single coils and a bridge humbucker in its ring
+    // pickups: two single-coil covers with rounded ends, pole pieces and a mounting screw at each end; a bridge humbucker in its ring
     [684, 754].forEach((x) => {
-      s += box(pill(x, 36, 9), TOP + 1.6, TOP + 8, COVER);
-      for (let i = 0; i < 6; i++) s += disc(x, 26 - i * 10.4, 2.7, TOP + 8, 'gx-detail', fill(CHROME));
+      s += disc(x, 47, 2, TOP + 1.8, 'gx-detail', fill(CHROME)) + disc(x, -47, 2, TOP + 1.8, 'gx-detail', fill(CHROME));
+      s += box(rrect(x - 9, x + 9, -42, 42, 9), TOP + 1.6, TOP + 8.5, COVER) + `<path d="${poly(rrect(x - 6, x + 6, -39, 39, 6), TOP + 8.5)}" fill="none" stroke="${shade(COVER, 0.2)}" stroke-width=".7"/>`;
+      for (let i = 0; i < 6; i++) s += disc(x, 26 - i * 10.4, 2.5, TOP + 8.6, 'gx-detail', fill(shade(CHROME, 0.12)));
     });
-    s += `<path class="gx-detail"${fill(COVER)} d="${poly(pill(818, 44, 20), TOP + 2)}"/>` + box(pill(818, 36, 14), TOP + 2, TOP + 8, MAT.hard);
-    [811, 826].forEach((x) => { for (let i = 0; i < 6; i++) s += disc(x, 26 - i * 10.4, 2.3, TOP + 8, 'gx-detail', fill(CHROME)); });
-    // selector, three knobs with skirts, jack plate
-    s += `<path class="gx-detail"${fill(MAT.boardLo)} d="${poly([[798, -68], [800, -66], [820, -86], [818, -88]], TOP + 1.8)}"/>` + seg([809, -77, TOP + 2], [806, -80, TOP + 12], 'gx-peg-out') + disc(806, -80, 3.2, TOP + 12, 'gx-detail', fill(COVER));
+    s += box(rrect(798, 838, -46, 46, 5), TOP + 1.6, TOP + 3.5, COVER) + box(rrect(803, 833, -36, 36, 4), TOP + 3.5, TOP + 9, MAT.hard);
+    s += seg([818, -36, TOP + 9], [818, 36, TOP + 9], 'gx-fret');
+    [810.5, 825.5].forEach((x) => { for (let i = 0; i < 6; i++) s += disc(x, 26 - i * 10.4, 2.3, TOP + 9.1, 'gx-detail', fill(CHROME)); });
+    s += disc(818, 42, 1.8, TOP + 3.6, 'gx-detail', fill(CHROME)) + disc(818, -42, 1.8, TOP + 3.6, 'gx-detail', fill(CHROME));
+    // selector in its slot; three knobs, each a flared skirt under a cylinder with a pointer line
+    s += `<path class="gx-detail"${fill(MAT.boardLo)} d="${poly([[797, -67], [800, -64], [821, -85], [818, -88]], TOP + 1.8)}"/>` + seg([809, -77, TOP + 2], [805, -81, TOP + 13], 'gx-peg-out') + seg([809, -77, TOP + 2], [805, -81, TOP + 13], 'gx-peg') + cyl(805, -81, 3, TOP + 12, TOP + 15, shade(COVER, 0.25), COVER);
     [[838, -92], [860, -108], [880, -124]].forEach(([x, y]) => {
-      for (let d = 0; d <= 3; d += 1.5) s += disc(x, y, 10.5, TOP + 2 + d, 'gx-detail', fill(d >= 3 ? shade(COVER, 0.08) : shade(COVER, 0.25)));
-      for (let d = 4; d <= 10; d += 1.5) s += disc(x, y, 7.6, TOP + 2 + d, 'gx-detail', fill(d >= 10 ? COVER : shade(COVER, 0.22)));
-      s += seg([x, y, TOP + 12], [x + 5, y - 3, TOP + 12], 'gx-fret');
+      s += cyl(x, y, 11.5, TOP + 1.6, TOP + 3.2, shade(COVER, 0.3), shade(COVER, 0.1)) + cyl(x, y, 9.4, TOP + 3.2, TOP + 5.2, shade(COVER, 0.28), shade(COVER, 0.08)) + cyl(x, y, 7.6, TOP + 5.2, TOP + 13, shade(COVER, 0.2), COVER);
+      s += disc(x, y, 4.6, TOP + 13, 'gx-detail', fill(shade(COVER, 0.06))) + seg([x, y, TOP + 13], [x + 5.5, y - 3.5, TOP + 13], 'gx-peg-out');
     });
     s += `<path class="gx-detail"${fill(CHROME)} d="${poly(smooth([[914, -72], [936, -84], [958, -110], [948, -122], [926, -110], [908, -86]], 4), TOP + 0.6)}"/>` + disc(934, -98, 7, TOP + 0.8, 'gx-detail', fill(shade(CHROME, 0.35))) + disc(934, -98, 3.6, TOP + 0.8, 'gx-detail', fill(MAT.boardLo));
     // bridge: plate with its six mounting screws, six saddles each with a length screw
@@ -98,14 +106,15 @@
     }
     // head: six machine heads in a line along the far edge; their buttons are drawn first so the head covers the shafts
     const post = (i) => [150 - i * 25.5, 22 - i * 7.4];
-    for (let i = 5; i >= 0; i--) {
-      const [x, y] = post(i), z = HZ - 6, a = [x - 2, y + 8, z], b = [x - 10, y + 34, z];
-      s += seg(a, b, 'gx-peg-out') + seg(a, b, 'gx-peg') + `<path class="gx-detail"${fill(CHROME)} d="${poly(smooth([[x - 17, y + 33], [x - 13, y + 44], [x - 6, y + 46], [x - 2, y + 37], [x - 8, y + 31]], 3), z)}"/>`;
+    for (let i = 5; i >= 0; i--) { // shafts run square to the slanted edge; each ends in an oval key
+      const [x, y] = post(i), z = HZ - 6.5, ux = -0.279, uy = 0.96, a = [x + ux * 6, y + uy * 6, z], b = [x + ux * 31, y + uy * 31, z], c = P(x + ux * 38, y + uy * 38, z);
+      const p = P(a[0], a[1], z), q = P(b[0], b[1], z), ang = Math.atan2(q[1] - p[1], q[0] - p[0]) * 180 / Math.PI;
+      s += seg(a, b, 'gx-peg-out') + seg(a, b, 'gx-peg') + `<ellipse class="gx-detail"${fill(CHROME)} cx="${f1(c[0])}" cy="${f1(c[1])}" rx="${f1(9.5 * K)}" ry="${f1(6.2 * K)}" transform="rotate(${f1(ang)} ${f1(c[0])} ${f1(c[1])})"/><ellipse cx="${f1(c[0] - 1)}" cy="${f1(c[1] - 1)}" rx="${f1(5 * K)}" ry="${f1(2.4 * K)}" fill="#fff" opacity=".55" transform="rotate(${f1(ang)} ${f1(c[0])} ${f1(c[1])})"/>`;
     }
     s += walls(head, HZ - 13, HZ, MAPLE) + `<path class="gx-sil" style="fill:url(#gxMaple)" d="${poly(head, HZ)}"/>`;
     // neck: its treble side, then the fingerboard; 22 frets; inlays at 3, 5, 7, 9, 12 (two), 15, 17, 19, 21
     const hw = (x) => 21 + (Math.min(x, HEEL) - NUT) / (HEEL - NUT) * 7, FW2 = 28.6;
-    s += `<path class="gx-edge"${fill(shade(MAPLE, 0.42))} d="${poly([[NUT, -21, NZ], [POCKET, -28.4, NZ], [POCKET, -28.4, TOP], [HEEL - 30, -27, TOP - 2], [NUT + 30, -21.5, NZ - 20], [NUT, -21, NZ - 14]])}"/>`;
+    s += `<path class="gx-edge"${fill(shade(MAPLE, 0.42))} d="${poly([[NUT, -21, NZ], [POCKET, -28.4, NZ], [POCKET, -28.4, NZ - 27], [HEEL - 20, -27.6, NZ - 27], [HEEL - 70, -26.6, NZ - 24], [NUT + 60, -22, NZ - 20.5], [NUT + 14, -21.2, NZ - 19], [NUT, -21, NZ - 14]])}"/>`; // 19 mm deep by the nut, 24 at the twelfth fret, 27 at the heel
     s += `<path class="gx-edge"${fill(shade(MAT.boardHi, 0.5))} d="${poly([[NUT, -21, NZ], [FBEND, -FW2, NZ], [FBEND, -FW2, NZ - 4], [NUT, -21, NZ - 4]])}"/>`;
     s += `<path class="gx-edge"${fill(shade(MAT.boardHi, 0.18))} d="${poly([[FBEND, -FW2, NZ], [FBEND, FW2, NZ], [FBEND, FW2, NZ - 4], [FBEND, -FW2, NZ - 4]])}"/>`;
     s += `<path class="gx-sil" style="fill:url(#gxBoard)" d="${poly([[NUT, -21], [FBEND, -FW2], [FBEND, FW2], [NUT, 21]], NZ)}"/>`;
@@ -115,25 +124,23 @@
     // nut
     s += `<path class="gx-detail"${fill(shade(MAT.bone, 0.3))} d="${poly([[NUT - 5, -21.5, NZ + 3], [NUT, -21.5, NZ + 3], [NUT, -21.5, NZ - 2], [NUT - 5, -21.5, NZ - 2]])}"/><path class="gx-edge"${fill(MAT.bone)} d="${poly([[NUT - 5, -21.5], [NUT, -21.5], [NUT, 21.5], [NUT - 5, 21.5]], NZ + 3)}"/>`;
     // tuner posts on their washers, and the string tree for the two thinnest strings
-    for (let i = 5; i >= 0; i--) { const [x, y] = post(i); s += disc(x, y, 6.2, HZ + 0.4, 'gx-detail', fill(shade(CHROME, 0.18))) + disc(x, y, 3.6, HZ + 6, 'gx-detail', fill(CHROME)); }
+    for (let i = 5; i >= 0; i--) { const [x, y] = post(i); s += cyl(x, y, 6, HZ, HZ + 1.4, shade(CHROME, 0.3), shade(CHROME, 0.12)) + cyl(x, y, 3.2, HZ + 1.4, HZ + 8, shade(CHROME, 0.25), CHROME); }
     s += disc(118, -4, 2.8, HZ + 2, 'gx-detail', fill(CHROME));
     // strings: wound for 6, 5 and 4, plain for 3, 2 and 1; string 6 is on the far (bass) side and has the nearest tuner to the nut
     for (let i = 0; i < 6; i++) {
       const yN = 17.5 - i * 7, yS = 26 - i * 10.4, p = post(i), w = f1(1.6 - i * 0.18), cls = i < 3 ? 'gx-string wound' : 'gx-string';
-      s += seg([p[0], p[1], HZ + 5], [NUT - 2, yN, NZ + 4], cls, ` stroke-width="${w}"`) + seg([NUT - 2, yN, NZ + 4], [SADDLE + 6, yS, SZ], cls, ` stroke-width="${w}"`);
+      s += seg([p[0], p[1], HZ + 6], [NUT - 2, yN, NZ + 4], cls, ` stroke-width="${w}"`) + seg([NUT - 2, yN, NZ + 4], [SADDLE + 6, yS, SZ], cls, ` stroke-width="${w}"`);
     }
-    // the arm, rising from the treble corner of the bridge
-    s += seg([874, -34, TOP + 4], [868, -56, TOP + 26], 'gx-peg-out') + seg([868, -56, TOP + 26], [800, -62, TOP + 30], 'gx-peg-out') + seg([874, -34, TOP + 4], [868, -56, TOP + 26], 'gx-peg') + seg([868, -56, TOP + 26], [800, -62, TOP + 30], 'gx-peg') + disc(800, -62, 4.6, TOP + 30, 'gx-detail', fill(COVER));
     // labels: [name, note, the exact spot (gx, gy, z), where the text sits on screen, which way it reads]
     const parts = [
-      ['Tuners', 'turn to tighten a string', [84, 44, HZ - 6], [486, 20], 'end'],
-      ['Nut', 'where open strings begin', [NUT - 2.5, -21, NZ + 3], [664, 118], 'start'],
-      ['Frets', 'each raises the note a half step', [fretX(5), -hw(fretX(5)), NZ], [566, 186], 'start'],
-      ['Strings', 'string 6 is the thick one', [fretX(10), 18, NZ + 4], [338, 84], 'end'],
-      ['Pickups', 'turn string movement into sound', [754, 30, TOP + 8], [246, 128], 'end'],
-      ['Body', 'solid, so it needs an amp', [930, 120, TOP], [20, 190], 'start'],
-      ['Bridge', 'where the strings end', [880, -38, TOP + 3.5], [140, 404], 'start'],
-      ['Volume and tone', 'shape the sound', [880, -124, TOP + 12], [400, 398], 'start'],
+      ['Tuners', 'turn to tighten a string', [84, 44, HZ - 6], [470, 30], 'end'],
+      ['Nut', 'where open strings begin', [NUT - 2.5, -21, NZ + 3], [640, 120], 'start'],
+      ['Frets', 'each raises the note a half step', [fretX(5), -hw(fretX(5)), NZ], [560, 186], 'start'],
+      ['Strings', 'string 6 is the thick one', [fretX(10), 18, NZ + 4], [330, 96], 'end'],
+      ['Pickups', 'turn string movement into sound', [754, 30, TOP + 8.5], [250, 140], 'end'],
+      ['Body', 'solid, so it needs an amp', [930, 120, TOP], [14, 180], 'start'],
+      ['Bridge', 'where the strings end', [880, -38, TOP + 3.5], [150, 396], 'start'],
+      ['Volume and tone', 'shape the sound', [880, -124, TOP + 13], [400, 392], 'start'],
     ];
     let labels = '', marks = '';
     parts.forEach(([name, note, at, to, anchor], k) => {
