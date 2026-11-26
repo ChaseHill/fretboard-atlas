@@ -1,4 +1,5 @@
-// Isometric Rhodes keyboard drawn in SVG, in the same projection and peg language as the neck.
+// Isometric keyboard drawn in SVG, in the same projection and peg language as the neck: a slim cream controller,
+// modelled on the owner's reference, with a touch strip, pads, a small display, three knobs and buttons behind the keys.
 // It shows a three-octave window of the 73-key range, large enough to read, and slides to wherever the notes are.
 (() => {
   'use strict';
@@ -17,7 +18,7 @@
 
   G.Keys = function (container) {
     const T = G.T, L = NW * WW, LO_MIN = T.KEY_LO, LO_MAX = 64; // windows run from E1… up to E4–E7
-    const svg = el('svg', { viewBox: `0 0 ${VW} ${VH}`, role: 'img', 'aria-label': 'Rhodes keyboard' }, container);
+    const svg = el('svg', { viewBox: `0 0 ${VW} ${VH}`, role: 'img', 'aria-label': 'Keyboard' }, container);
     const pegs = [];
     let lo = 41, hi = 0, at = {}, byMidi = {}, cur = null, last = { notes: [] }, pick = null;
 
@@ -41,40 +42,38 @@
     }
     const face = (p, cls, parent = svg, sw = 1.4) => el('polygon', { points: pts(p), class: cls, stroke: 'var(--ink)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, parent);
     const seg = (a, b, cls, parent = svg) => el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), class: cls }, parent);
-    const X0 = -14, X1 = L + 14, YB = -50, YF = KD + 8, LID = 48; // the harp cover stands well clear of the black keys, so the name plate and knobs are never hidden behind them
-    el('polygon', { points: pts([P(X0, YB, fz), P(X1, YB, fz), P(X1 + THICK, YB + THICK / 2, fz), P(X1 + THICK, YF + THICK / 2, fz), P(X0 + THICK, YF + THICK / 2, fz), P(X0, YF, fz)]), fill: '#000', opacity: '.16' }, svg); // one hard shadow, lower right
-    { const H = LID + THICK; el('polygon', { points: pts([P(X1, YB, fz), P(X1 + H, YB + H / 2, fz), P(X1 + H, -3 + H / 2, fz), P(X1, -3 + THICK / 2, fz)]), fill: '#000', opacity: '.16' }, svg); } // the tall cover throws a longer shadow than the case
-    // case: the tolex box the keys sit in, with chrome corner caps
-    face([P(X0, YF), P(X1, YF), P(X1, YF, -THICK), P(X0, YF, -THICK)], 'kb-case-side');
-    face([P(X1, YB), P(X1, YF), P(X1, YF, -THICK), P(X1, YB, -THICK)], 'kb-case-end');
-    face([P(X0, YB), P(X1, YB), P(X1, YF), P(X0, YF)], 'kb-case');
-    [[X0, X0 + 9], [X1 - 9, X1]].forEach(([a, b]) => face([P(a, YF, 0), P(b, YF, 0), P(b, YF, -THICK), P(a, YF, -THICK)], 'kb-chrome'));
-    // harp cover behind the keys: a black lid, and the silver name rail facing the player
-    face([P(X1, YB, LID), P(X1, -3, LID), P(X1, -3), P(X1, YB)], 'kb-case-end');
-    face([P(X0, -3, LID), P(X1, -3, LID), P(X1, -3), P(X0, -3)], 'kb-rail');
-    face([P(X0, YB, LID), P(X1, YB, LID), P(X1, -3, LID), P(X0, -3, LID)], 'kb-lid');
-    seg(P(X0 + 2, -5, LID), P(X1 - 2, -5, LID), 'kb-lid-edge');
-    // ribbed aluminium rail, with one control plate: name, input jack, two knobs with dotted scales
-    for (let z = 3; z <= LID - 3; z += 2.6) { seg(P(X0 + 1.5, -3, z - 0.9), P(X1 - 1.5, -3, z - 0.9), 'kb-rail-lo'); seg(P(X0 + 1.5, -3, z), P(X1 - 1.5, -3, z), 'kb-rail-hi'); }
-    const XP = 24, ZP = 22, PH = 22, po = P(XP, -3, ZP), plate = el('g', { class: 'kb-plate', transform: `matrix(0.866 0.5 0 1 ${po[0].toFixed(1)} ${po[1].toFixed(1)})` }, svg); // sheared onto the rail's face
-    el('rect', { x: 0, y: -PH, width: 250, height: PH, rx: 3, class: 'kb-plate-bg' }, plate);
-    const ptext = (x, y, t, cls) => { el('text', { x, y, class: cls }, plate).textContent = t; };
-    ptext(12, -11.5, 'ATLAS', 'kb-name'); ptext(12.5, -5, 'STAGE 73', 'kb-sub');
-    el('circle', { cx: 96, cy: -14, r: 3.8, class: 'kb-jack' }, plate); el('circle', { cx: 96, cy: -14, r: 1.9, class: 'kb-jack-hole' }, plate); ptext(96, -3.4, 'INPUT', 'kb-lab');
-    [[152, 'BASS BOOST'], [208, 'VOLUME']].forEach(([u, t]) => {
-      for (let k = 0; k <= 10; k++) { const a = (135 + k * 27) * Math.PI / 180; el('circle', { cx: (u + 9.4 * Math.cos(a)).toFixed(1), cy: (-14 + 9.4 * Math.sin(a)).toFixed(1), r: 0.55, class: 'kb-tick' }, plate); }
-      el('circle', { cx: u, cy: -14, r: 7.2, class: 'kb-skirt' }, plate); ptext(u, -3.4, t, 'kb-lab');
+    const X0 = -16, X1 = L + 16, YB = -66, YF = KD + 13, BT = WH + 2, LIP = 3; // body top stands just proud of the white keys; the front lip sits low so the key fronts show
+    const CREAM = '#efe9dc', sh = G.Peg.shade;
+    const quad = (p, fill, parent = svg, sw = 1.2) => el('polygon', { points: pts(p), fill, stroke: 'var(--ink)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, parent);
+    el('polygon', { points: pts([P(X0, YB, fz), P(X1, YB, fz), P(X1 + 20, YB + 10, fz), P(X1 + 20, YF + 10, fz), P(X0 + 20, YF + 10, fz), P(X0, YF, fz)]), fill: '#000', opacity: '.15' }, svg); // one hard shadow, lower right
+    // body: one slab with a recess for the keys. End face, the two cheek fronts, then the top as a single U-shaped sheet.
+    quad([P(X1, YB, BT), P(X1, YF, BT), P(X1, YF, fz), P(X1, YB, fz)], sh(CREAM, 0.24));
+    quad([P(X0, YF, BT), P(0, YF, BT), P(0, YF, fz), P(X0, YF, fz)], sh(CREAM, 0.1));
+    quad([P(L, YF, BT), P(X1, YF, BT), P(X1, YF, fz), P(L, YF, fz)], sh(CREAM, 0.1));
+    quad([P(X0, YB, BT), P(X1, YB, BT), P(X1, YF, BT), P(L, YF, BT), P(L, -1, BT), P(0, -1, BT), P(0, YF, BT), P(X0, YF, BT)], CREAM, svg, 1.4);
+    quad([P(0, -1, BT), P(L, -1, BT), P(L, -1, 0), P(0, -1, 0)], sh(CREAM, 0.3), svg, 1); // back wall of the recess
+    quad([P(0, -1, BT), P(0, KD + 1, BT), P(0, KD + 1, 0), P(0, -1, 0)], sh(CREAM, 0.36), svg, 1); // its left wall
+    // control strip behind the keys, left to right as on the reference
+    const flat = (x0, x1, y0, y1, z, fill, sw = 0.9) => quad([P(x0, y0, z), P(x1, y0, z), P(x1, y1, z), P(x0, y1, z)], fill, svg, sw);
+    const block = (x0, x1, y0, y1, h, top) => { quad([P(x0, y1, BT + h), P(x1, y1, BT + h), P(x1, y1, BT), P(x0, y1, BT)], sh(top, 0.16), svg, 0.9); quad([P(x1, y0, BT + h), P(x1, y1, BT + h), P(x1, y1, BT), P(x1, y0, BT)], sh(top, 0.3), svg, 0.9); flat(x0, x1, y0, y1, BT + h, top); };
+    flat(12, 138, -54, -14, BT, sh(CREAM, 0.12)); flat(15, 138, -51, -14, BT, '#f8f5ee', 0.7); // touch strip: a shallow recess, lit from the left
+    block(158, 176, -54, -40, 1.6, '#bdb9b1'); block(182, 200, -54, -40, 1.6, '#bdb9b1'); // two pads
+    flat(158, 178, -32, -18, BT, '#2a2f6e'); flat(160, 176, -30, -20, BT, '#4a7fe0', 0.6); // small display
+    block(184, 200, -32, -18, 1.6, '#bdb9b1');
+    [238, 290, 342].forEach((x) => { // three knobs: a black cylinder with a pale pointer
+      const y = -34, r = 10, h = 13, a = P(x, y, BT), b = P(x, y, BT + h), rx = r * 1.2247, ry = r * 0.7071;
+      el('path', { d: `M${(a[0] - rx).toFixed(1)} ${b[1].toFixed(1)} L${(a[0] - rx).toFixed(1)} ${a[1].toFixed(1)} A${rx.toFixed(1)} ${ry.toFixed(1)} 0 0 0 ${(a[0] + rx).toFixed(1)} ${a[1].toFixed(1)} L${(a[0] + rx).toFixed(1)} ${b[1].toFixed(1)} Z`, fill: '#17171b', stroke: 'var(--ink)', 'stroke-width': 1 }, svg);
+      el('ellipse', { cx: b[0].toFixed(1), cy: b[1].toFixed(1), rx: rx.toFixed(1), ry: ry.toFixed(1), fill: '#34343c', stroke: 'var(--ink)', 'stroke-width': 1 }, svg);
+      const p0 = P(x, y, BT + h), p1 = P(x - 5, y - 6, BT + h); el('line', { x1: p0[0].toFixed(1), y1: p0[1].toFixed(1), x2: p1[0].toFixed(1), y2: p1[1].toFixed(1), stroke: '#e9e4d8', 'stroke-width': 1.6, 'stroke-linecap': 'round' }, svg);
     });
-    [152, 208].forEach((u) => { for (let d = 0; d <= 6; d += 1.5) { const p = P(XP + u, -3 + d, ZP + 14); el('circle', { r: 4.8, transform: `matrix(0.866 0.5 0 1 ${p[0].toFixed(1)} ${p[1].toFixed(1)})`, class: d >= 6 ? 'kb-knob-top' : d ? 'kb-knob in' : 'kb-knob' }, svg); } }); // knobs stand out from the plate
-    seg(P(0, -1.5, WH + 0.8), P(L, -1.5, WH + 0.8), 'kb-felt');
-    // walnut cheek blocks and a key slip: the keys sit inside the instrument
-    const MAT = G.Peg.mat, sh = G.Peg.shade, CH = WH + 3;
-    const solid = (parent, x0, x1, ya, yb, zb, zt, top, sw = 1.4) => { const f = (p, fill) => el('polygon', { points: pts(p), fill, stroke: 'var(--ink)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, parent); f([P(x0, yb, zt), P(x1, yb, zt), P(x1, yb, zb), P(x0, yb, zb)], sh(top, 0.18)); f([P(x1, ya, zt), P(x1, yb, zt), P(x1, yb, zb), P(x1, ya, zb)], sh(top, 0.5)); f([P(x0, ya, zt), P(x1, ya, zt), P(x1, yb, zt), P(x0, yb, zt)], top); };
-    solid(svg, X0 + 3, 0, -3, KD + 1, 0, CH, MAT.walnut);
+    [392, 418, 462, 488].forEach((x) => block(x, x + 20, -42, -26, 1.6, '#f6f2e9')); // four buttons, in two pairs
     el('polygon', { points: pts([P(0, 0, WH), P(L, 0, WH), P(L, KD, WH), P(0, KD, WH)]), class: 'kb-well' }, svg); // the dark of the key bed, seen beside a key that is held down
     const keyLayer = el('g', {}, svg), frontLayer = el('g', {}, svg), labelLayer = el('g', {}, svg), pegLayer = el('g', {}, svg);
-    solid(frontLayer, L, X1 - 3, -3, KD + 1, 0, CH, MAT.walnut);
-    solid(frontLayer, 0, L, KD + 1, YF, 0, 5, MAT.tolex, 1);
+    // the low front lip, and the inside faces of the cheeks that stand above it
+    quad([P(0, YF, LIP), P(L, YF, LIP), P(L, YF, fz), P(0, YF, fz)], sh(CREAM, 0.1), frontLayer);
+    quad([P(0, KD + 1, LIP), P(L, KD + 1, LIP), P(L, YF, LIP), P(0, YF, LIP)], CREAM, frontLayer);
+    quad([P(0, KD + 1, BT), P(0, YF, BT), P(0, YF, LIP), P(0, KD + 1, LIP)], sh(CREAM, 0.36), frontLayer, 1);
+    { const a = P(8, YF, -5), b = P(L - 8, YF, -5); el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), stroke: '#000', 'stroke-width': 1, opacity: '.14' }, frontLayer); } // the groove along the front edge
 
     const makePeg = () => G.Peg.make(pegLayer);
     // build the keys for a window starting on white key `v`
@@ -89,7 +88,6 @@
       whites.forEach((m, i) => {
         const g = el('g', { class: 'key white' }, keyLayer), x0 = i * WW, x1 = x0 + WW;
         face([P(x0, KD, WH), P(x1, KD, WH), P(x1, KD), P(x0, KD)], 'k-front', g, 1);
-        if (i === NW - 1) face([P(x1, 0, WH), P(x1, KD, WH), P(x1, KD), P(x1, 0)], 'k-front', g, 1);
         face([P(x0, 0, WH), P(x1, 0, WH), P(x1, KD, WH), P(x0, KD, WH)], 'k-top', g, 1);
         seg(P(x0 + 2.5, KD - 2.5, WH), P(x1 - 2.5, KD - 2.5, WH), 'k-lip', g);
         g.dataset.midi = m; at[m] = { x: (i + 0.5) * WW, y: KD - 23, z: WH, node: g };
