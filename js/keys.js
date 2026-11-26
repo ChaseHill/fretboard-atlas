@@ -45,35 +45,62 @@
     const X0 = -16, X1 = L + 16, YB = -66, YF = KD + 13, BT = WH + 2, LIP = 3; // body top stands just proud of the white keys; the front lip sits low so the key fronts show
     const CREAM = '#efe9dc', sh = G.Peg.shade;
     const quad = (p, fill, parent = svg, sw = 1.2) => el('polygon', { points: pts(p), fill, stroke: 'var(--ink)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, parent);
-    el('polygon', { points: pts([P(X0, YB, fz), P(X1, YB, fz), P(X1 + 20, YB + 10, fz), P(X1 + 20, YF + 10, fz), P(X0 + 20, YF + 10, fz), P(X0, YF, fz)]), fill: '#000', opacity: '.15' }, svg); // one hard shadow, lower right
-    // body: one slab with a recess for the keys. End face, the two cheek fronts, then the top as a single U-shaped sheet.
-    quad([P(X1, YB, BT), P(X1, YF, BT), P(X1, YF, fz), P(X1, YB, fz)], sh(CREAM, 0.24));
-    quad([P(X0, YF, BT), P(0, YF, BT), P(0, YF, fz), P(X0, YF, fz)], sh(CREAM, 0.1));
-    quad([P(L, YF, BT), P(X1, YF, BT), P(X1, YF, fz), P(L, YF, fz)], sh(CREAM, 0.1));
-    quad([P(X0, YB, BT), P(X1, YB, BT), P(X1, YF, BT), P(L, YF, BT), P(L, -1, BT), P(0, -1, BT), P(0, YF, BT), P(X0, YF, BT)], CREAM, svg, 1.4);
+    // body: one slab with rounded corners. Its outline, walked right side -> front -> left -> back.
+    const RC = 11, ring = [];
+    [[X1 - RC, YF - RC, 0], [X0 + RC, YF - RC, 90], [X0 + RC, YB + RC, 180], [X1 - RC, YB + RC, 270]].forEach(([cx, cy, a0]) => { for (let k = 0; k <= 6; k++) { const a = (a0 + k * 15) * Math.PI / 180; ring.push([cx + RC * Math.cos(a), cy + RC * Math.sin(a)]); } });
+    el('polygon', { points: pts(ring.map(([x, y]) => P(x + 20, y + 10, fz))), fill: '#000', opacity: '.15' }, svg); // one hard shadow, lower right
+    lin('kBody', '0', '0', '1', '1', [['0', '#f7f2e8'], ['.55', '#efe9dc'], ['1', '#e6dfcf']]);
+    { // walls that face the viewer, shaded round the corners, then one ink line along the foot and at each end
+      const N = ring.length, vis = [];
+      for (let i = 0; i < N; i++) { const p = ring[i], q = ring[(i + 1) % N], dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1, nx = dy / l, ny = -dx / l; vis.push(nx + ny > 0.02 ? nx : null); }
+      let st = 0; while (!(vis[st] !== null && vis[(st + N - 1) % N] === null)) st++;
+      const foot = [];
+      for (let k = 0; k < N && vis[(st + k) % N] !== null; k++) { const i = (st + k) % N, p = ring[i], q = ring[(i + 1) % N], c = sh(CREAM, 0.1 + 0.17 * Math.max(0, vis[i]));
+        el('polygon', { points: pts([P(p[0], p[1], BT), P(q[0], q[1], BT), P(q[0], q[1], fz), P(p[0], p[1], fz)]), fill: c, stroke: c, 'stroke-width': 0.7 }, svg);
+        if (!k) foot.push(p); foot.push(q); }
+      const a = foot[0], b = foot[foot.length - 1];
+      el('polyline', { points: pts([P(a[0], a[1], BT)].concat(foot.map(([x, y]) => P(x, y, fz)), [P(b[0], b[1], BT)])), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-linejoin': 'round' }, svg);
+      el('polyline', { points: pts(foot.map(([x, y]) => P(x, y, fz + 4))), fill: 'none', stroke: '#000', 'stroke-width': 1, opacity: '.1' }, svg); // seam where the base plate meets the shell
+    }
+    el('polygon', { points: pts(ring.map(([x, y]) => P(x, y, BT))), fill: 'url(#kBody)', stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-linejoin': 'round' }, svg);
+    el('polyline', { points: pts(ring.slice(8, 22).map(([x, y]) => P(x + (x < 0 ? 3 : 0), y + (y < YB + 4 ? 3 : 0), BT))), fill: 'none', stroke: '#fff', 'stroke-width': 1.3, opacity: '.7', 'stroke-linecap': 'round' }, svg); // light catching the far edges
     quad([P(0, -1, BT), P(L, -1, BT), P(L, -1, 0), P(0, -1, 0)], sh(CREAM, 0.3), svg, 1); // back wall of the recess
     quad([P(0, -1, BT), P(0, KD + 1, BT), P(0, KD + 1, 0), P(0, -1, 0)], sh(CREAM, 0.36), svg, 1); // its left wall
     // control strip behind the keys, left to right as on the reference
     const flat = (x0, x1, y0, y1, z, fill, sw = 0.9) => quad([P(x0, y0, z), P(x1, y0, z), P(x1, y1, z), P(x0, y1, z)], fill, svg, sw);
     const block = (x0, x1, y0, y1, h, top) => { quad([P(x0, y1, BT + h), P(x1, y1, BT + h), P(x1, y1, BT), P(x0, y1, BT)], sh(top, 0.16), svg, 0.9); quad([P(x1, y0, BT + h), P(x1, y1, BT + h), P(x1, y1, BT), P(x1, y0, BT)], sh(top, 0.3), svg, 0.9); flat(x0, x1, y0, y1, BT + h, top); };
-    flat(12, 138, -54, -14, BT, sh(CREAM, 0.12)); flat(15, 138, -51, -14, BT, '#f8f5ee', 0.7); // touch strip: a shallow recess, lit from the left
-    block(158, 176, -54, -40, 1.6, '#bdb9b1'); block(182, 200, -54, -40, 1.6, '#bdb9b1'); // two pads
-    flat(158, 178, -32, -18, BT, '#2a2f6e'); flat(160, 176, -30, -20, BT, '#4a7fe0', 0.6); // small display
-    block(184, 200, -32, -18, 1.6, '#bdb9b1');
-    [238, 290, 342].forEach((x) => { // three knobs: a black cylinder with a pale pointer
-      const y = -34, r = 10, h = 13, a = P(x, y, BT), b = P(x, y, BT + h), rx = r * 1.2247, ry = r * 0.7071;
-      el('path', { d: `M${(a[0] - rx).toFixed(1)} ${b[1].toFixed(1)} L${(a[0] - rx).toFixed(1)} ${a[1].toFixed(1)} A${rx.toFixed(1)} ${ry.toFixed(1)} 0 0 0 ${(a[0] + rx).toFixed(1)} ${a[1].toFixed(1)} L${(a[0] + rx).toFixed(1)} ${b[1].toFixed(1)} Z`, fill: '#17171b', stroke: 'var(--ink)', 'stroke-width': 1 }, svg);
-      el('ellipse', { cx: b[0].toFixed(1), cy: b[1].toFixed(1), rx: rx.toFixed(1), ry: ry.toFixed(1), fill: '#34343c', stroke: 'var(--ink)', 'stroke-width': 1 }, svg);
-      const p0 = P(x, y, BT + h), p1 = P(x - 5, y - 6, BT + h); el('line', { x1: p0[0].toFixed(1), y1: p0[1].toFixed(1), x2: p1[0].toFixed(1), y2: p1[1].toFixed(1), stroke: '#e9e4d8', 'stroke-width': 1.6, 'stroke-linecap': 'round' }, svg);
+    const ln = (a, b, stroke, w, op) => el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), stroke, 'stroke-width': w, opacity: op, 'stroke-linecap': 'round' }, svg);
+    const cyl = (x, y, r, z0, z1, side, top) => { const a = P(x, y, z0), b = P(x, y, z1), rx = r * 1.2247, ry = r * 0.7071;
+      el('path', { d: `M${(a[0] - rx).toFixed(1)} ${b[1].toFixed(1)} L${(a[0] - rx).toFixed(1)} ${a[1].toFixed(1)} A${rx.toFixed(1)} ${ry.toFixed(1)} 0 0 0 ${(a[0] + rx).toFixed(1)} ${a[1].toFixed(1)} L${(a[0] + rx).toFixed(1)} ${b[1].toFixed(1)} Z`, fill: side, stroke: 'var(--ink)', 'stroke-width': 0.9 }, svg);
+      el('ellipse', { cx: b[0].toFixed(1), cy: b[1].toFixed(1), rx: rx.toFixed(1), ry: ry.toFixed(1), fill: top, stroke: 'var(--ink)', 'stroke-width': 0.9 }, svg); };
+    // a button: a dark well in the panel, the cap standing in it, and light along the cap's far edge
+    const pad = (x0, x1, y0, y1, top) => { flat(x0 - 1.6, x1 + 1.6, y0 - 1.6, y1 + 1.6, BT, sh(CREAM, 0.34), 0.6); block(x0, x1, y0, y1, 2.2, top); ln(P(x0 + 2, y0 + 2, BT + 2.2), P(x1 - 2, y0 + 2, BT + 2.2), '#fff', 1, '.6'); };
+    // touch strip: a shallow recess with its shadow under the back and left edges, and a centre mark
+    flat(12, 140, -56, -14, BT, sh(CREAM, 0.3), 0.8); flat(15, 140, -53, -14, BT, '#faf7f0', 0.5);
+    ln(P(76, -47, BT), P(76, -20, BT), '#000', 1, '.13'); ln(P(22, -17.5, BT), P(132, -17.5, BT), '#fff', 1.2, '.8');
+    pad(158, 176, -54, -40, '#c4c0b8'); pad(182, 200, -54, -40, '#c4c0b8'); pad(184, 200, -32, -18, '#c4c0b8');
+    // small display: bezel, lit screen, two lines of readout
+    flat(156, 178, -33, -17, BT, '#1d2150', 0.9); flat(158.5, 175.5, -30.5, -19.5, BT, '#4f86ea', 0.4);
+    ln(P(161, -27.5, BT), P(171, -27.5, BT), '#dbe8ff', 1.3, '.95'); ln(P(161, -23, BT), P(167, -23, BT), '#dbe8ff', 1.3, '.8');
+    [238, 290, 342].forEach((x, i) => { // three knobs: a printed scale, a skirt, a ribbed barrel and a cap with a pale pointer
+      const y = -34, z = BT;
+      for (let k = 0; k <= 8; k++) { const a = (135 + k * 33.75) * Math.PI / 180, p = P(x + 15.5 * Math.cos(a), y + 15.5 * Math.sin(a), z); el('circle', { cx: p[0].toFixed(1), cy: p[1].toFixed(1), r: k % 4 ? 0.7 : 1.1, fill: '#3a332c', opacity: '.6' }, svg); }
+      cyl(x, y, 11.5, z, z + 2.2, '#0e0e11', '#24242a'); cyl(x, y, 9.4, z + 2.2, z + 14, '#17171b', '#2b2b32');
+      const a = P(x, y, z + 2.2), b = P(x, y, z + 14), rx = 9.4 * 1.2247;
+      [-0.62, -0.3, 0.1, 0.5].forEach((t, j) => ln([a[0] + rx * t, b[1] + 4.6], [a[0] + rx * t, a[1] + 4.2], j ? '#000' : '#fff', j ? 0.8 : 2, j ? '.35' : '.16'));
+      cyl(x, y, 6.6, z + 14, z + 14.6, '#2b2b32', '#3d3d47');
+      const ang = (200 + i * 55) * Math.PI / 180, p0 = P(x + 2 * Math.cos(ang), y + 2 * Math.sin(ang), z + 14.6), p1 = P(x + 8.2 * Math.cos(ang), y + 8.2 * Math.sin(ang), z + 14.2); ln(p0, p1, '#f1ece0', 1.8, '1');
     });
-    [392, 418, 462, 488].forEach((x) => block(x, x + 20, -42, -26, 1.6, '#f6f2e9')); // four buttons, in two pairs
+    [392, 418, 462, 488].forEach((x) => pad(x, x + 20, -42, -26, '#f8f4ec')); // four buttons, in two pairs
+    { const o = P(566, -27, BT), t = el('text', { transform: `matrix(0.866 0.5 -0.866 0.5 ${o[0].toFixed(1)} ${o[1].toFixed(1)})`, class: 'kb-print' }, svg); t.textContent = 'ATLAS 37'; }
     el('polygon', { points: pts([P(0, 0, WH), P(L, 0, WH), P(L, KD, WH), P(0, KD, WH)]), class: 'kb-well' }, svg); // the dark of the key bed, seen beside a key that is held down
     const keyLayer = el('g', {}, svg), frontLayer = el('g', {}, svg), labelLayer = el('g', {}, svg), pegLayer = el('g', {}, svg);
     // the low front lip, and the inside faces of the cheeks that stand above it
     quad([P(0, YF, LIP), P(L, YF, LIP), P(L, YF, fz), P(0, YF, fz)], sh(CREAM, 0.1), frontLayer);
     quad([P(0, KD + 1, LIP), P(L, KD + 1, LIP), P(L, YF, LIP), P(0, YF, LIP)], CREAM, frontLayer);
     quad([P(0, KD + 1, BT), P(0, YF, BT), P(0, YF, LIP), P(0, KD + 1, LIP)], sh(CREAM, 0.36), frontLayer, 1);
-    { const a = P(8, YF, -5), b = P(L - 8, YF, -5); el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), stroke: '#000', 'stroke-width': 1, opacity: '.14' }, frontLayer); } // the groove along the front edge
+    quad([P(L - 190, YF, -4), P(L - 30, YF, -4), P(L - 30, YF, -10), P(L - 190, YF, -10)], sh(CREAM, 0.42), frontLayer, 0.8);
+    { const a = P(L - 188, YF, -4.8), b = P(L - 32, YF, -4.8); el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), stroke: '#000', 'stroke-width': 1.4, opacity: '.22' }, frontLayer); }
 
     const makePeg = () => G.Peg.make(pegLayer);
     // build the keys for a window starting on white key `v`
