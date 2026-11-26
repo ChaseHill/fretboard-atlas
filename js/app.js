@@ -53,7 +53,7 @@
     return hits;
   };
   let cur = {}; // what the keyboard and play buttons act on in the current view
-  let quiz = null, confirmReset = false;
+  let quiz = null, confirmReset = false, progTok = 0;
 
   // ---------- shared pieces ----------
   const label = (tone) => esc(state.labels === 'note' ? tone.note : tone.deg);
@@ -571,17 +571,42 @@
   }
 
   // ---------- Circle of fifths ----------
+  // The wheel, plus a panel that reads it for the chosen key. The six chords of a key are the three major wedges
+  // around it and the three minors under them, so that block is outlined, numbered and coloured by job.
   function circleSVG(sel) {
     const pol = (r, a) => [(r * Math.cos(a * Math.PI / 180)).toFixed(1), (r * Math.sin(a * Math.PI / 180)).toFixed(1)];
-    const wedge = (r0, r1, a0, a1) => `M${pol(r1, a0)} A${r1},${r1} 0 0 1 ${pol(r1, a1)} L${pol(r0, a1)} A${r0},${r0} 0 0 0 ${pol(r0, a0)} Z`;
-    let s = '<svg class="circle" viewBox="-172 -172 344 344" role="img" aria-label="Circle of fifths">';
+    const wedge = (r0, r1, a0, a1) => 'M' + pol(r1, a0) + ' A' + r1 + ',' + r1 + ' 0 0 1 ' + pol(r1, a1) + ' L' + pol(r0, a1) + ' A' + r0 + ',' + r0 + ' 0 0 0 ' + pol(r0, a0) + ' Z';
+    const arc = (r, a0, a1) => 'M' + pol(r, a0) + ' A' + r + ',' + r + ' 0 0 ' + (a1 > a0 ? 1 : 0) + ' ' + pol(r, a1);
+    const key = T.CIRCLE[sel], dia = T.diatonic(key), ci = state.circle.ci, FNC = { Tonic: 'ton', Subdominant: 'sub', Dominant: 'dom' };
+    const fam = { maj: { 11: 3, 0: 0, 1: 4 }, min: { 11: 1, 0: 5, 1: 2 } }; // steps round from the key -> which chord of the key
+    let s = '<svg class="circle" viewBox="-205 -212 410 422" role="img" aria-label="Circle of fifths, key of ' + key + '"><defs><marker id="cArrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" class="c-arrowhead"/></marker></defs>';
+    s += '<path class="c-arrow" d="' + arc(197, -76, -48) + '" marker-end="url(#cArrow)"/><path class="c-arrow" d="' + arc(197, -104, -132) + '" marker-end="url(#cArrow)"/>';
+    s += '<text class="c-dir" x="203" y="-198" text-anchor="end">clockwise: one more sharp</text><text class="c-dir" x="-203" y="-198">anticlockwise: one more flat</text>';
     T.CIRCLE.forEach((k, i) => {
-      const a0 = i * 30 - 105, d = (i - sel + 12) % 12, cls = d === 0 ? ' sel' : d === 1 || d === 11 ? ' nb' : '';
-      const [tx, ty] = pol(138, a0 + 15), [mx, my] = pol(90, a0 + 15);
-      s += `<g data-act="key" data-k="${k}" class="wedge${cls}"><path class="maj" d="${wedge(112, 165, a0, a0 + 30)}"/><path class="min" d="${wedge(68, 112, a0, a0 + 30)}"/>
-        <text class="cmaj" x="${tx}" y="${+ty + 6}">${k}</text><text class="cmin" x="${mx}" y="${+my + 4}">${esc(T.spell(k, '6'))}m</text></g>`;
+      const a0 = i * 30 - 105, d = (i - sel + 12) % 12, mid = a0 + 15;
+      const cell = (ring, r0, r1, rName, rNum, name) => {
+        const di = fam[ring][d], inFam = di !== undefined, [tx, ty] = pol(rName, mid), [nx, ny] = pol(rNum, mid);
+        return '<g class="cw ' + ring + (inFam ? ' fam ' + FNC[dia[di].fn] : '') + (inFam && di === ci ? ' cur' : '') + '" ' + (inFam ? 'data-act="dia" data-i="' + di + '"' : 'data-act="key" data-k="' + k + '"') + '><title>' + (inFam ? dia[di].roman + ' chord of ' + key + ': play it' : 'Go to the key of ' + k) + '</title><path d="' + wedge(r0, r1, a0, a0 + 30) + '"/>' +
+          '<text class="' + (ring === 'maj' ? 'cmaj' : 'cmin') + '" x="' + tx + '" y="' + (+ty + (ring === 'maj' ? 6 : 4)) + '">' + name + '</text>' + (inFam ? '<text class="c-num" x="' + nx + '" y="' + (+ny + 3.5) + '">' + dia[di].roman + '</text>' : '') + '</g>';
+      };
+      const [sx, sy] = pol(179, mid);
+      s += '<g class="c-sig' + (d === 0 ? ' on' : '') + '" data-act="key" data-k="' + k + '"><title>Go to the key of ' + k + '</title><path d="' + wedge(168, 190, a0, a0 + 30) + '"/><text x="' + sx + '" y="' + (+sy + 3.5) + '">' + T.sigShort(k) + '</text></g>';
+      s += cell('maj', 118, 168, d in fam.maj ? 136 : 143, 157, k) + cell('min', 72, 118, d in fam.min ? 90 : 95, 106, esc(T.spell(k, '6')) + 'm');
     });
-    return s + `<circle r="68" class="hub"/><text class="hub-a" y="-4">${T.sigShort(T.CIRCLE[sel])}</text><text class="hub-b" y="18">key of ${T.CIRCLE[sel]}</text></svg>`;
+    s += '<path class="c-family" d="' + wedge(72, 168, (sel - 1) * 30 - 105, (sel + 2) * 30 - 105) + '"/>';
+    s += '<circle r="72" class="hub"/><text class="hub-a" y="6">' + key + '</text><text class="hub-b" y="26">major · ' + T.sigShort(key) + '</text><text class="hub-b" y="-28">key of</text></svg>';
+    // the reading panel
+    const SH = ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'], FL = ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭'], acc = sel === 0 ? [] : sel <= 6 ? SH.slice(0, sel) : FL.slice(0, 12 - sel);
+    const nm = (d) => esc(d.root) + (d.roman === d.roman.toLowerCase() ? (/°/.test(d.roman) ? '°' : 'm') : '');
+    const left = T.CIRCLE[(sel + 11) % 12], right = T.CIRCLE[(sel + 1) % 12];
+    const progs = [['I – IV – V – I', [0, 3, 4, 0], 'The three majors side by side: home, away, tension, home.'], ['I – V – vi – IV', [0, 4, 5, 3], 'The four-chord song. Everything stays inside the outlined block.'], ['ii – V – I', [1, 4, 0], 'The jazz cadence. The roots step anticlockwise: ' + esc(dia[1].root) + ', ' + esc(dia[4].root) + ', ' + esc(dia[0].root) + '.'], ['vi – ii – V – I', [5, 1, 4, 0], 'Four roots in a row anticlockwise, falling home.']];
+    return s + '<div class="cread">' +
+      '<section><small>What is in this key</small><b>' + (acc.length ? acc.join(' ') : 'No sharps or flats') + '</b><p>' + (acc.length ? 'Play ' + (acc.length === 1 ? 'that note' : 'those notes') + ' in place of the natural one; every other note is natural. The outside ring gives the count for each key.' : 'Seven natural notes. Each step clockwise adds one sharp; each step anticlockwise adds one flat.') + '</p></section>' +
+      '<section><small>The chords that belong together</small><p>The outlined block is the family of ' + key + ' major: the key itself, its two neighbours, and the three minors under them. Click one to hear it.</p><div class="cfam">' +
+        [0, 1, 2, 3, 4, 5, 6].map((i) => '<button class="cchip ' + FNC[dia[i].fn] + (i === ci ? ' on' : '') + '" data-act="dia" data-i="' + i + '"><i>' + dia[i].roman + '</i>' + nm(dia[i]) + '</button>').join('') +
+        '</div><p class="cfn"><span class="ton">home</span><span class="sub">moving away</span><span class="dom">tension, wants home</span></p></section>' +
+      '<section><small>Hear it move</small><div class="cprogs">' + progs.map(([t, seq, why]) => '<button class="cprog" data-act="prog" data-seq="' + seq.join(',') + '"><b>' + t + '</b><span>' + seq.map((i) => nm(dia[i])).join(' · ') + '</span><em>' + why + '</em></button>').join('') + '</div></section>' +
+      '<section><small>Next door: the easiest keys to move to</small><div class="cnext"><button class="btn small" data-act="key" data-k="' + left + '">← ' + left + ' · ' + T.signature(left) + '</button><button class="btn small" data-act="key" data-k="' + right + '">' + right + ' · ' + T.signature(right) + ' →</button></div><p>Each shares six of its seven notes with ' + key + '.</p></section></div>';
   }
   const FN_TEXT = { Tonic: 'Home. Progressions start here and come back here.', Subdominant: 'Moves away from home, and often leads on to the V chord.', Dominant: 'Tension. It wants to resolve to the I chord.' };
   function renderCircle() {
@@ -873,6 +898,7 @@
     pos: (d) => go({ scales: { pos: +d.i } }),
     sev: () => go({ circle: { sev: !state.circle.sev } }),
     dia: (d) => { go({ circle: { ci: +d.i } }); cur.play(); },
+    prog: (d) => { const tok = (progTok = (progTok || 0) + 1); d.seq.split(',').map(Number).forEach((i, n) => setTimeout(() => { if (tok !== progTok || state.view !== 'circle') return; go({ circle: { ci: i } }); if (cur.play) cur.play(); }, n * 1050)); }, // play a progression chord by chord, lighting each on the wheel
     'open-chord': (d) => { go({ view: 'chords', key: T.KEYS[T.pc(d.root)], chords: { id: d.id, vi: 0, chart: false } }); window.scrollTo(0, 0); },
     practice: (d) => { quiz = null; go({ practice: { id: d.id, bar: 0 } }); },
     wfret: (d) => go({ practice: { fret: Math.max(1, Math.min(12, state.practice.fret + +d.d)) } }),

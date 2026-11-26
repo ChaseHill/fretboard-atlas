@@ -1315,3 +1315,47 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
 .open-ring { fill: none; stroke: var(--guide); stroke-width: 2; opacity: 0; transition: opacity .2s; }
 .open-ring.on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .key, .key.hit, .key.lit.hit, .peg.ring .lift { animation: none; transition: none; } }
+
+/* ---------- circle of fifths: the wheel reads itself ---------- */
+.circle-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; justify-items: center; align-items: center; padding: 8px 0 4px; }
+.circle-wrap .circle { width: min(100%, 300px); }
+.cw, .c-sig { cursor: pointer; }
+.cw path { stroke: var(--ink); stroke-width: 1.2; fill: var(--card); }
+.cw.min path { fill: var(--paper); }
+.cw:not(.fam) .cmaj { opacity: .6; } .cw:not(.fam) .cmin { opacity: .8; }
+.cw:hover path, .c-sig:hover path { fill: var(--accent-soft); }
+.cw.fam.ton path { fill: color-mix(in srgb, var(--rootc) 42%, var(--card)); }
+.cw.fam.sub path { fill: color-mix(in srgb, var(--ext) 26%, var(--card)); }
+.cw.fam.dom path { fill: color-mix(in srgb, var(--guide) 28%, var(--card)); }
+.cw.fam.cur path { fill: var(--ink); }
+.cw.fam.cur text { fill: var(--paper); }
+.cw.fam .cmin { font-weight: 800; font-size: 12px; fill: var(--ink); }
+.c-num { font: 800 9px var(--mono); fill: var(--ink-2); text-anchor: middle; letter-spacing: .04em; pointer-events: none; }
+.c-sig path { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1; opacity: .9; }
+.c-sig text { font: 700 9.5px var(--mono); fill: var(--ink-2); text-anchor: middle; pointer-events: none; }
+.c-sig.on path { fill: var(--ink); } .c-sig.on text { fill: var(--paper); }
+.c-family { fill: none; stroke: var(--ink); stroke-width: 3.4; stroke-linejoin: round; pointer-events: none; }
+.c-arrow { fill: none; stroke: var(--ink-2); stroke-width: 1.6; } .c-arrowhead { fill: var(--ink-2); }
+.c-dir { font: 700 9px var(--mono); fill: var(--ink-2); letter-spacing: .06em; text-transform: uppercase; }
+.circle .hub-a { font-size: 34px; } .circle .hub-b { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+.cread { display: grid; gap: 14px; width: 100%; min-width: 0; text-align: left; }
+.cread section { display: grid; gap: 5px; }
+.cread small { font: 700 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.cread b { font-size: 17px; }
+.cread p { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.5; max-width: 62ch; }
+.cfam { display: flex; flex-wrap: wrap; gap: 6px; }
+.cchip { display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 10px; border: 1.4px solid var(--ink); border-radius: 8px; font: 700 13px var(--mono); color: var(--ink); cursor: pointer; background: var(--card); }
+.cchip i { font-style: normal; font-size: 10px; color: var(--ink-2); }
+.cchip.ton { background: color-mix(in srgb, var(--rootc) 42%, var(--card)); } .cchip.sub { background: color-mix(in srgb, var(--ext) 26%, var(--card)); } .cchip.dom { background: color-mix(in srgb, var(--guide) 28%, var(--card)); }
+.cchip.on { background: var(--ink); color: var(--paper); box-shadow: 2px 2px 0 var(--accent); } .cchip.on i { color: var(--paper); }
+.cfn { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11.5px !important; }
+.cfn span::before { content: ''; display: inline-block; width: 9px; height: 9px; border: 1.2px solid var(--ink); border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.cfn .ton::before { background: color-mix(in srgb, var(--rootc) 42%, var(--card)); } .cfn .sub::before { background: color-mix(in srgb, var(--ext) 26%, var(--card)); } .cfn .dom::before { background: color-mix(in srgb, var(--guide) 28%, var(--card)); }
+.cprogs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.cprog { display: grid; gap: 2px; text-align: left; padding: 8px 10px; border: 1.4px solid var(--ink); border-radius: 10px; background: var(--card); color: var(--ink); cursor: pointer; font-family: var(--mono); }
+.cprog:hover { background: var(--accent-soft); } .cprog b { font-size: 13px; } .cprog span { font-size: 12px; font-weight: 700; } .cprog em { font-style: normal; font-size: 11px; color: var(--ink-2); line-height: 1.4; }
+.cnext { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (min-width: 761px) {
+  .circle-wrap { grid-template-columns: minmax(300px, 440px) minmax(0, 1fr); gap: 30px; justify-items: stretch; }
+  .circle-wrap .circle, [data-view="circle"] .circle-wrap .circle { width: 100%; }
+}
