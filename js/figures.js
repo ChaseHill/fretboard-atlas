@@ -66,7 +66,7 @@
   // Outlines traced from the reference drawing (a front view), pixel by pixel, then scaled so nut to tail is 804 mm.
   const ring = smooth([[536,112],[537,102],[549,98],[570,98],[579,96],[587,90],[591,90],[604,78],[612,63],[613,55],[610,37],[608,35],[616,29],[654,-28],[658,-37],[659,-67],[655,-78],[650,-85],[639,-94],[633,-94],[621,-100],[614,-100],[602,-105],[599,-113],[601,-119],[612,-128],[629,-132],[659,-131],[674,-128],[684,-123],[697,-120],[708,-113],[724,-109],[745,-108],[777,-116],[793,-125],[807,-129],[820,-136],[834,-143],[856,-150],[877,-154],[906,-155],[923,-153],[947,-143],[970,-123],[978,-110],[987,-89],[993,-59],[994,2],[991,56],[985,87],[979,101],[975,109],[968,120],[961,128],[953,136],[944,144],[934,150],[919,155],[913,157],[879,157],[861,154],[842,148],[826,143],[808,134],[795,128],[781,123],[766,116],[746,113],[742,110],[708,110],[623,135],[594,135],[585,138],[571,135],[563,134],[551,129],[541,123]], 2);
   const guard = smooth([[639,31],[633,43],[636,52],[673,45],[711,45],[739,52],[787,70],[800,73],[816,73],[834,68],[842,64],[850,56],[854,48],[856,30],[856,-45],[854,-59],[862,-83],[883,-100],[890,-115],[896,-127],[896,-134],[894,-138],[879,-140],[860,-136],[818,-121],[780,-104],[750,-96],[730,-96],[716,-98],[684,-112],[655,-120],[625,-120],[612,-113],[621,-110],[639,-106],[650,-101],[662,-90],[671,-74],[673,-51],[665,-29],[673,-25],[675,-14],[675,26],[669,31]], 2);
-  const head = smooth([[176,22],[163,36],[155,37],[137,32],[128,29],[110,24],[91,17],[73,13],[64,10],[48,3],[41,2],[18,-3],[2,-12],[-5,-22],[-5,-37],[0,-47],[8,-54],[18,-56],[23,-56],[34,-52],[41,-47],[46,-37],[53,-33],[71,-35],[122,-47],[136,-47],[149,-29],[167,-20],[176,-18],[NUT - 5,-21.5],[NUT - 5,22]], 2);
+  const head = smooth([[176,22],[163,36],[155,37],[137,32],[128,29],[110,24],[91,17],[73,13],[64,10],[48,3],[41,2],[18,-3],[2,-12],[-5,-22],[-5,-37],[0,-47],[8,-54],[18,-56],[23,-56],[34,-52],[41,-47],[46,-37],[53,-33],[71,-35],[122,-47],[136,-47],[149,-29],[167,-20],[176,-18],[NUT - 5,-19.5],[NUT - 5,19.5]], 2);
 
   function guitar() {
     let s = `<defs><linearGradient id="gxBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(BODY, -0.16)}"/><stop offset=".55" stop-color="${BODY}"/><stop offset="1" stop-color="${shade(BODY, 0.16)}"/></linearGradient>
@@ -118,28 +118,28 @@
     }
     s += walls(head, HZ - 13, HZ, MAPLE) + `<path class="gx-sil" style="fill:url(#gxMaple)" d="${poly(head, HZ)}"/>`;
     // neck: its treble side, then the fingerboard; 22 frets; inlays at 3, 5, 7, 9, 12 (two), 15, 17, 19, 21
-    const hw = (x) => 21 + (Math.min(x, HEEL) - NUT) / (HEEL - NUT) * 7, FW2 = 28.6;
-    s += `<path class="gx-edge"${fill(shade(MAPLE, 0.42))} d="${poly([[NUT, -21, NZ], [POCKET, -28.4, NZ], [POCKET, -28.4, NZ - 27], [HEEL - 20, -27.6, NZ - 27], [HEEL - 70, -26.6, NZ - 24], [NUT + 60, -22, NZ - 20.5], [NUT + 14, -21.2, NZ - 19], [NUT, -21, NZ - 14]])}"/>`; // 19 mm deep by the nut, 24 at the twelfth fret, 27 at the heel
-    s += `<path class="gx-edge"${fill(shade(MAT.boardHi, 0.5))} d="${poly([[NUT, -21, NZ], [FBEND, -FW2, NZ], [FBEND, -FW2, NZ - 4], [NUT, -21, NZ - 4]])}"/>`;
+    const NW = 19, hw = (x) => NW + (Math.min(x, HEEL) - NUT) / (HEEL - NUT) * (28 - NW), FW2 = 28.6;
+    s += `<path class="gx-edge"${fill(shade(MAPLE, 0.42))} d="${poly([[NUT, -NW, NZ], [POCKET, -28.4, NZ], [POCKET, -28.4, NZ - 27], [HEEL - 14, -27.8, NZ - 27], [HEEL - 50, -27, NZ - 22], [fretX(12), -hw(fretX(12)), NZ - 17], [fretX(5), -hw(fretX(5)), NZ - 13], [NUT + 14, -NW - 0.3, NZ - 11], [NUT, -NW, NZ - 9]])}"/>`; // slim by the nut, deepening steadily to the heel
+    s += `<path class="gx-edge"${fill(shade(MAT.boardHi, 0.5))} d="${poly([[NUT, -NW, NZ], [FBEND, -FW2, NZ], [FBEND, -FW2, NZ - 4], [NUT, -NW, NZ - 4]])}"/>`;
     s += `<path class="gx-edge"${fill(shade(MAT.boardHi, 0.18))} d="${poly([[FBEND, -FW2, NZ], [FBEND, FW2, NZ], [FBEND, FW2, NZ - 4], [FBEND, -FW2, NZ - 4]])}"/>`;
-    s += `<path class="gx-sil" style="fill:url(#gxBoard)" d="${poly([[NUT, -21], [FBEND, -FW2], [FBEND, FW2], [NUT, 21]], NZ)}"/>`;
+    s += `<path class="gx-sil" style="fill:url(#gxBoard)" d="${poly([[NUT, -NW], [FBEND, -FW2], [FBEND, FW2], [NUT, NW]], NZ)}"/>`;
     for (let n = 1; n <= 22; n++) { const x = fretX(n), w = hw(x) + (x > HEEL ? 0.6 : 0); s += seg([x, -w, NZ], [x, w, NZ], 'gx-fret'); }
     [3, 5, 7, 9, 15, 17, 19, 21].forEach((f) => { s += disc((fretX(f - 1) + fretX(f)) / 2, 0, 3.2, NZ, 'gx-inlay'); });
     s += disc((fretX(11) + fretX(12)) / 2, -10, 3.2, NZ, 'gx-inlay') + disc((fretX(11) + fretX(12)) / 2, 10, 3.2, NZ, 'gx-inlay');
     // nut
-    s += `<path class="gx-detail"${fill(shade(MAT.bone, 0.3))} d="${poly([[NUT - 5, -21.5, NZ + 3], [NUT, -21.5, NZ + 3], [NUT, -21.5, NZ - 2], [NUT - 5, -21.5, NZ - 2]])}"/><path class="gx-edge"${fill(MAT.bone)} d="${poly([[NUT - 5, -21.5], [NUT, -21.5], [NUT, 21.5], [NUT - 5, 21.5]], NZ + 3)}"/>`;
+    s += `<path class="gx-detail"${fill(shade(MAT.bone, 0.3))} d="${poly([[NUT - 5, -NW - 0.5, NZ + 3], [NUT, -NW - 0.5, NZ + 3], [NUT, -NW - 0.5, NZ - 2], [NUT - 5, -NW - 0.5, NZ - 2]])}"/><path class="gx-edge"${fill(MAT.bone)} d="${poly([[NUT - 5, -NW - 0.5], [NUT, -NW - 0.5], [NUT, NW + 0.5], [NUT - 5, NW + 0.5]], NZ + 3)}"/>`;
     // tuner posts on their washers, and the string tree for the two thinnest strings
     for (let i = 5; i >= 0; i--) { const [x, y] = post(i); s += cyl(x, y, 6, HZ, HZ + 1.4, shade(CHROME, 0.3), shade(CHROME, 0.12)) + cyl(x, y, 3.2, HZ + 1.4, HZ + 8, shade(CHROME, 0.25), CHROME); }
     s += `<path class="gx-detail"${fill(MAT.boardLo)} d="${poly(bar([162, 1.5], [176, 1.5], 3.2), HZ + 0.2)}"/>` + cyl(125, -12, 2.2, HZ, HZ + 3, shade(CHROME, 0.3), CHROME) + seg([125, -16, HZ + 3], [125, -8, HZ + 3], 'gx-peg-out') + seg([125, -16, HZ + 3], [125, -8, HZ + 3], 'gx-peg');
     // strings: wound for 6, 5 and 4, plain for 3, 2 and 1; string 6 is on the far (bass) side and has the nearest tuner to the nut
     for (let i = 0; i < 6; i++) {
-      const yN = 17.5 - i * 7, yS = 26 - i * 10.4, p = post(i), w = f1(1.6 - i * 0.18), cls = i < 3 ? 'gx-string wound' : 'gx-string';
+      const yN = 16 - i * 6.4, yS = 26 - i * 10.4, p = post(i), w = f1(1.6 - i * 0.18), cls = i < 3 ? 'gx-string wound' : 'gx-string';
       s += seg([p[0], p[1], HZ + 6], [NUT - 2, yN, NZ + 4], cls, ` stroke-width="${w}"`) + seg([NUT - 2, yN, NZ + 4], [SADDLE + 6, yS, SZ], cls, ` stroke-width="${w}"`);
     }
     // labels: [name, note, the exact spot (gx, gy, z), where the text sits on screen, which way it reads]
     const parts = [
       ['Tuners', 'turn to tighten a string', [60, 19, HZ - 4], [470, 30], 'end'],
-      ['Nut', 'where open strings begin', [NUT - 2.5, -21, NZ + 3], [640, 120], 'start'],
+      ['Nut', 'where open strings begin', [NUT - 2.5, -19.5, NZ + 3], [640, 120], 'start'],
       ['Frets', 'each raises the note a half step', [fretX(5), -hw(fretX(5)), NZ], [560, 186], 'start'],
       ['Strings', 'string 6 is the thick one', [fretX(10), 18, NZ + 4], [330, 96], 'end'],
       ['Pickups', 'turn string movement into sound', [751, 30, TOP + 8.5], [250, 140], 'end'],
