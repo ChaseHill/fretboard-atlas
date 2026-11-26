@@ -131,8 +131,8 @@
   const byId = Object.fromEntries(list.map((d) => [d.id, d]));
   // practice items the keyboard side already had, filed under the lessons they belong to
   const OTHER = {
-    khands: ['kfive'], kfive: ['kfive', 'kscale'], kmap: ['kname', 'kfind'], kintervals: ['kiv'], kmajor: ['kscale'], ktriads: ['karp'], kdiatonic: ['three', 'pop', 'fifties', 'canon'], ksevenths: ['jazz', 'turn'],
-    kminor: ['m145', 'andalu', 'mpop', 'borrow'], kjazz: ['jazz', 'turn', 'm251', 'turn6', 'three6', 'tritone', 'cycle4'], kcircle: ['cycle4'], kpent: ['blues'],
+    khands: ['kfive'], kfive: ['kfive', 'kscale'], kmap: ['kname', 'kfind'], kintervals: ['kiv', 'kear'], kmajor: ['kscale'], ktriads: ['karp'], kdiatonic: ['three', 'pop', 'fifties', 'canon', 'kearfn'], ksevenths: ['jazz', 'turn', 'kearch'],
+    kminor: ['m145', 'andalu', 'mpop', 'borrow'], kjazz: ['jazz', 'turn', 'm251', 'turn6', 'three6', 'tritone', 'cycle4'], kcircle: ['cycle4', 'kkeyq'], kpent: ['blues'],
   };
   G.KeyDrills = { list, byId, groups: [TQ, FD, CH, SC, JZ], forLesson: (id) => list.filter((d) => d.from.includes(id)).map((d) => d.id).concat(OTHER[id] || []) };
 })();

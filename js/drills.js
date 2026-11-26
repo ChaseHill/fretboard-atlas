@@ -320,6 +320,7 @@
   const byId = Object.fromEntries(list.map((d) => [d.id, d]));
   // practice items that existed before the library, filed under the lessons they belong to
   const OTHER = {
+    changes: ['minute'], openchords: ['minute'], colour: ['minute'],
     warmups: ['chromatic', 'spider', 'skip', 'climb'], hands: ['gsfingers', 'pkalt', 'fspima'], practise: ['gscount', 'chromatic', 'chpairs', 'rhladder'], picking: ['chromatic', 'skip'], fretboard: ['quiz', 'find', 'findall', 'walk'], alphabet: ['quiz', 'find'], intervals: ['interval', 'nameiv', 'eariv'], ear: ['eariv', 'earchord', 'earfn'],
     keysig: ['keyquiz'], circle: ['keyquiz'], families: ['three', 'pop', 'fifties', 'earfn'], diatonic: ['canon', 'sens', 'cycle4', 'earfn'], blues: ['blues', 'quick'], triadscale: ['triads'], triads: ['triads'],
     sevenths: ['namechord', 'chordtone', 'earchord'], minorkeys: ['m145', 'andalu', 'mpop', 'borrow'], iivi: ['jazz', 'm251', 'chain'], turnarounds: ['turn', 'turn6', 'three6', 'tritone', 'jblues', 'fast', 'rhythm'],
@@ -327,6 +328,7 @@
   };
   G.Drills = {
     list, byId, groups: [GS, TQ, FD, CH, SC, JZ],
+    pairs: PAIRS.map((p) => ({ names: p, frets: p.map((n) => fr(oc(n))) })),
     forLesson: (id) => list.filter((d) => d.from.includes(id)).map((d) => d.id).concat(OTHER[id] || []),
   };
 })();

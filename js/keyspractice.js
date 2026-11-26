@@ -30,7 +30,66 @@
   const IV_LEVELS = [[3, 4, 5, 7, 12], [2, 3, 4, 5, 7, 9, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]], IV_NAMES = ['3rds, 4th, 5th, octave', 'Common intervals', 'All twelve intervals'];
   const NAT = [0, 2, 4, 5, 7, 9, 11], NOTE_LEVELS = ['White keys', 'All twelve keys'];
   const KD = G.KeyDrills || { list: [], byId: {}, forLesson: () => [] };
-  const IDS = WARM.map((w) => w.id).concat(DRILLS.map((d) => d.id), KD.list.map((d) => d.id));
+  // quizzes answered from a list: ears and keys
+  const CHOICE = [
+    { id: 'kear', name: 'Intervals by ear', title: 'Hearing distance', lede: 'Two notes sound, the lower one first. Name the distance between them before the keys light up.',
+      body: 'Listen as often as you like and sing both notes before you answer. The two keys are shown once you have chosen.', idea: 'Give each interval a sound you know: a major 3rd is the start of a major chord, a 5th is open and hollow, an octave is the same note again.',
+      tips: ['Level 1 is thirds, the 5th and the octave. Level 2 is steps, the 4th, tritone and 5th. Level 3 is all twelve.', 'Sing the lower note, then the upper.', 'After answering, play the two keys yourself.'], levels: ['Thirds, 5th and octave', 'Steps, 4th, tritone and 5th', 'All twelve intervals'] },
+    { id: 'kearch', name: 'Chord quality by ear', title: 'Hearing chord colour', lede: 'A chord sounds on a root you are not told. Say what kind of chord it is.',
+      body: 'Major is bright and settled, minor darker. Among the sevenths, the major 7 is soft, the dominant 7 restless, the minor 7 mellow.', idea: 'Listen for the 3rd first, major or minor. Then listen for the 7th on top.',
+      tips: ['Level 1 is major against minor. Level 2 is the three everyday sevenths. Level 3 adds half-diminished and diminished.', 'Hear it again after you answer and tie the sound to the name.', 'Try to sing the 3rd of each chord.'], levels: ['Major or minor', 'Major 7, dominant 7, minor 7', 'Five kinds of seventh'] },
+    { id: 'kearfn', name: 'Which chord came next?', title: 'Hearing chords as numbers', lede: 'You hear the I chord of a key, then a second chord. Say which chord of the key it was.',
+      body: 'This is how players pick up songs by ear: not “that was an F” but “that was the four chord”.', idea: 'IV sounds like stepping away. V sounds unfinished and wants to come back. vi sounds like home turned sad.',
+      tips: ['Level 1 is IV against V. Level 2 adds vi. Level 3 adds ii.', 'Sing the root of each chord as it sounds.', 'Then name the chords in a song you know well.'], levels: ['IV or V', 'IV, V or vi', 'ii, IV, V or vi'] },
+    { id: 'kkeyq', name: 'Keys and signatures', title: 'Knowing your keys', lede: 'Questions about keys: name a key from its sharps or flats, find a relative minor, find the IV and V chords.',
+      body: 'The answers are all on the circle of fifths. The aim is to know them without looking.', idea: 'Sharps: the key is a half step above the last sharp. Flats: the key is the second-to-last flat. The relative minor is three half steps below the major key note.',
+      tips: ['Level 1 is signatures. Level 2 is relative minors. Level 3 is the IV and V chords.', 'Order of sharps: F C G D A E B. Flats are the same letters backwards.', 'Check any answer on the Circle tab.'], levels: ['Name the key from its signature', 'Relative minors', 'IV and V chords'] },
+  ];
+  const pick = (a) => a[Math.floor(Math.random() * a.length)], shuffled = (a) => a.map((x) => [Math.random(), x]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
+  const chordKeys = (root, q, re) => { const vs = T.keyVoicings(root, q) || [], v = (re && vs.find((x) => re.test(x.name || ''))) || vs[0]; return v ? v.notes.map((n) => ({ midi: n.midi, label: esc(n.deg), role: n.role, hand: n.hand })) : []; };
+  function askChoice(id, lv) {
+    if (id === 'kear') { const set = [[3, 4, 7, 12], [1, 2, 5, 6, 7], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]][lv - 1], iv = pick(set), lo = 53 + Math.floor(Math.random() * 12); return { opts: set.map((n) => IV[n]), right: set.indexOf(iv), keys: [{ midi: lo, label: esc(T.noteName(lo)), role: 'root', hand: 'R' }, { midi: lo + iv, label: esc(T.noteName(lo + iv)), role: 'ext', hand: 'R' }], seq: true, prompt: 'What is the interval between the two notes?', after: `${iv === 12 ? 'An' : 'A'} ${IV[iv]}: ${iv} half step${iv === 1 ? '' : 's'}.` }; }
+    if (id === 'kearch') { const set = [['maj', 'm'], ['maj7', '7', 'm7'], ['maj7', '7', 'm7', 'm7b5', 'dim7']][lv - 1], qi = Math.floor(Math.random() * set.length), root = pick(T.KEYS); return { opts: set.map((k) => (T.QUALS.find((x) => x.id === k) || {}).name), right: qi, keys: chordKeys(root, set[qi], /Root position/), prompt: 'What kind of chord is this?', after: `It was ${esc(T.chord(root, set[qi]).name)}.` }; }
+    if (id === 'kearfn') { const set = [[3, 4], [3, 4, 5], [1, 3, 4, 5]][lv - 1], k = pick(['C', 'G', 'D', 'A', 'E', 'F']), d = T.diatonic(k), i = pick(set), re = /Root in the left hand/; return { opts: set.map((x) => d[x].roman), right: set.indexOf(i), first: chordKeys(d[0].root, d[0].tri, re), keys: chordKeys(d[i].root, d[i].tri, re), prompt: 'The first chord is I. Which chord follows it?', after: `In the key of ${esc(k)}: ${esc(d[0].root)}, then ${esc(T.chord(d[i].root, d[i].tri).name)}.` }; }
+    const SH = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯'], FL = ['C', 'F', 'B♭', 'E♭', 'A♭', 'D♭', 'G♭'];
+    let prompt, right, wrong, after;
+    if (lv === 1) { const sharp = Math.random() < 0.5, n = 1 + Math.floor(Math.random() * 6); right = (sharp ? SH : FL)[n]; wrong = shuffled(SH.concat(FL).filter((x) => x !== right && x !== 'C')).slice(0, 3); prompt = `Which major key has ${n} ${sharp ? 'sharp' : 'flat'}${n > 1 ? 's' : ''}?`; after = `${right} major: ${(sharp ? ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'] : ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭']).slice(0, n).join(', ')}.`; }
+    else { const k = pick(['C', 'G', 'D', 'A', 'E', 'F', 'B♭', 'E♭', 'A♭']), d = T.diatonic(k);
+      if (lv === 2) { right = d[5].root + ' minor'; wrong = [d[1].root, d[2].root, d[4].root].map((x) => x + ' minor'); prompt = `What is the relative minor of ${k} major?`; after = `${right} shares every note with ${k} major.`; }
+      else { right = `${d[3].root} and ${d[4].root}`; wrong = [`${d[4].root} and ${d[1].root}`, `${d[2].root} and ${d[4].root}`, `${d[3].root} and ${d[5].root}`]; prompt = `What are the IV and V chords in the key of ${k}?`; after = `In ${k}: I is ${k}, IV is ${d[3].root}, V is ${d[4].root}.`; } }
+    const opts = shuffled([right].concat(wrong));
+    return { opts, right: opts.indexOf(right), keys: [], prompt, after };
+  }
+  function choicePage(A, d) {
+    if (!quiz || quiz.id !== d.id) quiz = { id: d.id, lv: 1, score: 0, total: 0, streak: 0, best: best(d.id), done: false, ok: false, pick: null, q: null };
+    quiz.lv = Math.max(1, Math.min(3, quiz.lv));
+    if (!quiz.q) quiz.q = askChoice(d.id, quiz.lv);
+    const q = quiz.q, playing = q.keys.length > 0;
+    const strike = (keys, t, seq) => keys.forEach((n, k) => { const at = t + (seq ? k * 0.55 : 0); Audio.key(n.midi, at, 0.85); });
+    const hear = playing ? () => { if (!Audio.resume()) return; const t = Audio.now() + 0.03; if (q.first) { strike(q.first, t); strike(q.keys, t + 1.3); } else { strike(q.keys, t, q.seq); if (q.seq) strike(q.keys, t + 1.3); } } : null;
+    const verdict = quiz.done ? `<span class="verdict ${quiz.ok ? 'good' : 'bad'}">${quiz.ok ? 'Correct' : 'Not quite'}</span>` : '';
+    const answers = q.opts.map((o, n) => `<button class="posbtn ans wide${quiz.done && n === q.right ? ' good' : quiz.done && quiz.pick === n ? ' bad' : ''}" data-kp="answer" data-v="${n}" ${quiz.done ? 'disabled' : ''}>${esc(o)}</button>`).join('');
+    const next = quiz.done ? '<button class="btn primary" data-act="next">Next ›</button>' : '<button class="btn ghost" data-kp="skip">Skip</button>';
+    A.ui({
+      side: side(A, d.id), crumbs: 'Practice / Foundations', title: d.name, chips: A.pill(d.levels[quiz.lv - 1]), lede: d.lede,
+      tiles: A.tilesHTML([['Score', `${quiz.score} / ${quiz.total}`], ['Streak', quiz.streak], ['Best streak', quiz.best]]),
+      actions: `<div class="stepper"><span>Level</span><button data-kp="level" data-d="-1" aria-label="Easier">−</button><b>${quiz.lv}</b><button data-kp="level" data-d="1" aria-label="Harder">+</button></div>${hear ? '<button class="btn" data-act="play">▶ Hear it</button>' : ''}<button class="btn" data-kp="reset">↺ Reset score</button>`,
+      railHead: `<span>Question ${quiz.total + (quiz.done ? 0 : 1)}</span>${verdict}`,
+      rail: `<p class="prompt">${q.prompt}${quiz.done ? ' ' + q.after : ''}</p><div class="thumbs">${answers}${next}</div>`,
+      panel: A.stepCard({ no: 'Exercise', tag: hear ? 'Ear training' : 'Keys', title: d.title, body: `<p>${d.body}</p>`, idea: d.idea, more: `<ul class="plain-list">${d.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
+    });
+    show(A, quiz.done ? q.keys : []);
+    A.keys.setPick((midi) => { Audio.key(midi, 0, 0.9); A.keys.pulse(midi); });
+    const fresh = () => { quiz.q = askChoice(d.id, quiz.lv); quiz.done = false; quiz.pick = null; A.go({}); };
+    ctx = {
+      answer: (v) => { if (quiz.done) return; quiz.done = true; quiz.pick = +v; quiz.ok = +v === q.right; quiz.total++; if (quiz.ok) { quiz.score++; quiz.streak++; if (quiz.streak > quiz.best) { quiz.best = quiz.streak; saveBest(d.id, quiz.best); } } else quiz.streak = 0; A.go({}); },
+      skip: () => fresh(),
+      level: (dlt) => { const lv = Math.max(1, Math.min(3, quiz.lv + dlt)); if (lv !== quiz.lv) { quiz.lv = lv; fresh(); } },
+      reset: () => { quiz.score = quiz.total = quiz.streak = 0; A.go({}); },
+    };
+    A.setCur({ play: hear || undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { fresh(); if (hear) setTimeout(() => { const b = document.querySelector('#actions [data-act="play"]'); if (b) b.click(); }, 60); } } });
+  }
+  const IDS = WARM.map((w) => w.id).concat(DRILLS.map((d) => d.id), CHOICE.map((d) => d.id), KD.list.map((d) => d.id));
   const best = (id) => { try { return +JSON.parse(localStorage.getItem('fa.best-' + id)) || 0; } catch (e) { return 0; } };
   const saveBest = (id, n) => { try { localStorage.setItem('fa.best-' + id, JSON.stringify(n)); } catch (e) { /* storage unavailable */ } };
   const rnd = (list, not) => { let x; do x = list[Math.floor(Math.random() * list.length)]; while (list.length > 1 && x === not); return x; };
@@ -49,7 +108,7 @@
     const lib = (g) => KD.list.filter((d) => d.group === g).map((d) => [d.id, d.name]), pg = (g) => T.PROGS.filter((p) => (p.group || 'Chord changes') === g).map((p) => [p.id, p.name]);
     return [
       ['Technique', WARM.map((w) => [w.id, w.name]).concat(lib('Technique'))],
-      ['Foundations', DRILLS.map((d) => [d.id, d.name]).concat(lib('Foundations'))],
+      ['Foundations', DRILLS.map((d) => [d.id, d.name]).concat(CHOICE.map((d) => [d.id, d.name]), lib('Foundations'))],
       ['Chords', lib('Chords').concat(pg('Chord changes'), pg('Minor keys'))],
       ['Scales & keys', lib('Scales & keys')],
       ['Jazz', pg('Jazz changes').concat(lib('Jazz'))],
@@ -245,7 +304,8 @@
     const prog = T.PROGS.find((x) => x.id === p.id);
     if (!prog && !IDS.includes(p.id)) p.id = WARM[0].id; // arriving from a guitar-only exercise
     const w = WARM.find((x) => x.id === p.id), d = DRILLS.find((x) => x.id === p.id), lib = KD.byId[p.id];
-    if (lib) libDrill(A, lib); else if (w) warmup(A, w); else if (prog) changes(A, prog); else drillPage(A, d);
+    const ch = CHOICE.find((x) => x.id === p.id);
+    if (ch) choicePage(A, ch); else if (lib) libDrill(A, lib); else if (w) warmup(A, w); else if (prog) changes(A, prog); else drillPage(A, d);
   };
   V.practiceIds = IDS;
   document.addEventListener('click', (e) => {

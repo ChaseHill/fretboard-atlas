@@ -658,7 +658,7 @@
       ['Getting started', lib('Getting started')],
       ['Technique', T.WARMUPS.map((w) => [w.id, w.name]).concat(lib('Technique'))],
       ['Foundations', ex((x) => !x.chord).concat(lib('Foundations'))],
-      ['Chords', lib('Chords').concat(pg('Chord changes'), pg('Minor keys'), ex((x) => x.chord))],
+      ['Chords', [['minute', 'One-minute changes']].concat(lib('Chords'), pg('Chord changes'), pg('Minor keys'), ex((x) => x.chord))],
       ['Scales & keys', lib('Scales & keys')],
       ['Jazz', pg('Jazz changes').concat(lib('Jazz'))],
     ];
@@ -876,7 +876,7 @@
       const set = [[3, 4, 7, 12], [1, 2, 5, 6, 7], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]][lv - 1], iv = pickOf(set), s = rnd(4), f = 1 + rnd(7), tg = [];
       for (let t = s; t < 6; t++) { const ft = T.TUNING[s] + f + iv - T.TUNING[t]; if (ft >= 0 && ft <= 15) tg.push({ s: t, f: ft }); }
       const b = tg.sort((x, y) => Math.abs(x.f - f) - Math.abs(y.f - f))[0];
-      return { opts: set.map((n) => [IVS[n], IVN[n]]), iv: set.indexOf(iv), a: { s, f }, b, prompt: 'What is the interval between the two notes?', after: `A ${IVN[iv]}.` };
+      return { opts: set.map((n) => [IVS[n], IVN[n]]), iv: set.indexOf(iv), a: { s, f }, b, prompt: 'What is the interval between the two notes?', after: `${iv === 12 ? 'An' : 'A'} ${IVN[iv]}.` };
     } },
     earchord: { levels: ['Major or minor', 'Major 7, dominant 7, minor 7', 'Five kinds of seventh'], make(lv) {
       const set = [['maj', 'm'], ['maj7', '7', 'm7'], ['maj7', '7', 'm7', 'm7b5', 'dim7']][lv - 1], qi = rnd(set.length), root = pickOf(T.KEYS), c = T.chord(root, set[qi]), pool = c.voicings.filter((x) => x.kind === 'caged' && !x.stretch);
@@ -924,6 +924,42 @@
     });
     neck.show(show);
     cur = { play: hear || undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChoiceQuestion(id); render(); if (cur.play) cur.play(); } } };
+  }
+
+  // ---------- one-minute changes: a timer, a tap for every clean change, and a saved best for each pair ----------
+  const minute = { timer: null, end: 0, n: 0, last: null };
+  function stopMinute() { if (minute.timer) { clearInterval(minute.timer); minute.timer = null; } }
+  function renderMinute() {
+    const pairs = (window.G.Drills || {}).pairs || [], p = state.practice, pi = Math.max(0, Math.min(pairs.length - 1, p.vars.minute | 0)), pr = pairs[pi];
+    if (!pr) return renderWarmup(T.WARMUPS[0]);
+    const scores = obj(store.get('minute', {})), keyOf = (x) => x.names.join('|'), sc = scores[keyOf(pr)] || {}, running = !!minute.timer;
+    const pegs = (k) => ({ notes: pr.frets[k].map((f, s) => (f === null ? null : { s, f, label: T.noteName(T.TUNING[s] + f), role: 'ext' })).filter(Boolean), window: [1, Math.max(1, ...pr.frets[k].filter((f) => f))], mute: true });
+    const order = pairs.map((x, k) => ({ k, x, s: scores[keyOf(x)] })).sort((a, b) => (a.s ? a.s.best : -1) - (b.s ? b.s.best : -1));
+    ui({
+      side: practiceSide(), crumbs: 'Practice / Chords', title: `One-minute changes: ${esc(pr.names[0])} and ${esc(pr.names[1])}`, chips: pill('Beginner') + pill('60 seconds'), lede: 'Two chords and a one-minute clock. Change back and forth, one strum each, and count every change that lands clean. Your best for each pair is kept.',
+      tiles: tilesHTML([['Time left', `<span id="minLeft">${running ? Math.max(0, Math.ceil((minute.end - Date.now()) / 1000)) : 60}</span> s`], ['Changes', `<span id="minN">${running ? minute.n : minute.last != null ? minute.last : 0}</span>`], ['Best for this pair', sc.best != null ? sc.best : 'not tried']]),
+      actions: running ? '<button class="btn primary" data-act="play">＋ Count a change</button><button class="btn" data-act="minstop">■ Stop</button>' : '<button class="btn primary" data-act="play">▶ Start the minute</button>',
+      railHead: '<span>Your pairs</span><small>weakest first</small>',
+      rail: `<p class="muted">${running ? 'Press <b>Count a change</b>, or the space bar, each time the new chord rings clean. The neck shows the chord you should be on.' : 'Pick a pair, press Start, and strum. Untried pairs and your lowest scores are listed first.'}</p><ul class="plain-list">${order.map(({ k, x, s }) => `<li><button class="ins-link" data-act="minpair" data-i="${k}">${esc(x.names[0])} and ${esc(x.names[1])}</button> ${s ? `best ${s.best}, last ${s.last}` : 'not tried'}${k === pi ? ' ·  selected' : ''}</li>`).join('')}</ul>`,
+      panel: stepCard({ no: 'Drill', tag: 'Chords', title: 'One-minute changes', body: '<p>Speed between chords is what makes a song playable, and it improves fastest when you measure it. A minute is long enough to tire the hand a little and short enough to do every day.</p>', idea: 'Only clean changes count. If a string buzzes or a finger lands late, do not tap.',
+        more: '<ul class="plain-list"><li>Around 30 changes a minute is enough to play most songs at an easy tempo.</li><li>Around 60 is a change every beat at 60 beats a minute.</li><li>Do your three weakest pairs each day. They change places quickly.</li></ul>', hint: '<kbd>Space</kbd> start, then count a change' }),
+    });
+    neck.show(pegs(running ? minute.n % 2 : 0));
+    const finish = () => { stopMinute(); const prev = scores[keyOf(pr)] || {}; scores[keyOf(pr)] = { best: Math.max(prev.best || 0, minute.n), last: minute.n }; store.set('minute', scores); minute.last = minute.n; render(); };
+    const start = () => {
+      stopMinute(); minute.n = 0; minute.end = Date.now() + 60000;
+      minute.timer = setInterval(() => {
+        if (state.view !== 'practice' || state.practice.id !== 'minute') return stopMinute();
+        const left = Math.ceil((minute.end - Date.now()) / 1000), el = $('minLeft');
+        if (el) el.textContent = Math.max(0, left);
+        if (left <= 0) finish();
+      }, 200);
+      render(); playVoicingFrets(pr.frets[0]);
+    };
+    const playVoicingFrets = (frets) => { if (Audio.resume()) strum(frets, { gap: 0.02, vel: 0.8 }).forEach((h) => Audio.at(h.at, () => neck.pulse(h.s, h.f))); };
+    const tap = () => { minute.n++; const el = $('minN'); if (el) el.textContent = minute.n; neck.show(pegs(minute.n % 2)); };
+    if (!running) minute.last = sc.last != null ? sc.last : null;
+    cur = { play: () => (minute.timer ? tap() : start()) };
   }
 
   // ---------- the drill library (js/drills.js) ----------
@@ -1074,7 +1110,8 @@
   function renderPractice() {
     if (((window.G.KeyViews || {}).practiceIds || []).includes(state.practice.id)) state.practice.id = T.WARMUPS[0].id; // arriving from a keyboard-only exercise
     const id = state.practice.id, w = T.WARMUPS.find((x) => x.id === id), prog = T.PROGS.find((x) => x.id === id), ex = EXS.find((x) => x.id === id) || EXS[0], lib = window.G.Drills && window.G.Drills.byId[id];
-    if (lib) renderLibDrill(lib); else if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'triads') renderTriads(ex); else if (ex.id === 'walk') renderWalk(ex); else if (ex.choice) renderChoiceQuiz(ex); else if (ex.chord) renderChordQuiz(ex); else renderExercise(ex);
+    if (id !== 'minute') stopMinute();
+    if (id === 'minute') renderMinute(); else if (lib) renderLibDrill(lib); else if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'triads') renderTriads(ex); else if (ex.id === 'walk') renderWalk(ex); else if (ex.choice) renderChoiceQuiz(ex); else if (ex.chord) renderChordQuiz(ex); else renderExercise(ex);
   }
 
   // what the keyboard views (keysviews.js) are given to work with
@@ -1164,6 +1201,8 @@
     prog: (d) => { const tok = (progTok = (progTok || 0) + 1); d.seq.split(',').map(Number).forEach((i, n) => setTimeout(() => { if (tok !== progTok || state.view !== 'circle') return; go({ circle: { ci: i } }); if (cur.play) cur.play(); }, n * 1050)); }, // play a progression chord by chord, lighting each on the wheel
     'open-chord': (d) => { go({ view: 'chords', key: T.KEYS[T.pc(d.root)], chords: { id: d.id, vi: 0, chart: false } }); window.scrollTo(0, 0); },
     practice: (d) => { quiz = null; go({ practice: { id: d.id, bar: 0 } }); },
+    minpair: (d) => { stopMinute(); state.practice.vars.minute = +d.i; go({}); },
+    minstop: () => { stopMinute(); render(); },
     wfret: (d) => go({ practice: { fret: Math.max(1, Math.min(12, state.practice.fret + +d.d)) } }),
     bar: (d) => { go({ practice: { bar: +d.i } }); playVoicing(barVoicings(progBars(T.PROGS.find((x) => x.id === state.practice.id)))[+d.i].v); },
     answer: (d) => { quiz.pick = +d.i; mark(quiz.pick === (quiz.id === 'quiz' ? pcAt(quiz.q.s, quiz.q.f) : quiz.q.iv)); render(); },
