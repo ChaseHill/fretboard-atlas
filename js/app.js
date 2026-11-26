@@ -379,6 +379,15 @@
     }
   }
   const lesson = () => course().find((l) => l.id === LS().id) || course()[0];
+  // what a lesson step asks the hands to play, as a list to follow: its line of notes, or its chord as one strum
+  function lessonTargets(spec, st) {
+    const one = (n) => ({ midis: [T.TUNING[n.s] + n.f], at: () => neck.setActive(n.s, n.f) });
+    if (spec.seq && spec.seq.length) return spec.seq.slice(0, 64).map(one);
+    const live = (spec.notes || []).filter((n) => !n.dim && n.f != null);
+    if (!live.length || live.length > 24 || spec.byPitch) return [];
+    if (st.play === 'strum') return [{ midis: live.map((n) => T.TUNING[n.s] + n.f), at: () => {} }];
+    return live.slice().sort((a, b) => T.TUNING[a.s] + a.f - (T.TUNING[b.s] + b.f)).map(one);
+  }
   function renderLearn() {
     const LESSONS = course(), done = doneOf(), kb = onKeys();
     const L = lesson(), i = Math.min(LS().step, L.steps.length - 1), st = L.steps[i];
@@ -400,7 +409,7 @@
       side, crumbs: `${L.group} / Lesson ${inGroup.indexOf(L) + 1} of ${inGroup.length}`, title: L.title,
       chips: pill(`${L.mins} min`) + pill(L.level) + pill(`${L.steps.length} steps`), lede: i === 0 && TL ? TL.opener(L, LESSONS.indexOf(L) + 1, FAM_COLORS[groups.indexOf(L.group) % FAM_COLORS.length]) : L.lede,
       crumbsHTML: `<span>Lesson ${LESSONS.indexOf(L) + 1} · ${L.title}</span><span>Step ${i + 1} of ${L.steps.length} · ${st.title}</span>`, opener: i === 0 && !!TL,
-      extra: gbar + (st.object && window.G.Figures && window.G.Figures[st.object] ? window.G.Figures[st.object]() : ''), actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : ''),
+      extra: gbar + (st.object && window.G.Figures && window.G.Figures[st.object] ? window.G.Figures[st.object]() : ''), actions: `<button class="btn guide-btn${Guide.on ? ' on' : ''}" data-act="guide" title="Reads the lesson aloud, plays each example and moves on by itself. Pause any time; it picks up where it stopped.">${guideWord()}</button>` + (st.play ? `<button class="btn" data-act="play">▶ Hear it</button>` : '') + (st.play && !kb && lessonTargets(spec, st).length ? followBtn() : ''),
       railHead: `<span>In this lesson</span><button class="btn small" data-act="restart">↺ Restart lesson</button>`,
       rail: `<ol class="steps">${L.steps.map((s, k) => `<li class="${k === i ? 'on' : k < i ? 'past' : ''}"><button data-act="step" data-i="${k}"><b>${k + 1}</b><span>${s.title}</span></button></li>`).join('')}</ol>`,
       panel: stepCard({ no: `Lesson ${li + 1}.${i + 1} <small>step ${i + 1} of ${L.steps.length}</small>`, tag: st.tag, title: st.title,
@@ -408,7 +417,7 @@
         more: (TL ? TL.extras(st) : '') + `<div class="try"><b>${kb ? 'At the keyboard' : 'On your guitar'}</b><p>${st.try}</p></div>${st.link ? `<button class="btn linkbtn" data-act="goto" data-h="${st.link.hash}">${st.link.label} ↗</button>` : ''}` +
           navHTML(i === 0 && li === 0, lastStep && !nextL, lastStep && nextL ? `Next lesson ›` : 'Next ›'), hint: KB }) +
         `<section class="card howto"><b>${lastStep ? 'You can now' : 'You’ll learn'}</b><ul class="check">${L.learn.map((g, k) => `<li class="${nSeen >= Math.ceil((k + 1) * L.steps.length / L.learn.length) ? 'ok' : ''}">${g}</li>`).join('')}</ul></section>
-         <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>${!lessonDrills(L.id).length ? '' : `<section class="card howto"><b>Drills for this lesson</b><p class="muted">Each opens in the Practice tab and plays in time with the metronome.</p><p>${lessonDrills(L.id).map(([d, nm]) => `<button class="ins-link" data-act="goto" data-h="#${kb ? 'k-' : ''}practice-${state.key}-${d}">${nm}</button>`).join(' ')}</p></section>`}`,
+         <section class="card howto"><b>Practice routine</b><ul>${L.homework.map((h) => `<li>${h}</li>`).join('')}</ul></section>${!lessonDrills(L.id).length ? '' : `<section class="card howto"><b>Drills for this lesson</b><p class="muted">Each opens in the Practice tab and plays in time with the metronome.</p><p>${lessonDrills(L.id).map(([d, nm]) => `<button class="ins-link" data-act="goto" data-h="#${kb ? 'k-' : ''}practice-${state.key}-${d}">${nm}${!kb && playedOK('d:' + d) ? ' ✓' : ''}</button>`).join(' ')}</p></section>`}`,
     });
     if (TL) TL.mount(document);
     if (kb) neck.show({ notes: [] }, { notes: spec.notes }); else neck.show(spec);
@@ -419,7 +428,9 @@
       else if (st.play === 'strum') { const fr = [null, null, null, null, null, null]; spec.notes.forEach((n) => { fr[n.s] = n.f; }); playVoicing({ frets: fr }, 0.05); }
       else playNotes(spec.notes.filter((n) => !n.dim), 0.34, !spec.byPitch); // in the order the lesson wrote them, at an unhurried pace
     };
-    cur = { play, next: () => (lastStep ? nextL && go({ [lk()]: { id: nextL.id, step: 0 } }) : go({ [lk()]: { id: L.id, step: i + 1 } })),
+    const lt = kb ? [] : lessonTargets(spec, st);
+    if (!kb && playedOK('l:' + L.id + ':' + i) && $('actions').querySelector('[data-act="follow"]')) followSay('You have played this one through ✓. Best: ' + played['l:' + L.id + ':' + i].best + '%.');
+    cur = { play, follow: () => followRun('l:' + L.id + ':' + i, lt), next: () => (lastStep ? nextL && go({ [lk()]: { id: nextL.id, step: 0 } }) : go({ [lk()]: { id: L.id, step: i + 1 } })),
       prev: () => (i > 0 ? go({ [lk()]: { id: L.id, step: i - 1 } }) : li > 0 && go({ [lk()]: { id: LESSONS[li - 1].id, step: LESSONS[li - 1].steps.length - 1 } })),
       ok: (a) => (a === 'next' ? !(lastStep && !nextL) : a === 'prev' ? i > 0 || li > 0 : a === 'play' ? !!st.play : true) };
   }
@@ -650,6 +661,48 @@
   }
 
   // ---------- Practice ----------
+  // ---------- follow along with a real guitar (js/listen.js) ----------
+  // What has been played through with the guitar: 'd:<drill id>' or 'l:<lesson id>:<step>' -> { best: percent, last, runs }
+  const played = obj(store.get('played', {}));
+  const playedOK = (k) => !!(played[k] && played[k].best >= 80);
+  const canListen = () => !!(window.G.Listen && window.G.Listen.supported) && lead() !== 'keys';
+  const followBtn = () => (canListen() ? '<button class="btn" data-act="follow">● Play it yourself</button>' : '');
+  const pitchName = (m) => T.noteName(m) + (Math.floor(m / 12) - 1);
+  let followOff = null;
+  const followSay = (html) => { let el = $('followMsg'); if (!el) { el = document.createElement('p'); el.id = 'followMsg'; el.className = 'muted'; el.setAttribute('aria-live', 'polite'); $('actions').after(el); } el.innerHTML = html; };
+  function stopFollow(quiet) {
+    if (!followOff) return;
+    followOff(); followOff = null;
+    if (window.G.Listen) window.G.Listen.stop();
+    neck.setActive(null);
+    document.querySelectorAll('[data-act="follow"]').forEach((b) => { b.textContent = '● Play it yourself'; });
+    if (!quiet) followSay('Stopped listening.');
+  }
+  // targets: [{ midis: [...], at: () => show this one on the neck }]
+  async function followRun(key, targets) {
+    if (followOff) return stopFollow();
+    const LS = window.G.Listen;
+    if (!LS || !targets.length) return;
+    stopDrill(); stopPlayback();
+    followSay('Opening the guitar input…');
+    if (!(await LS.start(LS.deviceId ? LS.deviceId() : ''))) return followSay(esc(LS.error) + ' Choose the input in the settings menu (⚙).');
+    document.querySelectorAll('[data-act="follow"]').forEach((b) => { b.textContent = '■ Stop listening'; });
+    const want = (i) => targets[i].midis.length > 1 ? 'the chord' : '<b>' + esc(pitchName(targets[i].midis[0])) + '</b>';
+    const prompt = (i, extra) => followSay(`Note ${i + 1} of ${targets.length}: play ${want(i)}.${extra ? ' ' + extra : ''}`);
+    targets[0].at(); prompt(0, 'The app waits for you.');
+    followOff = LS.follow(targets, (ev) => {
+      if (ev.type === 'hit' && ev.index + 1 < targets.length) { targets[ev.index + 1].at(); prompt(ev.index + 1); }
+      else if (ev.type === 'miss') prompt(ev.index, `That was ${esc(pitchName(ev.note))}.`);
+      else if (ev.type === 'done') {
+        const acc = Math.round((100 * ev.hits) / (ev.hits + ev.misses)), prev = played[key] || { best: 0, runs: 0 };
+        played[key] = { best: Math.max(prev.best, acc), last: acc, runs: prev.runs + 1 }; store.set('played', played);
+        stopFollow(true);
+        followSay(`<b>Played through.</b> ${ev.hits} notes, ${ev.misses} wrong, ${acc}% in ${Math.round(ev.ms / 1000)} seconds. ${acc >= 80 ? 'Marked as played ✓.' : 'Reach 80% to mark it as played.'} Your best is ${played[key].best}%.`);
+        document.querySelectorAll(`[data-pk="${key}"]`).forEach((el) => { if (acc >= 80 && !/✓/.test(el.textContent)) el.insertAdjacentHTML('beforeend', ' ✓'); });
+      }
+    });
+  }
+
   // Everything in Practice, filed under the six lesson sections: [section, [[id, name], ...]]
   const practiceSections = () => {
     const DR = window.G.Drills, lib = (g) => (DR ? DR.list.filter((d) => d.group === g).map((d) => [d.id, d.name]) : []), pg = (g) => T.PROGS.filter((p) => (p.group || 'Chord changes') === g).map((p) => [p.id, p.name]);
@@ -667,7 +720,7 @@
   // the drills that go with a lesson, as links (shown under the lesson's practice routine)
   const lessonDrills = (lessonId) => { if (onKeys()) return window.G.KeyViews && window.G.KeyViews.lessonDrills ? window.G.KeyViews.lessonDrills(lessonId) : []; const DR = window.G.Drills, ids = DR ? [...new Set(DR.forLesson(lessonId))] : []; return ids.map((d) => [d, practiceName(d)]).filter((x) => x[1]); };
   function practiceSide() {
-    const id = state.practice.id, item = (pid, name) => `<li><button data-act="practice" data-id="${pid}" class="${pid === id ? 'on' : ''}">${name}</button></li>`;
+    const id = state.practice.id, item = (pid, name) => `<li><button data-act="practice" data-id="${pid}" data-pk="d:${pid}" class="${pid === id ? 'on' : ''}">${name}${playedOK('d:' + pid) ? ' ✓' : ''}</button></li>`;
     const secs = practiceSections(), n = secs.reduce((a, s) => a + s[1].length, 0);
     return `<div class="side-head"><span>Practice</span><small>${n} drills</small></div><div class="tree always">` + secs.map(([g, items], gi) => {
       const open = items.some((x) => x[0] === id) || openFolders.has('P' + g);
@@ -980,7 +1033,7 @@
     ui({
       side: (opts.includes('key') ? keysHTML() : '') + practiceSide(), crumbs: 'Practice / ' + d.group, title: d.name + (opts.includes('key') ? ' in ' + state.key : ''), chips: pill(d.level) + pill(len + ' beats') + (swing ? pill('swung') : ''), lede: d.text,
       tiles: tilesHTML([['Now', `<span id="drillNow">${esc(first.name || (nv ? d.vars[vi] : d.group))}</span>`], ['Start at', d.tempo[0] + ' BPM'], ['Aim for', d.tempo[1] + ' BPM']]),
-      actions: (opts.includes('fret') ? stepper('Fret', 'wfret', Math.min(p.fret, 12), -1, 1) : '') + (opts.includes('string') ? stepper('String', 'wstring', p.string, 1, -1) : '') + '<button class="btn" data-act="drill">▶ Play</button>',
+      actions: (opts.includes('fret') ? stepper('Fret', 'wfret', Math.min(p.fret, 12), -1, 1) : '') + (opts.includes('string') ? stepper('String', 'wstring', p.string, 1, -1) : '') + '<button class="btn" data-act="drill">▶ Play</button>' + followBtn(),
       railHead: '<span>This drill</span><small>' + d.group + '</small>',
       rail: (nv ? `<div class="drillbar"><label>Variation <select data-change="dvar" aria-label="Variation">${d.vars.map((nm, k) => `<option value="${k}"${k === vi ? ' selected' : ''}>${esc(nm)}</option>`).join('')}</select></label></div>` : '') +
         `<p class="muted">Start at ${d.tempo[0]} beats a minute. When three passes in a row are clean, add four. The target is ${d.tempo[1]}.</p>` +
@@ -1003,7 +1056,12 @@
         });
       });
     };
-    cur = { play: toggle, drill: toggle };
+    const ft = tl.filter((e) => (e.n && e.n.length) || e.frets).map((e) => ({
+      midis: e.n && e.n.length ? e.n.map((n) => T.TUNING[n.s] + n.f) : e.frets.map((f, s) => (f === null ? null : T.TUNING[s] + f)).filter((x) => x != null),
+      at: () => { if (e.seg !== shown) { shown = e.seg; showSeg(e.seg); const el = $('drillNow'); if (el && e.seg.name) el.textContent = e.seg.name; } if (e.n && e.n.length) neck.setActive(e.n[0].s, e.n[0].f); else neck.setActive(null); },
+    }));
+    if (playedOK('d:' + d.id)) followSay('You have played this one through ✓. Best: ' + played['d:' + d.id].best + '%.');
+    cur = { play: toggle, drill: toggle, follow: () => followRun('d:' + d.id, ft) };
   }
 
   // ---------- chord quizzes ----------
@@ -1163,7 +1221,7 @@
   }
   // merge a patch into state (one level deep) and redraw
   function go(patch) {
-    stopDrill(); stopPlayback();
+    stopDrill(); stopPlayback(); stopFollow(true);
     for (const k in patch) { if (patch[k] && typeof patch[k] === 'object') Object.assign(state[k], patch[k]); else state[k] = patch[k]; }
     render();
   }
@@ -1210,6 +1268,7 @@
     level: (d) => { quiz = null; go({ practice: { level: Math.max(1, Math.min(3, state.practice.level + +d.d)) } }); },
     wstring: (d) => go({ practice: { string: Math.max(1, Math.min(6, state.practice.string + +d.d)) } }),
     goto: (d) => { location.hash = d.h; window.scrollTo(0, 0); },
+    follow: () => cur.follow && cur.follow(),
     play: () => cur.play && cur.play(), alt: () => cur.alt && cur.alt(), drill: () => cur.drill && cur.drill(),
     next: () => cur.next && cur.next(), prev: () => cur.prev && cur.prev(), up: () => cur.up && cur.up(), down: () => cur.down && cur.down(),
     bpm: (d) => Metro.setBpm(Metro.bpm + +d.d),
