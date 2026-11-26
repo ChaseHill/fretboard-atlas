@@ -1425,3 +1425,7 @@ body { line-height: 20px; } h1 { line-height: 32px; } h2 { line-height: 22px; } 
   .stage:has(> #tabstrip > *) #tabstrip .tl-how { grid-template-columns: minmax(0, 1fr); }
 }
 @media (min-width: 1500px) { .stage:has(> #tabstrip > *) > #instruments { overflow: hidden; } .stage:has(> #tabstrip > *) > #instruments svg, .stage:has(> #tabstrip > *) > #instruments > * { min-width: 0 !important; } }
+
+.cw.tinted.cur path { fill: var(--ink) !important; }
+.cw.tinted text { fill: var(--ink); } .cw.tinted.cur text { fill: var(--paper); } .cw.tinted:not(.fam) .cmaj, .cw.tinted:not(.fam) .cmin { opacity: .85; }
+#rail > .cfam { margin: 4px 0 8px; }

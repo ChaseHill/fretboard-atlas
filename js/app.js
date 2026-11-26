@@ -16,7 +16,7 @@
     learn: { id: LESSONS[0].id, step: 0 }, klearn: { id: (window.G.KEYLESSONS[0] || {}).id, step: 0 },
     chords: { id: 'maj7', vi: 0, chart: false },
     scales: { id: 'major', pos: 1, pattern: 'updown', rate: 2, chord: -1, oct: 1, hand: 'R' },
-    circle: { ci: 0, sev: false },
+    circle: { ci: 0, sev: false, col: false },
     practice: { id: 'chromatic', fret: 5, rate: 2, bar: 0, level: 1, string: 6 },
   };
   const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
@@ -587,7 +587,8 @@
       const a0 = i * 30 - 105, d = (i - sel + 12) % 12, mid = a0 + 15;
       const cell = (ring, r0, r1, rName, rNum, name) => {
         const di = fam[ring][d], inFam = di !== undefined, [tx, ty] = pol(rName, mid), [nx, ny] = pol(rNum, mid);
-        return '<g class="cw ' + ring + (inFam ? ' fam ' + FNC[dia[di].fn] : '') + (inFam && di === ci ? ' cur' : '') + '" ' + (inFam ? 'data-act="dia" data-i="' + di + '"' : 'data-act="key" data-k="' + k + '"') + '><title>' + (inFam ? dia[di].roman + ' chord of ' + key + ': play it' : 'Go to the key of ' + k) + '</title><path d="' + wedge(r0, r1, a0, a0 + 30) + '"/>' +
+        const hue = ring === 'maj' ? i * 30 : ((i + 3) % 12) * 30, tint = state.circle.col ? ' style="fill:hsl(' + hue + ' 62% ' + (inFam ? 62 : 78) + '%)"' : ''; // one colour per note: A minor wears the colour of A
+        return '<g class="cw ' + ring + (state.circle.col ? ' tinted' : '') + (inFam ? ' fam ' + FNC[dia[di].fn] : '') + (inFam && di === ci ? ' cur' : '') + '" ' + (inFam ? 'data-act="dia" data-i="' + di + '"' : 'data-act="key" data-k="' + k + '"') + '><title>' + (inFam ? dia[di].roman + ' chord of ' + key + ': play it' : 'Go to the key of ' + k) + '</title><path' + tint + ' d="' + wedge(r0, r1, a0, a0 + 30) + '"/>' +
           '<text class="' + (ring === 'maj' ? 'cmaj' : 'cmin') + '" x="' + tx + '" y="' + (+ty + (ring === 'maj' ? 6 : 4)) + '">' + name + '</text>' + (inFam ? '<text class="c-num" x="' + nx + '" y="' + (+ny + 3.5) + '">' + dia[di].roman + '</text>' : '') + '</g>';
       };
       const [sx, sy] = pol(179, mid);
@@ -607,6 +608,7 @@
         [0, 1, 2, 3, 4, 5, 6].map((i) => '<button class="cchip ' + FNC[dia[i].fn] + (i === ci ? ' on' : '') + '" data-act="dia" data-i="' + i + '"><i>' + dia[i].roman + '</i>' + nm(dia[i]) + '</button>').join('') +
         '</div><p class="cfn"><span class="ton">home</span><span class="sub">moving away</span><span class="dom">tension, wants home</span></p></section>' +
       '<section><small>Hear it move</small><div class="cprogs">' + progs.map(([t, seq, why]) => '<button class="cprog" data-act="prog" data-seq="' + seq.join(',') + '"><b>' + t + '</b><span>' + seq.map((i) => nm(dia[i])).join(' · ') + '</span><em>' + why + '</em></button>').join('') + '</div></section>' +
+      '<section><small>Colour</small><div class="cnext"><button class="btn small' + (state.circle.col ? ' on' : '') + '" data-act="ccol">' + (state.circle.col ? 'Colour by job' : 'Colour by note') + '</button></div><p>' + (state.circle.col ? 'Each note has one colour wherever it appears, so every minor key wears the colour of the major key with the same letter.' : 'Colours show each chord’s job in this key. Switch to give every note its own colour.') + '</p></section>' +
       '<section><small>Next door: the easiest keys to move to</small><div class="cnext"><button class="btn small" data-act="key" data-k="' + left + '">← ' + left + ' · ' + T.signature(left) + '</button><button class="btn small" data-act="key" data-k="' + right + '">' + right + ' · ' + T.signature(right) + ' →</button></div><p>Each shares six of its seven notes with ' + key + '.</p></section></div>';
   }
   const FN_TEXT = { Tonic: 'Home. Progressions start here and come back here.', Subdominant: 'Moves away from home, and often leads on to the V chord.', Dominant: 'Tension. It wants to resolve to the I chord.' };
@@ -710,6 +712,10 @@
     { id: 'nameiv', name: 'Name the interval', lede: 'Two notes appear. Name the distance from the gold one up to the other.',
       title: 'Seeing and hearing distance', body: 'Press “Hear it” before you answer. The goal is to recognise the shape and the sound together.', idea: 'Count frets if you must: 3 = minor 3rd, 4 = major 3rd, 5 = 4th, 7 = 5th, 12 = octave. Then learn each as a shape so you stop counting.',
       tips: ['Song cues help: a 4th is “Here Comes the Bride”, a 5th is “Twinkle Twinkle”, an octave is “Somewhere Over the Rainbow”.', 'A tritone is three whole steps, exactly half an octave.', 'Sing the top note back after you hear it.'] },
+    { id: 'triads', name: 'Triads up the neck', lede: 'The seven chords of the key as three-note shapes on one set of strings, climbing the neck in scale order.',
+      title: 'Seven triads, one string set', body: 'Each shape is a root, a third and a fifth on three neighbouring strings. Step from one shape to the next and every note climbs to the next note of the scale. Major shapes land on I, IV and V; minor shapes on ii, iii and vi; the one diminished shape on vii°.',
+      idea: 'There are only three shapes: major, minor and diminished. The key decides which one lands where.',
+      tips: ['Play each shape as a chord, then as three single notes.', 'Say the numeral as you land on it.', 'Change the string set and find the same seven chords again.'] },
     { id: 'walk', name: 'Note walk', lede: 'The natural notes along one string, played in time. Say each name as it sounds.',
       title: 'One string at a time', body: 'Segovia taught the neck one string at a time, and so do most jazz teachers. Play along on your own guitar: one finger is fine.', idea: 'Notice the two half steps, B–C and E–F. On every string they are the only places where two natural notes sit on neighbouring frets.',
       tips: ['Say the names out loud. Speaking is what makes them stick.', 'When it is easy, say the names going down as well as up.', 'Then do it with your eyes closed.'] },
@@ -811,10 +817,40 @@
     const toggle = () => (drill.off ? stopDrill() : runSequence(seqn, p.rate));
     cur = { play: toggle, drill: toggle };
   }
+  // The seven triads of the key on three neighbouring strings, all shown at once; the current one stands out.
+  function renderTriads(ex) {
+    const p = state.practice, low = Math.max(3, p.string), s0 = 6 - low, dia = T.diatonic(state.key), IV = { maj: [4, 7], m: [3, 7], dim: [3, 6] }, ci = ((p.bar % 7) + 7) % 7;
+    const gap = (j) => T.TUNING[s0 + j] - T.TUNING[s0];
+    let prev = -1;
+    const tris = dia.map((d) => {
+      let f = T.mod(T.pc(d.root) - T.TUNING[s0]); while (f <= prev) f += 12; prev = f;
+      let fr = [f, f + IV[d.tri][0] - gap(1), f + IV[d.tri][1] - gap(2)];
+      while (Math.min(...fr) < 0) fr = fr.map((x) => x + 12);
+      while (Math.max(...fr) > 16 && Math.min(...fr) >= 12) fr = fr.map((x) => x - 12);
+      return fr;
+    });
+    const FNC = { Tonic: 'ton', Subdominant: 'sub', Dominant: 'dom' }, nm = (d) => esc(d.root) + (d.tri === 'm' ? 'm' : d.tri === 'dim' ? '°' : '');
+    const notes = [];
+    tris.forEach((fr, k) => fr.forEach((f, j) => notes.push({ s: s0 + j, f, label: j === 0 ? dia[k].roman.replace('°', '') : j === 1 ? '3' : '5', role: ['root', 'guide', 'fifth'][j], dim: k !== ci })));
+    const now = tris[ci], seqn = [];
+    tris.forEach((fr) => fr.forEach((f, j) => seqn.push({ s: s0 + j, f })));
+    ui({
+      side: keysHTML() + practiceSide(), crumbs: 'Practice / Fretboard', title: ex.name + ' in ' + state.key, chips: pill('Strings ' + low + '-' + (low - 1) + '-' + (low - 2)) + pill('Seven shapes'), lede: ex.lede,
+      tiles: tilesHTML([['Now', dia[ci].roman + ' · ' + nm(dia[ci])], ['Position', Math.min(...now) === 0 ? 'Open' : 'Fret ' + Math.min(...now)], ['Shape', { maj: 'Major', m: 'Minor', dim: 'Diminished' }[dia[ci].tri]], ['Tempo', Metro.bpm + ' BPM']]),
+      actions: '<div class="stepper"><span>Lowest string</span><button data-act="wstring" data-d="1">−</button><b>' + low + '</b><button data-act="wstring" data-d="-1">+</button></div><button class="btn" data-act="play">▶ Strum</button><button class="btn" data-act="drill">▶ Play all seven</button>',
+      railHead: '<span>The seven triads of ' + state.key + ' major</span><small>strings ' + low + '-' + (low - 1) + '-' + (low - 2) + '</small>',
+      rail: '<div class="cfam">' + dia.map((d, k) => '<button class="cchip ' + FNC[d.fn] + (k === ci ? ' on' : '') + '" data-act="tri" data-i="' + k + '"><i>' + d.roman + '</i>' + nm(d) + '</button>').join('') + '</div><p class="cfn"><span class="ton">home</span><span class="sub">moving away</span><span class="dom">tension, wants home</span></p>',
+      panel: stepCard({ no: 'Drill', tag: 'Fretboard', title: ex.title, body: '<p>' + ex.body + '</p>', idea: ex.idea, more: '<ul class="plain-list">' + ex.tips.map((t) => '<li>' + t + '</li>').join('') + '</ul>', hint: '<kbd>←</kbd> <kbd>→</kbd> shape · <kbd>Space</kbd> strum · <kbd>M</kbd> metronome' }),
+    });
+    neck.show({ notes, window: [Math.max(1, Math.min(...now)), Math.max(...now, 1)] });
+    const strum = () => now.forEach((f, j) => { Audio.pluck(T.TUNING[s0 + j] + f, j * 0.035, 0.9, s0 + j); neck.pulse(s0 + j, f); });
+    const toggle = () => (drill.off ? stopDrill() : runSequence(seqn, p.rate));
+    cur = { play: strum, drill: toggle, next: () => { go({ practice: { bar: (ci + 1) % 7 } }); cur.play(); }, prev: () => { go({ practice: { bar: (ci + 6) % 7 } }); cur.play(); }, ok: () => true };
+  }
   function renderPractice() {
     if (((window.G.KeyViews || {}).practiceIds || []).includes(state.practice.id)) state.practice.id = T.WARMUPS[0].id; // arriving from a keyboard-only exercise
     const id = state.practice.id, w = T.WARMUPS.find((x) => x.id === id), prog = T.PROGS.find((x) => x.id === id), ex = EXS.find((x) => x.id === id) || EXS[0];
-    if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'walk') renderWalk(ex); else renderExercise(ex);
+    if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'triads') renderTriads(ex); else if (ex.id === 'walk') renderWalk(ex); else renderExercise(ex);
   }
 
   // what the keyboard views (keysviews.js) are given to work with
@@ -900,6 +936,8 @@
     pos: (d) => go({ scales: { pos: +d.i } }),
     sev: () => go({ circle: { sev: !state.circle.sev } }),
     dia: (d) => { go({ circle: { ci: +d.i } }); cur.play(); },
+    tri: (d) => { go({ practice: { bar: +d.i } }); if (cur.play) cur.play(); },
+    ccol: () => go({ circle: { col: !state.circle.col } }),
     prog: (d) => { const tok = (progTok = (progTok || 0) + 1); d.seq.split(',').map(Number).forEach((i, n) => setTimeout(() => { if (tok !== progTok || state.view !== 'circle') return; go({ circle: { ci: i } }); if (cur.play) cur.play(); }, n * 1050)); }, // play a progression chord by chord, lighting each on the wheel
     'open-chord': (d) => { go({ view: 'chords', key: T.KEYS[T.pc(d.root)], chords: { id: d.id, vi: 0, chart: false } }); window.scrollTo(0, 0); },
     practice: (d) => { quiz = null; go({ practice: { id: d.id, bar: 0 } }); },
