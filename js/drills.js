@@ -142,6 +142,9 @@
   D('tnaccent', TQ, 'Moving accents', 'Intermediate', ['tone', 'scalesmusic', 'picking'], 'A scale position in even eighth notes with an accent on every third note, or every fourth. The accents make a rhythm of their own.', 'Play the unaccented notes genuinely soft. An accent is a contrast, not just a louder note.',
     (c) => { const a = updown(posOf(c.key, 'major', '1')), k = c.v ? 4 : 3; return a.slice(0, a.length - (a.length % k)).map((n, i) => E(n, 0.5, { vel: i % k ? 0.45 : 1 })); }, { opts: ['key'], vars: ['Every third note', 'Every fourth note'], tempo: [60, 100] });
 
+  D('pkdotted', TQ, 'Long-short, short-long', 'Intermediate', ['picking', 'scalesmusic', 'warmups'], 'A scale position played in a dotted rhythm, long then short, and then the other way round. An old pianists’ practice method that works as well with a pick: each version makes a different half of the notes arrive early.', 'If a run is uneven, practise it in both dotted rhythms and the plain version will come out even.',
+    (c) => { const a = updown(posOf(c.key, 'major', '1')), n = a.length - (a.length % 2); return a.slice(0, n).map((x, i) => E(x, (i % 2 === 0) === (c.v === 0) ? 0.75 : 0.25, { vel: (i % 2 === 0) === (c.v === 0) ? 0.9 : 0.6 })); }, { opts: ['key'], vars: ['Long, short', 'Short, long'], tempo: [50, 90] });
+
   // ======================= Foundations =======================
   D('fbchrom', FD, 'Chromatic scale on one string', 'Beginner', ['alphabet', 'fretboard'], 'Every fret from the open string to fret 12 and back. Say sharps on the way up and flats on the way down.', 'B to C and E to F have no note between them. Everywhere else, a sharp or flat sits in the gap.',
     (c) => run(updown(Array(13).fill(0).map((_, f) => N(c.string, f))), 1), { opts: ['string'], tempo: [60, 100] });
@@ -342,6 +345,7 @@
     sevenths: ['namechord', 'chordtone', 'earchord'], minorkeys: ['m145', 'andalu', 'mpop', 'borrow'], iivi: ['jazz', 'm251', 'chain'], turnarounds: ['turn', 'turn6', 'three6', 'tritone', 'jblues', 'fast', 'rhythm'],
     tritone: ['subq', 'tritone', 'jztritone'], dimchords: ['dimpass', 'jzdim', 'jblues'], chordscales: ['subq', 'scmodes', 'scdrone', 'jzbebop'], modes: ['subq'], ear: ['earroot'], triads: ['earroot'],
     cphrase: ['scframe', 'scarps', 'tndyn'], motive: ['scphrase', 'jzcells', 'tnaccent'], accomp: ['stdown', 'fspima', 'staltbass', 'stbass'], smallform: ['tnperiod'],
+    staff: ['readq'], read1: ['readq'], read2: ['readq'], read3: ['readq'], read4: ['readq'], read5: ['readq'], reading: ['readq'],
     function: ['earfn', 'fnq', 'cycle4', 'three'], secdom: ['secq', 'turn6', 'exdom', 'jzcycle'], relatedii: ['secq', 'three6', 'chain'], interchange: ['borrow', 'backdoor', 'cliche'], bluesvar: ['blues', 'quick', 'jblues', 'mblues', 'sctarget'], extensions: ['tensq', 'chordtone'],
     jazz: ['jazz'], rootless: ['jazz', 'turn'], drop2: ['jazz', 'cycle4'], swing: ['jazz'],
   };

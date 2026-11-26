@@ -838,6 +838,9 @@
     { id: 'earfn', choice: true, name: 'Which chord came next?', lede: 'You hear the I chord of a key, then a second chord. Say which chord of the key it was.',
       title: 'Hearing chords as numbers', body: 'This is how players pick up songs by ear: not “that was an F” but “that was the four chord”.', idea: 'IV sounds like stepping away. V sounds unfinished and wants to come back. vi sounds like home turned sad.',
       tips: ['Level 1 is IV against V. Level 2 adds vi. Level 3 adds ii.', 'Sing the root of each chord as it sounds.', 'Then name the chords in a song you know well.'] },
+    { id: 'readq', choice: true, name: 'Read the note', lede: 'A note appears on the staff. Name it, or play it on your guitar and let the app listen.',
+      title: 'Reading at sight', body: 'Reading is recognition, not counting. The aim is to know each note’s letter and where it lives on the guitar the instant you see it. A good first target is one note a second.', idea: 'Say the name, then play it. When that is easy, play it without looking at your hand.',
+      tips: ['Level 1 is strings 1 and 2. Level 2 goes down to string 4. Level 3 is all six strings, with ledger lines.', 'With “Answer on your guitar”, the right note in any octave counts.', 'Keep your eyes on the staff. Your fingers already know frets 1 to 3.'] },
     { id: 'fnq', choice: true, sec: 'Chords', name: 'Tonic, subdominant or dominant?', lede: 'You are given a key and one of its chords. Say which of the three jobs the chord does.',
       title: 'Chord function', body: 'Every chord of a key is at rest, moving away, or pulling home. Knowing which at a glance is what lets you swap one chord for another.', idea: 'Tonic: I, iii, vi. Subdominant: ii, IV. Dominant: V, vii°.',
       tips: ['Level 1 is triads in C, G and F. Level 2 is seventh chords. Level 3 is nine keys.', 'Work out the numeral first, then the family.', 'Play the chord, then the I chord, and listen to how far from home it felt.'] },
@@ -946,6 +949,12 @@
       const b = tg.sort((x, y) => Math.abs(x.f - f) - Math.abs(y.f - f))[0];
       return { opts: set.map((n) => [IVS[n], IVN[n]]), iv: set.indexOf(iv), a: { s, f }, b, prompt: 'What is the interval between the two notes?', after: `${iv === 12 ? 'An' : 'A'} ${IVN[iv]}.` };
     } },
+    readq: { levels: ['Strings 1 and 2', 'Strings 1 to 4', 'All six strings'], make(lv) {
+      const pool = []; for (let st = 1; st <= [2, 4, 6][lv - 1]; st++) for (let f = 0; f <= 3; f++) if (T.noteName(T.TUNING[6 - st] + f).length === 1) pool.push([st, f]);
+      const [st, f] = pickOf(pool), m = T.TUNING[6 - st] + f, nm = T.noteName(m), L = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+      const svg = window.G.Teach ? `<div style="max-width:230px">${window.G.Teach.score({ notes: [[st, f, 4]], time: 4, noTab: true })}</div>` : '';
+      return { opts: L.map((x) => [x, '']), iv: L.indexOf(nm), rootPc: T.mod(m), peg: { s: 6 - st, f, label: nm, role: 'root' }, prompt: 'Which note is this?', figure: svg, after: `${nm}: string ${st}, ${f ? 'fret ' + f : 'open'}.` };
+    } },
     earroot: { levels: ['Major triads', 'Minor triads', 'Major and minor', 'Seventh chords'], make(lv) {
       const q = pickOf([['maj'], ['m'], ['maj', 'm'], ['maj7', 'm7', '7']][lv - 1]), root = pickOf(T.KEYS), c = T.chord(root, q), pool = c.voicings.filter((x) => x.kind === 'caged' && !x.stretch), rp = T.pc(root);
       const others = shuffled([c.tones[1].note, c.tones[2].note, T.KEYS[T.mod(rp + 5)], T.KEYS[T.mod(rp + 2)]].filter((x, i, a) => T.pc(x) !== rp && a.findIndex((y) => T.pc(y) === T.pc(x)) === i)).slice(0, 3), opts = shuffled([root].concat(others));
@@ -1009,7 +1018,8 @@
     const verdict = quiz.done ? `<span class="verdict ${quiz.ok ? 'good' : 'bad'}">${quiz.ok ? 'Correct' : 'Not quite'}</span>` : '';
     const rail = q.opts.map(([a, b], n) => `<button class="posbtn ans wide${quiz.done && n === q.iv ? ' good' : quiz.pick === n ? ' bad' : ''}" data-act="answer" data-i="${n}" ${quiz.done ? 'disabled' : ''}>${esc(a)}${b ? `<small>${b}</small>` : ''}</button>`).join('');
     let show = { notes: [] }, hear = null;
-    if (id === 'eariv') { hear = () => playNotes([q.a, q.b], 0.55, true); if (quiz.done) show = { notes: [{ s: q.a.s, f: q.a.f, label: T.noteName(pcAt(q.a.s, q.a.f)), role: 'root' }, { s: q.b.s, f: q.b.f, label: q.opts[q.iv][0], role: 'ext' }] }; }
+    if (q.peg) { hear = () => playNotes([q.peg]); if (quiz.done) show = { notes: [q.peg], window: [1, 3] }; }
+    else if (id === 'eariv') { hear = () => playNotes([q.a, q.b], 0.55, true); if (quiz.done) show = { notes: [{ s: q.a.s, f: q.a.f, label: T.noteName(pcAt(q.a.s, q.a.f)), role: 'root' }, { s: q.b.s, f: q.b.f, label: q.opts[q.iv][0], role: 'ext' }] }; }
     else if (q.v) {
       hear = id === 'earfn' ? () => { playVoicing(q.v0); setTimeout(() => { if (quiz && quiz.q === q) { lastPlay = 0; busyUntil = 0; playVoicing(q.v); } }, 1300); } : () => playVoicing(q.v);
       if (quiz.done) show = { notes: q.v.frets.map((f, s) => (f === null ? null : { s, f, role: q.v.notes[s].role, label: esc(q.v.notes[s].deg) })).filter(Boolean), window: [q.v.lo || 1, q.v.hi], mute: true };
@@ -1017,10 +1027,10 @@
     ui({
       side: practiceSide(), crumbs: 'Practice / ' + (ex.sec || 'Foundations'), title: ex.name, chips: pill(CHOICE[id].levels[lv - 1]), lede: ex.lede,
       tiles: tilesHTML([['Score', `${quiz.score} / ${quiz.total}`], ['Streak', quiz.streak], ['Best streak', quiz.best]]),
-      actions: `<div class="stepper"><span>Level</span><button data-act="level" data-d="-1">−</button><b>${lv}</b><button data-act="level" data-d="1">+</button></div>${hear ? '<button class="btn" data-act="play">▶ Hear it</button>' : ''}<button class="btn" data-act="reset-score">↺ Reset score</button>`,
+      actions: `<div class="stepper"><span>Level</span><button data-act="level" data-d="-1">−</button><b>${lv}</b><button data-act="level" data-d="1">+</button></div>${hear && !(id === 'readq' && !quiz.done) ? '<button class="btn" data-act="play">▶ Hear it</button>' : ''}<button class="btn" data-act="reset-score">↺ Reset score</button>`,
       railHead: `<span>Question ${quiz.total + (quiz.done ? 0 : 1)}</span>${verdict}`,
-      rail: `<p class="prompt">${q.prompt}${quiz.done ? ' ' + q.after : ''}</p><div class="thumbs">${rail}${next}</div>`,
-      panel: stepCard({ no: 'Exercise', tag: hear ? 'Ear training' : ex.sec ? 'Harmony' : 'Keys', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
+      rail: `<p class="prompt">${q.prompt}${quiz.done ? ' ' + q.after : ''}</p>${q.figure || ''}<div class="thumbs">${rail}${next}</div>`,
+      panel: stepCard({ no: 'Exercise', tag: id === 'readq' ? 'Reading' : hear ? 'Ear training' : ex.sec ? 'Harmony' : 'Keys', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
     });
     neck.show(show);
     const byGuitar = async () => {
@@ -1028,12 +1038,12 @@
       const LS = window.G.Listen; if (!LS || quiz.done) return;
       stopPlayback(); followSay('Opening the guitar input…');
       if (!(await LS.start(LS.deviceId ? LS.deviceId() : ''))) return followSay(esc(LS.error) + ' Choose the input in the settings menu (⚙).');
-      followSay('Listening: play the root, one clear note.');
+      followSay(id === 'readq' ? 'Listening: play the note you see.' : 'Listening: play the root, one clear note.');
       document.querySelectorAll('[data-act="follow"]').forEach((b) => { b.textContent = '■ Stop listening'; });
       followOff = LS.subscribe((p) => { if (p.note == null || p.steady < 4 || quiz.q !== q) return; const ok = T.mod(p.note) === q.rootPc; stopFollow(true); quiz.pick = ok ? q.iv : -1; mark(ok); render(); followSay(`You played ${esc(T.noteName(p.note))}.`); });
     };
-    if (id === 'earroot' && canListen() && !quiz.done) $('actions').insertAdjacentHTML('beforeend', '<button class="btn" data-act="follow" data-label="● Answer on your guitar">● Answer on your guitar</button>');
-    cur = { play: hear || undefined, follow: id === 'earroot' ? byGuitar : undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChoiceQuestion(id); render(); if (cur.play) cur.play(); } } };
+    if (q.rootPc != null && canListen() && !quiz.done) $('actions').insertAdjacentHTML('beforeend', '<button class="btn" data-act="follow" data-label="● Answer on your guitar">● Answer on your guitar</button>');
+    cur = { play: hear || undefined, follow: q.rootPc != null ? byGuitar : undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChoiceQuestion(id); render(); if (cur.play && id !== 'readq') cur.play(); } } };
   }
 
   // ---------- one-minute changes: a timer, a tap for every clean change, and a saved best for each pair ----------

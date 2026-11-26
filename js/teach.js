@@ -64,7 +64,8 @@
     t.notes.forEach(([s, f, d]) => { cur.push({ s, f, d, at: pos }); pos += d; left -= d; if (left <= 1e-6) { const pick = first && !!t.pickup; bars.push({ notes: cur, len: pos, pick, chords: pick || !t.chords ? null : t.chords[full] }); if (!pick) full++; cur = []; pos = 0; left = time; first = false; } });
     if (cur.length) bars.push({ notes: cur, len: pos, chords: t.chords ? t.chords[full] : null });
     return '<div class="tl-bars">' + bars.map((b, bi) => {
-      const lead = bi === 0 ? 76 : 26, W = 76 + time * step + 14, X = (at) => lead + at * ((W - lead - 14) / time) + 12, H = 222, off = b.pick ? time - t.pickup : 0;
+      const lead = bi === 0 ? 76 : 26, W = 76 + time * step + 14, X = (at) => lead + at * ((W - lead - 14) / time) + 12, H = t.noTab ? 128 : 222, // without the tab, the drawing is cut off below the staff
+        off = b.pick ? time - t.pickup : 0;
       let s = `<svg class="tl-strip tl-score" viewBox="0 0 ${W} ${H}" role="img" aria-label="Staff and tablature, bar ${bi + 1}">`;
       for (let i = 0; i < 5; i++) s += `<line class="ln" x1="8" y1="${sy - i * 10}" x2="${W - 6}" y2="${sy - i * 10}"/>`;
       for (let i = 0; i < 6; i++) s += `<line class="ln" x1="8" y1="${ty + i * tg}" x2="${W - 6}" y2="${ty + i * tg}"/>`;
