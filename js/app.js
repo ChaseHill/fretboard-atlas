@@ -256,8 +256,8 @@
   function guideBarHTML() {
     guideSync();
     const tl = Guide.tl;
-    return `<div class="gbar${Guide.on ? ' on' : ''}" role="group" aria-label="Guided lesson"><button class="gbtn" data-act="gprev" aria-label="Previous part" title="Previous part">⏮</button><button class="gbtn main" data-act="guide" aria-label="Play or pause the guided lesson">${Guide.on ? '❚❚' : '▶'}</button><button class="gbtn" data-act="gnext" aria-label="Next part" title="Next part">⏭</button>
-      <div class="gtrack">${tl.map((x, j) => `<button class="gtick k-${x.kind}${j < Guide.idx ? ' past' : j === Guide.idx ? ' now' : ''}${j && tl[j - 1].step !== x.step ? ' gap' : ''}" data-act="gseek" data-i="${j}" title="Step ${x.step + 1}: ${SEG[x.kind][0]}" aria-label="Step ${x.step + 1}: ${SEG[x.kind][0]}"></button>`).join('')}</div><span class="glabel" id="glabel">Step ${tl[Guide.idx].step + 1} of ${lesson().steps.length} · ${SEG[tl[Guide.idx].kind][0]}</span></div>`;
+    return `<div class="gbar${Guide.on ? ' on' : ''}${store.get('gbar', false) ? ' open' : ''}" role="group" aria-label="Guided lesson"><button class="gbtn" data-act="gprev" aria-label="Previous part" title="Previous part">⏮</button><button class="gbtn main" data-act="guide" aria-label="Play or pause the guided lesson">${Guide.on ? '❚❚' : '▶'}</button><button class="gbtn" data-act="gnext" aria-label="Next part" title="Next part">⏭</button>
+      <div class="gtrack">${tl.map((x, j) => `<button class="gtick k-${x.kind}${j < Guide.idx ? ' past' : j === Guide.idx ? ' now' : ''}${j && tl[j - 1].step !== x.step ? ' gap' : ''}" data-act="gseek" data-i="${j}" title="Step ${x.step + 1}: ${SEG[x.kind][0]}" aria-label="Step ${x.step + 1}: ${SEG[x.kind][0]}"></button>`).join('')}</div><span class="glabel" id="glabel">Step ${tl[Guide.idx].step + 1} of ${lesson().steps.length} · ${SEG[tl[Guide.idx].kind][0]}</span><button class="gbtn gmore" data-act="gtoggle" aria-label="Show or hide the lesson timeline" title="Show or hide the lesson timeline">›</button></div>`;
   }
   function paintBar() {
     const x = Guide.tl[Guide.idx], lab = $('glabel');
@@ -502,7 +502,7 @@
     const d = describe(c, v);
     let n = 0;
     ui(Object.assign(head, {
-      tiles: tilesHTML([['Position', v.open ? 'Open' : 'Fret ' + (v.lo || 1)], ['Bass note', `${esc(v.bass.deg)} · ${esc(v.bass.note)}`], ['Strings', [...v.strings].join('-')], ['Frets', v.lo === v.hi ? v.hi : `${v.lo || 'open'}–${v.hi}`], ['Notes', noteLine(v)]]),
+      tiles: tilesHTML([['Position', posOf(v)], ['Bass note', `${esc(v.bass.deg)} · ${esc(v.bass.note)}`], ['Strings', [...v.strings].join('-')], ['Frets', v.lo === v.hi ? v.hi : `${v.lo || 'open'}–${v.hi}`], ['Notes', noteLine(v)]]),
       actions: capoHTML() + `<button class="btn" data-act="play">▶ Strum</button><button class="btn" data-act="alt">♪ Arpeggio</button><button class="btn" data-act="chart">▦ Chart</button>`,
       railHead: `<span>Voicings of ${esc(c.name)}</span><small>${vi + 1} of ${c.voicings.length}</small>`,
       rail: c.groups.map((g) => `<div class="group-label"><b>${esc(g.label)}</b>${g.hint ? ` · ${g.hint}` : ''}</div><div class="thumbs">${g.items.map((it) => thumbHTML(it, `data-act="voicing" data-i="${n}"`, n === vi, ++n)).join('')}</div>`).join(''),
@@ -570,6 +570,7 @@
     cur = { play: toggle, drill: toggle, next: () => pos < positions.length && go({ scales: { pos: pos + 1 } }), prev: () => pos > 0 && go({ scales: { pos: pos - 1 } }), ok: (a) => (a === 'next' ? pos < positions.length : a === 'prev' ? pos > 0 : true) };
   }
 
+  const posOf = (v) => (v.open ? 'Open' : 'Fret ' + (v.lo || 1)); // where a chord shape sits on the neck
   // ---------- Circle of fifths ----------
   // The wheel, plus a panel that reads it for the chosen key. The six chords of a key are the three major wedges
   // around it and the three minors under them, so that block is outlined, numbered and coloured by job.
@@ -620,7 +621,7 @@
         <li>The keys either side of yours are its <b>IV</b> and <b>V</b> chords.</li>
         <li>Two steps anticlockwise in a row is a <b>ii–V–I</b>.</li></ul>`,
       crumbs: 'Circle of fifths', title: `Key of ${state.key} major`, chips: chipsHTML(sc.tones), lede: `${sig[0].toUpperCase() + sig.slice(1)}. Relative minor: ${esc(dia[5].root)} minor. Pick any key on the circle.`,
-      tiles: tilesHTML([['Signature', sig], ['IV · I · V', `${esc(dia[3].root)} · ${state.key} · ${esc(dia[4].root)}`], ['Relative minor', esc(dia[5].root) + 'm']]),
+      tiles: tilesHTML([['Signature', sig], ['IV · I · V', `${esc(dia[3].root)} · ${state.key} · ${esc(dia[4].root)}`], ['Relative minor', esc(dia[5].root) + 'm'], ['Position', posOf(v)]]),
       actions: capoHTML() + `<button class="btn" data-act="play">▶ Strum</button><button class="btn" data-act="sev">${sev ? 'Show triads' : 'Show 7th chords'}</button>`,
       extra: `<div class="circle-wrap">${circleSVG(sel)}</div>`,
       railHead: `<span>The seven chords of ${state.key} major</span><small>${sev ? 'seventh chords' : 'triads'}</small>`,
@@ -874,6 +875,7 @@
   const ACT = {
     view: (d) => go({ view: d.v }),
     guide: () => (Guide.on ? pauseGuide() : playGuide()),
+    gtoggle: () => { const o = !store.get('gbar', false); store.set('gbar', o); document.querySelectorAll('.gbar').forEach((n) => n.classList.toggle('open', o)); }, // the timeline of ticks is tucked away until asked for
     gseek: (d) => seekGuide(+d.i), gprev: () => seekGuide(Guide.idx - 1), gnext: () => seekGuide(Guide.idx + 1),
     inst: (d) => { store.set('inst', d.i); quiz = null; go({ inst: d.i, capo: d.i === 'keys' ? 0 : state.capo }); },
     both: () => { store.set('pair', !state.both); go({ both: !state.both }); },
