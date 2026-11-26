@@ -157,8 +157,10 @@
           const on = used.has(i) || !mute;
           strs[i].classList.toggle('on', used.has(i)); glows[i].classList.toggle('on', used.has(i));
           labels[i].classList.toggle('on', on);
-          opens[i].classList.toggle('on', notes.some((n) => n.s === i && n.f === 0 && !n.dim) && !capo);
+          opens[i].classList.toggle('on', notes.some((n) => n.s === i && n.f === 0 && !n.dim && String(n.label) !== G.T.OPEN[i]) && !capo);
           labels[i].textContent = on ? G.T.OPEN[i] : '×';
+          const twin = notes.some((n) => n.s === i && n.f === 0 && !capo && String(n.label) === G.T.OPEN[i]);
+          labels[i].style.display = twin ? 'none' : '';
         }
         if (w) win.setAttribute('points', pts([P((Math.max(w[0], 1) - 1) * FW, y0, 0.5), P(w[1] * FW, y0, 0.5), P(w[1] * FW, y1, 0.5), P((Math.max(w[0], 1) - 1) * FW, y1, 0.5)]));
         win.style.opacity = w ? '' : '0';
