@@ -39,7 +39,7 @@
     const item = (pid, name) => `<li><button data-act="practice" data-id="${pid}" class="${pid === id ? 'on' : ''}">${name}</button></li>`;
     return `<div class="side-head"><span>Practice</span></div><div class="tree always">
       <div class="fam open"><button disabled>${A.folder(0)}<span>Warm-ups</span></button><ul>${WARM.map((w) => item(w.id, w.name)).join('')}</ul></div>
-      <div class="fam open"><button disabled>${A.folder(2)}<span>Chord changes</span></button><ul>${T.PROGS.map((p) => item(p.id, p.name)).join('')}</ul></div>
+      ${T.progGroups().map(([g, ps]) => `<div class="fam open"><button disabled>${A.folder(2)}<span>${g}</span></button><ul>${ps.map((p) => item(p.id, p.name)).join('')}</ul></div>`).join('')}
       <div class="fam open"><button disabled>${A.folder(3)}<span>Keyboard</span></button><ul>${DRILLS.map((x) => item(x.id, x.name)).join('')}</ul></div></div>`;
   };
   const show = (A, notes) => A.neck.show({ notes: [] }, { notes });
@@ -91,7 +91,7 @@
     const notesOf = (b) => b.v.notes.map((n) => ({ midi: n.midi, label: st.labels === 'note' ? esc(n.note) : st.labels === 'finger' ? n.finger : esc(n.deg), role: n.role, hand: n.hand }));
     const b = bars[p.bar], Metro = G.Metro;
     A.ui({
-      side: A.keysHTML() + side(A, prog.id), crumbs: 'Practice / Chord changes', title: `${prog.name} in ${st.key}`, chips: A.pill(`${bars.length} bars`) + A.pill('one chord per bar'), lede: prog.text,
+      side: A.keysHTML() + side(A, prog.id), crumbs: 'Practice / Chord changes', title: `${prog.name} in ${st.key}${prog.minor ? " minor" : ""}`, chips: A.pill(`${bars.length} bars`) + A.pill('one chord per bar'), lede: prog.text,
       tiles: A.tilesHTML([['Now', `${b.roman} · ${name(b)}`], ['Next', name(bars[(p.bar + 1) % bars.length])], ['Tempo', Metro.bpm + ' BPM']]),
       actions: '<button class="btn" data-act="drill">▶ Play</button>',
       railHead: `<span>Progression</span><small>${bars.length} bars</small>`,

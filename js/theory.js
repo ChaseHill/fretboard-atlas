@@ -311,6 +311,8 @@
     { id: 'skip', name: 'String skipping', make: (f) => fingerRun([0, 1, 2, 3], [0, 2, 1, 3, 2, 4, 3, 5], f), text: 'Four notes, skip a string, come back one. It trains the picking hand to find strings without looking.', tip: 'Use strict alternate picking: down, up, down, up.' },
     { id: 'climb', name: 'Diagonal climb', make: (f) => fingerRun([0, 1, 2, 3], [0, 1, 2, 3, 4, 5], f, true), text: 'Chromatic four-note groups that shift up one fret on every string.', tip: 'Move the whole hand as a unit when you change string; do not reach.' },
   ];
+  // a chord named outright: semitones above the key note, quality, numeral
+  const X = (o, q, r) => ({ o, q, r });
   T.PROGS = [
     { id: 'three', name: 'I – IV – V – I', bars: [[0], [3], [4], [0]], text: 'The three primary chords. Thousands of folk, rock and country songs use nothing else.' },
     { id: 'pop', name: 'I – V – vi – IV', bars: [[0], [4], [5], [3]], text: 'The four-chord pop progression.' },
@@ -318,10 +320,27 @@
     { id: 'jazz', name: 'ii7 – V7 – Imaj7', bars: [[1, 's'], [4, 's'], [0, 's'], [0, 's']], text: 'The basic unit of jazz harmony. Watch the 3rds and 7ths move by a fret or stay put.' },
     { id: 'turn', name: 'Imaj7 – vi7 – ii7 – V7', bars: [[0, 's'], [5, 's'], [1, 's'], [4, 's']], text: 'The jazz turnaround: from the vi onward, each root falls a fifth to the next (vi to ii to V to I).' },
     { id: 'blues', name: '12-bar blues', bars: [[0, '7'], [0, '7'], [0, '7'], [0, '7'], [3, '7'], [3, '7'], [0, '7'], [0, '7'], [4, '7'], [3, '7'], [0, '7'], [4, '7']], text: 'Twelve bars, three dominant 7 chords.' },
+    { id: 'quick', name: '12-bar blues, quick change', bars: [[0, '7'], [3, '7'], [0, '7'], [0, '7'], [3, '7'], [3, '7'], [0, '7'], [0, '7'], [4, '7'], [3, '7'], [0, '7'], [4, '7']], text: 'The same twelve bars with a visit to the IV chord in bar 2.' },
+    { id: 'canon', name: 'I – V – vi – iii – IV – I – IV – V', bars: [[0], [4], [5], [2], [3], [0], [3], [4]], text: 'Eight bars over a bass that falls by step. One of the oldest sequences still in daily use.' },
+    { id: 'sens', name: 'vi – IV – I – V', bars: [[5], [3], [0], [4]], text: 'The four-chord progression started from its minor chord. Same chords, darker story.' },
+    { id: 'm145', group: 'Minor keys', minor: true, name: 'i – iv – V7 – i', bars: [X(0, 'm', 'i'), X(5, 'm', 'iv'), X(7, '7', 'V7'), X(0, 'm', 'i')], text: 'The three primary chords of a minor key. The V is major, borrowed from the harmonic minor, so it pulls home.' },
+    { id: 'andalu', group: 'Minor keys', minor: true, name: 'i – ♭VII – ♭VI – V', bars: [X(0, 'm', 'i'), X(10, 'maj', '♭VII'), X(8, 'maj', '♭VI'), X(7, 'maj', 'V')], text: 'The falling bass of flamenco and a great deal of rock: three steps down, then the major V.' },
+    { id: 'mpop', group: 'Minor keys', minor: true, name: 'i – ♭VI – ♭III – ♭VII', bars: [X(0, 'm', 'i'), X(8, 'maj', '♭VI'), X(3, 'maj', '♭III'), X(10, 'maj', '♭VII')], text: 'A minor-key loop built only from the natural minor scale.' },
+    { id: 'borrow', group: 'Minor keys', name: 'I – IV – iv – I', bars: [[0], [3], X(5, 'm', 'iv'), [0]], text: 'The IV chord turns minor on its way home: a chord borrowed from the parallel minor.' },
+    { id: 'm251', group: 'Jazz changes', minor: true, name: 'iiø7 – V7 – i7', bars: [X(2, 'm7b5', 'iiø7'), X(7, '7', 'V7'), X(0, 'm7', 'i7'), X(0, 'm7', 'i7')], text: 'The minor ii–V–i: half-diminished, dominant, minor.' },
+    { id: 'turn6', group: 'Jazz changes', name: 'Imaj7 – VI7 – ii7 – V7', bars: [[0, 's'], X(9, '7', 'VI7'), [1, 's'], [4, 's']], text: 'The turnaround with its vi chord made dominant. VI7 is the V of ii, so every chord now pulls into the next.' },
+    { id: 'three6', group: 'Jazz changes', name: 'iii7 – VI7 – ii7 – V7', bars: [[2, 's'], X(9, '7', 'VI7'), [1, 's'], [4, 's']], text: 'Two ii–Vs back to back, a whole step apart. The usual last two bars of a standard.' },
+    { id: 'tritone', group: 'Jazz changes', name: 'ii7 – ♭II7 – Imaj7', bars: [[1, 's'], X(1, '7', '♭II7'), [0, 's'], [0, 's']], text: 'The V chord replaced by the dominant a tritone away. The guide tones are the same two notes; the bass slides down by half steps.' },
+    { id: 'chain', group: 'Jazz changes', name: 'ii–V–I, then down a whole step', bars: [[1, 's'], [4, 's'], [0, 's'], [0, 's'], X(0, 'm7', 'i7'), X(5, '7', 'IV7'), X(10, 'maj7', '♭VIImaj7'), X(10, 'maj7', '♭VIImaj7')], text: 'Arrive on I, turn it minor, and it becomes the ii of a key a whole step lower.' },
+    { id: 'jblues', group: 'Jazz changes', name: 'Jazz blues', bars: [[0, '7'], [3, '7'], [0, '7'], [0, '7'], [3, '7'], X(6, 'dim7', '♯IV°7'), [0, '7'], X(9, '7', 'VI7'), [1, 's'], [4, '7'], [0, '7'], [4, '7']], text: 'The twelve-bar blues as jazz players dress it: a diminished passing chord in bar 6 and a ii–V in bars 9 and 10.' },
+    { id: 'fast', group: 'Jazz changes', half: true, name: 'Turnaround, two beats a chord', bars: [[0, 's'], X(9, '7', 'VI7'), [1, 's'], [4, 's']], text: 'The same turnaround at working speed: each chord lasts two beats.' },
+    { id: 'rhythm', group: 'Jazz changes', half: true, name: 'Rhythm changes, A section', bars: [[0, 's'], X(9, '7', 'VI7'), [1, 's'], [4, 's'], [2, 's'], X(9, '7', 'VI7'), [1, 's'], [4, 's'], X(7, 'm7', 'v7'), X(0, '7', 'I7'), [3, 's'], X(6, 'dim7', '♯IV°7'), [2, 's'], X(9, '7', 'VI7'), [1, 's'], [4, 's']], text: 'Eight bars, two chords to a bar: turnarounds end to end with a quick trip to the IV chord. One common version of the sequence behind hundreds of jazz tunes.' },
   ];
   T.progChords = (key, prog) => {
     const d = T.diatonic(key);
-    return prog.bars.map(([i, mode]) => ({ roman: mode === '7' ? d[i].roman.toUpperCase().replace('°', '') + '7' : mode === 's' ? d[i].roman.replace('°', 'ø') + (d[i].sev === 'maj7' ? 'maj7' : '7') : d[i].roman, chord: T.chord(d[i].root, mode === '7' ? '7' : mode === 's' ? d[i].sev : d[i].tri) }));
+    return prog.bars.map((bar) => (Array.isArray(bar) ? bar : [bar])).map(([i, mode]) => (typeof i === 'object' ? { roman: i.r, chord: T.chord(i.o === 6 ? T.KEYS[mod(T.pc(key) + 6)] : T.spell(key, T.DEG[i.o]), i.q) } : { roman: mode === '7' ? d[i].roman.toUpperCase().replace('°', '') + '7' : mode === 's' ? d[i].roman.replace('°', 'ø') + (d[i].sev === 'maj7' ? 'maj7' : '7') : d[i].roman, chord: T.chord(d[i].root, mode === '7' ? '7' : mode === 's' ? d[i].sev : d[i].tri) }));
+  };
+  T.progGroups = () => { const out = []; T.PROGS.forEach((p) => { const g = p.group || 'Chord changes'; (out.find((x) => x[0] === g) || out[out.push([g, []]) - 1])[1].push(p); }); return out;
   };
   T.noteName = (pcv) => ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][mod(pcv)];
 

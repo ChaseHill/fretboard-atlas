@@ -17,7 +17,7 @@
     chords: { id: 'maj7', vi: 0, chart: false },
     scales: { id: 'major', pos: 1, pattern: 'updown', rate: 2, chord: -1, oct: 1, hand: 'R' },
     circle: { ci: 0, sev: false, col: false },
-    practice: { id: 'chromatic', fret: 5, rate: 2, bar: 0, level: 1, string: 6 },
+    practice: { id: 'chromatic', fret: 5, rate: 2, bar: 0, level: 1, string: 6, voice: 'std' },
   };
   const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
   const cleanDone = (o) => { for (const k in o) if (!Array.isArray(o[k])) delete o[k]; return o; };
@@ -654,8 +654,9 @@
     const id = state.practice.id, item = (pid, name) => `<li><button data-act="practice" data-id="${pid}" class="${pid === id ? 'on' : ''}">${name}</button></li>`;
     return `<div class="side-head"><span>Practice</span></div><div class="tree always">
       <div class="fam open"><button disabled>${folder(0)}<span>Warm-ups</span></button><ul>${T.WARMUPS.map((w) => item(w.id, w.name)).join('')}</ul></div>
-      <div class="fam open"><button disabled>${folder(2)}<span>Chord changes</span></button><ul>${T.PROGS.map((p) => item(p.id, p.name)).join('')}</ul></div>
-      <div class="fam open"><button disabled>${folder(3)}<span>Fretboard</span></button><ul>${EXS.map((x) => item(x.id, x.name)).join('')}</ul></div></div>`;
+      ${T.progGroups().map(([g, ps]) => `<div class="fam open"><button disabled>${folder(2)}<span>${g}</span></button><ul>${ps.map((p) => item(p.id, p.name)).join('')}</ul></div>`).join('')}
+      <div class="fam open"><button disabled>${folder(1)}<span>Chord quizzes</span></button><ul>${EXS.filter((x) => x.chord).map((x) => item(x.id, x.name)).join('')}</ul></div>
+      <div class="fam open"><button disabled>${folder(3)}<span>Fretboard</span></button><ul>${EXS.filter((x) => !x.chord).map((x) => item(x.id, x.name)).join('')}</ul></div></div>`;
   }
   function renderWarmup(w) {
     const p = state.practice, seq = w.make(p.fret), fs = seq.map((n) => n.f);
@@ -672,24 +673,39 @@
     cur = { play: toggle, drill: toggle };
   }
   const progBars = (prog) => T.progChords(state.key, prog).map((b) => ({ roman: b.roman, chord: chordOf(b.chord.root, b.chord.id) }));
+  const VOICES = [['std', 'Standard shapes'], ['shell', 'Shells: root, 3rd, 7th'], ['guide', 'Guide tones, no root'], ['rootless', 'Rootless, three or four notes'], ['drop2', 'Drop 2, four strings']];
+  const VOICE_KINDS = { shell: [['shellR', 0]], guide: [['shell', 1], ['shellx', 1]], rootless: [['close', 1], ['shellx', 1], ['drop2r', 1]], drop2: [['drop2', 0], ['drop2r', 1]] };
+  // One voicing per bar in the chosen style, each as near on the neck as possible to the one before it.
+  const barVoicings = (bars) => {
+    const sets = VOICE_KINDS[state.practice.voice] || [], mid = (x) => ((x.lo || 0) + x.hi) / 2;
+    let prev = null;
+    return bars.map((b) => {
+      let pool = [];
+      sets.some(([kind, rl]) => (pool = b.chord.voicings.filter((x) => x.kind === kind && !!x.rootless === !!rl && !x.stretch)).length);
+      if (!pool.length) return Object.assign({ v: b.chord.voicings[0], plain: sets.length > 0 }, b);
+      const cost = (x) => Math.abs(mid(x) - (prev ? mid(prev) : 5)) + (prev && String(x.strings) !== String(prev.strings) ? 1.5 : 0);
+      prev = pool.slice().sort((x, y) => cost(x) - cost(y))[0];
+      return Object.assign({ v: prev }, b);
+    });
+  };
   function renderProg(prog) {
-    const bars = progBars(prog), p = state.practice;
+    const bars = barVoicings(progBars(prog)), p = state.practice, per = prog.half ? 2 : Metro.beats, nBars = prog.half ? bars.length / 2 : bars.length;
     p.bar = Math.min(p.bar, bars.length - 1);
-    const b = bars[p.bar], v = b.chord.voicings[0];
+    const b = bars[p.bar], v = b.v;
     ui({
-      side: keysHTML() + practiceSide(), crumbs: 'Practice / Chord changes', title: `${prog.name} in ${state.key}`, chips: pill(`${bars.length} bars`) + pill('one chord per bar'), lede: prog.text,
+      side: keysHTML() + practiceSide(), crumbs: 'Practice / Chord changes', title: `${prog.name} in ${state.key}${prog.minor ? ' minor' : ''}`, chips: pill(`${nBars} bars`) + pill(prog.half ? 'two beats per chord' : 'one chord per bar'), lede: prog.text,
       tiles: tilesHTML([['Now', `${b.roman} · ${esc(b.chord.name)}`], ['Next', esc(bars[(p.bar + 1) % bars.length].chord.name)], ['Tempo', Metro.bpm + ' BPM']]),
       actions: capoHTML() + `<button class="btn" data-act="drill">▶ Play</button>`,
-      railHead: `<span>Progression</span><small>${bars.length} bars</small>`,
-      rail: `<div class="thumbs">${bars.map((x, k) => thumbHTML(x.chord.voicings[0], `data-act="bar" data-i="${k}"`, k === p.bar, k + 1, `${x.roman} · ${esc(x.chord.name)}`)).join('')}</div>`,
-      panel: stepCard({ no: 'Chord changes', tag: `${bars.length} bars`, title: prog.name, body: `<p>${prog.text}</p><p>Press Play. The chord changes on beat one of each bar and is strummed on every beat.</p>`,
+      railHead: `<span>Progression</span><small>${nBars} bars</small>`,
+      rail: `<div class="drillbar"><label>Voicing <select data-change="voice" aria-label="Voicing style">${VOICES.map(([id, nm]) => `<option value="${id}"${id === p.voice ? ' selected' : ''}>${nm}</option>`).join('')}</select></label>${bars.some((x) => x.plain) ? '<span class="muted">Plain triads have no 7th, so they stay as standard shapes.</span>' : p.voice === 'guide' || p.voice === 'rootless' ? '<span class="muted">The root is left to the bass. Hum it, or have someone play it.</span>' : ''}</div><div class="thumbs">${bars.map((x, k) => thumbHTML(x.v, `data-act="bar" data-i="${k}"`, k === p.bar, k + 1, `${x.roman} · ${esc(x.chord.name)}`)).join('')}</div>`,
+      panel: stepCard({ no: 'Chord changes', tag: `${nBars} bars`, title: prog.name, body: `<p>${prog.text}</p><p>Press Play. ${prog.half ? 'The chord changes every two beats' : 'The chord changes on beat one of each bar'} and is strummed on every beat. Choose a voicing style on the right: each chord is placed as close as possible to the one before.</p>`,
         idea: 'Change chords in time even if a finger lands late. Keeping the beat matters more than a perfect chord.', more: `<div class="nav"><button class="btn primary" data-act="open-chord" data-root="${b.chord.root}" data-id="${b.chord.id}">All ${esc(b.chord.name)} voicings</button></div>`, hint: '<kbd>Space</kbd> play or stop · <kbd>M</kbd> metronome' }),
     });
     showVoicing(b.chord, v);
     const toggle = () => {
       if (drill.off) return stopDrill();
       startDrill(Metro.TPB, (i, time) => {
-        const beat = i % Metro.beats, bar = Math.floor(i / Metro.beats) % bars.length, x = bars[bar].chord.voicings[0];
+        const beat = i % per, bar = Math.floor(i / per) % bars.length, x = bars[bar].v;
         if (beat === 0) Audio.at(time - 0.03, () => {
           if (!drill.off) return;
           p.bar = bar; showVoicing(bars[bar].chord, x);
@@ -733,10 +749,18 @@
       title: 'One string at a time', body: 'Segovia taught the neck one string at a time, and so do most jazz teachers. Play along on your own guitar: one finger is fine.', idea: 'Notice the two half steps, B–C and E–F. On every string they are the only places where two natural notes sit on neighbouring frets.',
       tips: ['Say the names out loud. Speaking is what makes them stick.', 'When it is easy, say the names going down as well as up.', 'Then do it with your eyes closed.'] },
   ];
+  EXS.push(
+    { id: 'namechord', chord: true, name: 'Name the chord', lede: 'A chord shape appears with its root marked in gold. Say what kind of chord it is.',
+      title: 'Reading a shape', body: 'Every chord shape is a root with a few intervals around it. Find the 3rd first: it tells you major or minor. Then look for a 7th.', idea: 'From the root, a major 3rd is four frets up and a minor 3rd is three. A note one fret below the root is the major 7th; two frets below is the flat 7th.',
+      tips: ['Press “Hear it” before answering, and again after. Tie the sound to the name.', 'Hold the shape on your own guitar and name each finger’s note as a number.', 'Level 2 adds the three everyday sevenths. Level 3 adds sixths, half-diminished and diminished sevenths.'] },
+    { id: 'chordtone', chord: true, name: 'Find the chord tone', lede: 'You are given a chord and one of its notes by number. Tap that note anywhere on the neck.',
+      title: 'Chord tones by number', body: 'Soloists and accompanists both think of a chord as numbered notes: root, 3rd, 5th, 7th. Finding any of them at once is what lets you aim a line at a chord, or leave the root out of a voicing.', idea: 'Work from the nearest root. The 3rd is on the next string up, one fret back (two for a minor 3rd). The 5th is on the next string up, two frets forward. The flat 7th is two strings up at the same fret.',
+      tips: ['Any place on the neck with the right note counts.', 'After each answer, play the root and the chord tone together on your guitar.', 'Level 2 asks only for 3rds and 7ths, the guide tones of jazz harmony.'] });
   const rnd = (n) => Math.floor(Math.random() * n), pickOf = (a) => a[rnd(a.length)];
   const pcAt = (s, f) => T.mod(T.TUNING[s] + f), isNat = (pcv) => T.noteName(pcv).length === 1;
   const same = (a, b) => a && b && a.s === b.s && a.f === b.f;
   function newQuestion(id) {
+    if (id === 'namechord' || id === 'chordtone') return newChordQuestion(id);
     const lv = state.practice.level, maxF = lv === 1 ? 5 : 12, pool = [];
     for (let s = 0; s < 6; s++) for (let f = 0; f <= maxF; f++) if (lv === 3 || isNat(pcAt(s, f))) pool.push({ s, f });
     let q;
@@ -815,6 +839,62 @@
     });
     cur = { play: hear || undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newQuestion(id); render(); if (cur.play && id !== 'interval') cur.play(); } } };
   }
+  // ---------- chord quizzes ----------
+  const CQ_QUALS = [['maj', 'm'], ['maj', 'm', 'maj7', '7', 'm7'], ['maj', 'm', 'maj7', '7', 'm7', '6', 'm6', 'm7b5', 'dim7']];
+  const CQ_LEVELS = ['Major and minor', 'Triads and the three sevenths', 'Sixths, half-diminished and diminished too'];
+  const CT_QUALS = [['maj', 'm'], ['maj7', '7', 'm7'], ['maj7', '7', 'm7', 'm7b5', '6', 'm6']];
+  const CT_LEVELS = ['Triads: root, 3rd and 5th', 'Sevenths: the 3rd and the 7th', 'Any note of a four-note chord'];
+  const TONE_NAMES = { 1: 'root', 3: '3rd', '♭3': 'flat 3rd', 5: '5th', '♭5': 'flat 5th', 6: '6th', 7: '7th', '♭7': 'flat 7th' };
+  const qualOf = (qid) => T.QUALS.find((x) => x.id === qid);
+  function newChordQuestion(id) {
+    const lv = state.practice.level, root = pickOf(lv === 1 ? ['C', 'D', 'E', 'F', 'G', 'A'] : T.KEYS);
+    let q;
+    if (id === 'namechord') {
+      const quals = CQ_QUALS[lv - 1], qi = rnd(quals.length), all = T.chord(root, quals[qi]).voicings.filter((x) => x.kind === 'caged' && !x.stretch), open = all.filter((x) => x.open);
+      q = { root, qid: quals[qi], iv: qi, v: pickOf(lv === 1 && open.length ? open : all.length ? all : T.chord(root, quals[qi]).voicings) };
+    } else {
+      const qid = pickOf(CT_QUALS[lv - 1]), tones = T.chord(root, qid).tones;
+      q = { root, qid, tone: pickOf(lv === 2 ? [tones[1], tones[3]] : tones.slice(1).concat(tones.slice(1), tones[0])) };
+    }
+    const keep = quiz && quiz.id === id ? quiz : { id, score: 0, total: 0, streak: 0, best: +store.get('best-' + id, 0) || 0 };
+    quiz = Object.assign(keep, { q, done: false, ok: false, pick: null, wrong: null, msg: '' });
+  }
+  function renderChordQuiz(ex) {
+    if (!quiz || quiz.id !== ex.id) newChordQuestion(ex.id);
+    const q = quiz.q, id = ex.id, lv = state.practice.level, chord = T.chord(q.root, q.qid), name = esc(chord.name);
+    const next = quiz.done ? '<button class="btn primary" data-act="next">Next ›</button>' : '<button class="btn ghost" data-act="skip">Skip</button>';
+    const verdict = quiz.done ? `<span class="verdict ${quiz.ok ? 'good' : 'bad'}">${quiz.ok ? 'Correct' : 'Not quite'}</span>` : '';
+    let prompt, rail = '', show, hear;
+    if (id === 'namechord') {
+      const v = q.v, quals = CQ_QUALS[lv - 1];
+      prompt = quiz.done ? `This is <b>${name}</b>: ${esc(chord.tones.map((t) => t.deg).join(' '))}.` : `The root is <b>${esc(q.root)}</b>. What kind of chord is this?`;
+      rail = quals.map((k, n) => `<button class="posbtn ans wide${quiz.done && n === q.iv ? ' good' : quiz.pick === n ? ' bad' : ''}" data-act="answer" data-i="${n}" ${quiz.done ? 'disabled' : ''}>${esc(q.root + qualOf(k).suf)}<small>${qualOf(k).name}</small></button>`).join('');
+      show = { notes: v.frets.map((f, s) => (f === null ? null : { s, f, role: quiz.done ? v.notes[s].role : v.notes[s].deg === '1' ? 'root' : 'ext', label: quiz.done ? esc(v.notes[s].deg) : v.notes[s].deg === '1' ? esc(q.root) : '?' })).filter(Boolean), window: [v.lo || 1, v.hi], mute: true };
+      hear = () => playVoicing(v);
+    } else {
+      const pcv = q.tone.pc, notes = [];
+      prompt = `Find the <b>${esc(TONE_NAMES[q.tone.deg] || q.tone.deg)}</b> of <b>${name}</b>.` + (quiz.done ? ` It is ${esc(q.tone.note)}.` : '');
+      if (quiz.done) { for (let s = 0; s < 6; s++) for (let f = 0; f <= 12; f++) if (pcAt(s, f) === pcv) notes.push({ s, f, label: esc(q.tone.note), role: 'root' }); if (!quiz.ok) notes.push({ s: quiz.pick.s, f: quiz.pick.f, label: T.noteName(pcAt(quiz.pick.s, quiz.pick.f)), role: 'guide' }); }
+      show = { notes };
+      hear = () => playVoicing(chord.voicings[0]);
+    }
+    ui({
+      side: practiceSide(), crumbs: 'Practice / Chord quizzes', title: ex.name, chips: pill((id === 'namechord' ? CQ_LEVELS : CT_LEVELS)[lv - 1]), lede: ex.lede,
+      tiles: tilesHTML([['Score', `${quiz.score} / ${quiz.total}`], ['Streak', quiz.streak], ['Best streak', quiz.best]]),
+      actions: `<div class="stepper"><span>Level</span><button data-act="level" data-d="-1">−</button><b>${lv}</b><button data-act="level" data-d="1">+</button></div><button class="btn" data-act="play">▶ Hear ${id === 'namechord' ? 'it' : 'the chord'}</button><button class="btn" data-act="reset-score">↺ Reset score</button>`,
+      railHead: `<span>Question ${quiz.total + (quiz.done ? 0 : 1)}</span>${verdict}`,
+      rail: `<p class="prompt">${prompt}</p><div class="thumbs">${rail}${next}</div>${rail ? '' : '<p class="muted">Tap the neck where the note is. Any string will do.</p>'}`,
+      panel: stepCard({ no: 'Exercise', tag: 'Chords', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question · <kbd>Space</kbd> hear it' }),
+    });
+    neck.show(show);
+    if (id === 'chordtone') neck.setPick((s, f) => {
+      if (quiz.done) return;
+      quiz.pick = { s, f }; mark(pcAt(s, f) === q.tone.pc);
+      render();
+      Audio.pluck(T.TUNING[s] + f, 0, 0.9, s); neck.pulse(s, f);
+    });
+    cur = { play: hear, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChordQuestion(id); render(); if (id === 'namechord' && cur.play) cur.play(); } } };
+  }
   function renderWalk(ex) {
     const p = state.practice, s = 6 - p.string, up = [];
     for (let f = 0; f <= 12; f++) if (isNat(pcAt(s, f))) up.push({ s, f, label: T.noteName(pcAt(s, f)), role: f === 0 || f === 12 ? 'root' : 'ext' });
@@ -863,7 +943,7 @@
   function renderPractice() {
     if (((window.G.KeyViews || {}).practiceIds || []).includes(state.practice.id)) state.practice.id = T.WARMUPS[0].id; // arriving from a keyboard-only exercise
     const id = state.practice.id, w = T.WARMUPS.find((x) => x.id === id), prog = T.PROGS.find((x) => x.id === id), ex = EXS.find((x) => x.id === id) || EXS[0];
-    if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'triads') renderTriads(ex); else if (ex.id === 'walk') renderWalk(ex); else renderExercise(ex);
+    if (w) renderWarmup(w); else if (prog) renderProg(prog); else if (ex.id === 'triads') renderTriads(ex); else if (ex.id === 'walk') renderWalk(ex); else if (ex.chord) renderChordQuiz(ex); else renderExercise(ex);
   }
 
   // what the keyboard views (keysviews.js) are given to work with
@@ -954,7 +1034,7 @@
     'open-chord': (d) => { go({ view: 'chords', key: T.KEYS[T.pc(d.root)], chords: { id: d.id, vi: 0, chart: false } }); window.scrollTo(0, 0); },
     practice: (d) => { quiz = null; go({ practice: { id: d.id, bar: 0 } }); },
     wfret: (d) => go({ practice: { fret: Math.max(1, Math.min(12, state.practice.fret + +d.d)) } }),
-    bar: (d) => { go({ practice: { bar: +d.i } }); playVoicing(progBars(T.PROGS.find((x) => x.id === state.practice.id))[+d.i].chord.voicings[0]); },
+    bar: (d) => { go({ practice: { bar: +d.i } }); playVoicing(barVoicings(progBars(T.PROGS.find((x) => x.id === state.practice.id)))[+d.i].v); },
     answer: (d) => { quiz.pick = +d.i; mark(quiz.pick === (quiz.id === 'quiz' ? pcAt(quiz.q.s, quiz.q.f) : quiz.q.iv)); render(); },
     skip: () => { newQuestion(quiz.id); render(); },
     level: (d) => { quiz = null; go({ practice: { level: Math.max(1, Math.min(3, state.practice.level + +d.d)) } }); },
@@ -976,6 +1056,7 @@
     const c = e.target.dataset.change;
     if (c === 'chord') go({ chords: { id: e.target.value, vi: 0 } });
     else if (c === 'pattern') go({ scales: { pattern: e.target.value } });
+    else if (c === 'voice') go({ practice: { voice: e.target.value } });
     else if (c === 'rate') go(state.view === 'scales' ? { scales: { rate: +e.target.value } } : { practice: { rate: +e.target.value } });
   });
   document.addEventListener('keydown', (e) => {
