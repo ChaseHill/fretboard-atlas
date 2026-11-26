@@ -258,5 +258,5 @@
       ] },
   ];
   // helpers for the other lesson files
-  G.LessonKit = { st, pt, seq, ch, sc, allOf, chromatic, naturals, openStrings };
+  G.LessonKit = { st, pt, seq, ch, sc, allOf, chromatic, naturals, openStrings, shape, box };
 })();
