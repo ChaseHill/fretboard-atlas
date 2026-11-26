@@ -710,10 +710,10 @@
     return [
       ['Getting started', lib('Getting started')],
       ['Technique', T.WARMUPS.map((w) => [w.id, w.name]).concat(lib('Technique'))],
-      ['Foundations', ex((x) => !x.chord).concat(lib('Foundations'))],
-      ['Chords', [['minute', 'One-minute changes']].concat(lib('Chords'), pg('Chord changes'), pg('Minor keys'), ex((x) => x.chord))],
+      ['Foundations', ex((x) => !x.chord && !x.sec).concat(lib('Foundations'))],
+      ['Chords', [['minute', 'One-minute changes']].concat(lib('Chords'), pg('Chord changes'), pg('Minor keys'), ex((x) => x.chord || x.sec === 'Chords'))],
       ['Scales & keys', lib('Scales & keys')],
-      ['Jazz', pg('Jazz changes').concat(lib('Jazz'))],
+      ['Jazz', pg('Jazz changes').concat(lib('Jazz'), ex((x) => x.sec === 'Jazz'))],
     ];
   };
   const practiceName = (id) => { for (const s of practiceSections()) { const x = s[1].find((y) => y[0] === id); if (x) return x[1]; } return ''; };
@@ -835,6 +835,15 @@
     { id: 'earfn', choice: true, name: 'Which chord came next?', lede: 'You hear the I chord of a key, then a second chord. Say which chord of the key it was.',
       title: 'Hearing chords as numbers', body: 'This is how players pick up songs by ear: not “that was an F” but “that was the four chord”.', idea: 'IV sounds like stepping away. V sounds unfinished and wants to come back. vi sounds like home turned sad.',
       tips: ['Level 1 is IV against V. Level 2 adds vi. Level 3 adds ii.', 'Sing the root of each chord as it sounds.', 'Then name the chords in a song you know well.'] },
+    { id: 'fnq', choice: true, sec: 'Chords', name: 'Tonic, subdominant or dominant?', lede: 'You are given a key and one of its chords. Say which of the three jobs the chord does.',
+      title: 'Chord function', body: 'Every chord of a key is at rest, moving away, or pulling home. Knowing which at a glance is what lets you swap one chord for another.', idea: 'Tonic: I, iii, vi. Subdominant: ii, IV. Dominant: V, vii°.',
+      tips: ['Level 1 is triads in C, G and F. Level 2 is seventh chords. Level 3 is nine keys.', 'Work out the numeral first, then the family.', 'Play the chord, then the I chord, and listen to how far from home it felt.'] },
+    { id: 'secq', choice: true, sec: 'Jazz', name: 'Secondary dominants and related ii chords', lede: 'Questions about the V7 of each chord in a key, and the ii chord that goes with any dominant.',
+      title: 'Dominants that point', body: 'A secondary dominant is a fifth above its target. A related ii is a fourth below its dominant.', idea: 'To find the V7 of a chord, go up a fifth from its root: next string, two frets higher. To find the related ii of a dominant, go down a fourth: same fret, next string lower.',
+      tips: ['Level 1 asks for the V7 of a chord. Level 2 asks what a dominant is aiming at. Level 3 asks for related ii chords.', 'Say the pair aloud: “E minor seven, A seven”.', 'Then find each pair on strings 6 and 5.'] },
+    { id: 'tensq', choice: true, sec: 'Jazz', name: 'Which tensions fit?', lede: 'You are given a kind of chord. Pick the tension that fits it, or the one that does not.',
+      title: 'Available tensions', body: 'A tension works when it lies a major ninth above a note of the chord. One that lies a minor ninth above a chord note clashes. Dominant chords are the exception and take altered notes too.', idea: '9 fits almost everything. 11 belongs to minor chords. ♯11 and 13 belong to major and dominant chords.',
+      tips: ['Level 1 is major 7 and minor 7. Level 2 adds dominant 7. Level 3 adds half-diminished and sus4.', 'Read the question carefully: some ask for the note that does not fit.', 'Play each answer on your guitar over the chord.'] },
     { id: 'keyquiz', choice: true, name: 'Keys and signatures', lede: 'Questions about keys: name a key from its sharps or flats, find a relative minor, find the IV and V chords.',
       title: 'Knowing your keys', body: 'The answers are all on the circle of fifths. The aim is to know them without looking.', idea: 'Sharps: the key is a half step above the last sharp. Flats: the key is the second-to-last flat. The relative minor is three frets below the major key note.',
       tips: ['Level 1 is signatures. Level 2 is relative minors. Level 3 is the IV and V chords.', 'Order of sharps: F C G D A E B. Flats are the same letters backwards.', 'Check any answer on the Circle tab.'] });
@@ -939,6 +948,25 @@
       const set = [[3, 4], [3, 4, 5], [1, 3, 4, 5]][lv - 1], k = pickOf(['C', 'G', 'D', 'A', 'E', 'F']), d = T.diatonic(k), i = pickOf(set), v = (x) => T.chord(d[x].root, d[x].tri).voicings[0];
       return { opts: set.map((x) => [d[x].roman, '']), iv: set.indexOf(i), v0: v(0), v: v(i), prompt: 'The first chord is I. Which chord follows it?', after: `In the key of ${esc(k)}: ${esc(d[0].root)}, then ${esc(T.chord(d[i].root, d[i].tri).name)}.` };
     } },
+    fnq: { levels: ['Triads in C, G and F', 'Seventh chords', 'Nine keys'], make(lv) {
+      const k = pickOf(lv < 3 ? ['C', 'G', 'F'] : ['C', 'G', 'D', 'A', 'E', 'F', 'B♭', 'E♭', 'A♭']), d = T.diatonic(k), i = rnd(7), nm = T.chord(d[i].root, lv === 1 ? d[i].tri : d[i].sev).name, F = ['Tonic', 'Subdominant', 'Dominant'];
+      return { opts: F.map((x) => [x, '']), iv: F.indexOf(d[i].fn), prompt: `In the key of ${esc(k)}, what is the job of <b>${esc(nm)}</b>?`, after: `${esc(nm)} is the ${esc(d[i].roman)} chord: ${d[i].fn.toLowerCase()}.` };
+    } },
+    secq: { levels: ['Name the V7 of a chord', 'What is it the V7 of?', 'Related ii chords'], make(lv) {
+      const k = pickOf(['C', 'G', 'D', 'A', 'F', 'B♭', 'E♭']), d = T.diatonic(k), dom = (x) => T.spell(d[x].root, '5') + '7', tg = (x) => `${d[x].roman} (${T.chord(d[x].root, d[x].sev).name})`, i = pickOf([1, 2, 3, 4, 5]);
+      let right, wrong, prompt, after;
+      if (lv === 1) { right = dom(i); wrong = shuffled([1, 2, 3, 4, 5].filter((x) => x !== i)).slice(0, 3).map(dom); prompt = `In the key of ${esc(k)}, what is the V7 of ${esc(tg(i))}?`; after = `${esc(right)} is a fifth above ${esc(d[i].root)}.`; }
+      else if (lv === 2) { right = tg(i); wrong = shuffled([1, 2, 3, 4, 5].filter((x) => x !== i)).slice(0, 3).map(tg); prompt = `In the key of ${esc(k)}, <b>${esc(dom(i))}</b> is the V7 of which chord?`; after = `${esc(dom(i))} resolves down a fifth to ${esc(d[i].root)}.`; }
+      else { const r = pickOf(T.KEYS); right = T.spell(r, '5') + 'm7'; wrong = ['4', '2', '6'].map((x) => T.spell(r, x) + 'm7'); prompt = `What is the related ii of <b>${esc(r)}7</b>?`; after = `${esc(right)} then ${esc(r)}7: a ii–V.`; }
+      const opts = shuffled([right].concat(wrong));
+      return { opts: opts.map((x) => [x, '']), iv: opts.indexOf(right), prompt, after };
+    } },
+    tensq: { levels: ['Major 7 and minor 7', 'Add dominant 7', 'Five chord types'], make(lv) {
+      const TB = [['major 7', ['9', '13', '♯11'], ['11', '♭9', '♯9', '♭13']], ['minor 7', ['9', '11'], ['♭9', '♯11', '♭13', '♯9']], ['dominant 7', ['9', '13', '♯11', '♭9', '♯9', '♭13'], ['11', 'major 7']], ['half-diminished', ['11', '♭13'], ['13', '♯11', '♭9', '♯9']], ['dominant 7 sus4', ['9', '13'], ['♯11', '♭13', 'major 3rd']]];
+      const [nm, ok, bad] = pickOf(TB.slice(0, lv === 1 ? 2 : lv === 2 ? 3 : 5)), fits = bad.length >= 3;
+      const right = pickOf(fits ? ok : bad), wrong = shuffled(fits ? bad : ok).slice(0, 3), opts = shuffled([right].concat(wrong));
+      return { opts: opts.map((x) => [x, '']), iv: opts.indexOf(right), prompt: fits ? `Which of these fits a <b>${nm}</b> chord?` : `Which of these does <b>not</b> fit a <b>${nm}</b> chord?`, after: `On a ${nm} chord: ${ok.join(', ')} fit; ${bad.join(', ')} clash.` };
+    } },
     keyquiz: { levels: ['Name the key from its signature', 'Relative minors', 'IV and V chords'], make(lv) {
       const SH = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯'], FL = ['C', 'F', 'B♭', 'E♭', 'A♭', 'D♭', 'G♭'];
       let prompt, right, wrong, after;
@@ -968,12 +996,12 @@
       if (quiz.done) show = { notes: q.v.frets.map((f, s) => (f === null ? null : { s, f, role: q.v.notes[s].role, label: esc(q.v.notes[s].deg) })).filter(Boolean), window: [q.v.lo || 1, q.v.hi], mute: true };
     }
     ui({
-      side: practiceSide(), crumbs: 'Practice / Foundations', title: ex.name, chips: pill(CHOICE[id].levels[lv - 1]), lede: ex.lede,
+      side: practiceSide(), crumbs: 'Practice / ' + (ex.sec || 'Foundations'), title: ex.name, chips: pill(CHOICE[id].levels[lv - 1]), lede: ex.lede,
       tiles: tilesHTML([['Score', `${quiz.score} / ${quiz.total}`], ['Streak', quiz.streak], ['Best streak', quiz.best]]),
       actions: `<div class="stepper"><span>Level</span><button data-act="level" data-d="-1">−</button><b>${lv}</b><button data-act="level" data-d="1">+</button></div>${hear ? '<button class="btn" data-act="play">▶ Hear it</button>' : ''}<button class="btn" data-act="reset-score">↺ Reset score</button>`,
       railHead: `<span>Question ${quiz.total + (quiz.done ? 0 : 1)}</span>${verdict}`,
       rail: `<p class="prompt">${q.prompt}${quiz.done ? ' ' + q.after : ''}</p><div class="thumbs">${rail}${next}</div>`,
-      panel: stepCard({ no: 'Exercise', tag: hear ? 'Ear training' : 'Keys', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
+      panel: stepCard({ no: 'Exercise', tag: hear ? 'Ear training' : ex.sec ? 'Harmony' : 'Keys', title: ex.title, body: `<p>${ex.body}</p>`, idea: ex.idea, more: `<ul class="plain-list">${ex.tips.map((t) => `<li>${t}</li>`).join('')}</ul>`, hint: '<kbd>→</kbd> next question' + (hear ? ' · <kbd>Space</kbd> hear it' : '') }),
     });
     neck.show(show);
     cur = { play: hear || undefined, ok: (a) => a !== 'next' || quiz.done, next: () => { if (quiz.done) { newChoiceQuestion(id); render(); if (cur.play) cur.play(); } } };
