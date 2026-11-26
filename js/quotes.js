@@ -7,7 +7,7 @@
   // Which subjects each lesson (guitar id, then its keyboard twin) and each tab touches.
   const TOPICS = {
     hands: ['hands'], khands: ['keys-touch', 'hands'], fingerstyle: ['fingerstyle', 'practice'], kfive: ['practice', 'keys-touch'],
-    openchords: ['practice', 'hands', 'triads'], strum: ['practice', 'hands'], barre: ['caged', 'practice', 'triads'], minorscales: ['minorkeys', 'modes', 'scalesmusic'], fretboard: ['fretboard'], kmap: ['fretboard'], intervals: ['intervals', 'ear'], kintervals: ['intervals', 'ear'],
+    openchords: ['practice', 'hands', 'triads'], strum: ['practice', 'hands'], changes: ['practice', 'hands'], blues: ['sevenths', 'practice', 'jazz'], barre: ['caged', 'practice', 'triads'], minorscales: ['minorkeys', 'modes', 'scalesmusic'], fretboard: ['fretboard'], kmap: ['fretboard'], intervals: ['intervals', 'ear'], kintervals: ['intervals', 'ear'],
     majorscale: ['majorscale', 'practice'], kmajor: ['majorscale', 'practice'], triads: ['triads'], ktriads: ['triads'],
     caged: ['caged', 'fretboard'], kinversions: ['keys-touch', 'triads'], diatonic: ['diatonic', 'composing'], kdiatonic: ['diatonic', 'composing'],
     sevenths: ['sevenths'], ksevenths: ['sevenths'], pentatonic: ['pentatonic'], kpent: ['pentatonic'],
