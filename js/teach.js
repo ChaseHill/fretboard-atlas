@@ -55,11 +55,57 @@
     }).join('') + '</div>';
   }
 
+  // Staff over tab, one drawing per bar so it wraps on a narrow screen. t: { notes: [[string 1..6 (0 = rest), fret, beats], …], time, pickup }.
+  // Guitar music is written an octave above where it sounds, so the open first string sits in the top space.
+  function score(t) {
+    const T = G.T, time = t.time || 4, bars = [], INK = 'var(--ink)', step = 46, sy = 80, ty = 134, tg = 11;
+    let cur = [], pos = 0, left = t.pickup || time, first = true;
+    t.notes.forEach(([s, f, d]) => { cur.push({ s, f, d, at: pos }); pos += d; left -= d; if (left <= 1e-6) { bars.push({ notes: cur, len: pos, pick: first && !!t.pickup }); cur = []; pos = 0; left = time; first = false; } });
+    if (cur.length) bars.push({ notes: cur, len: pos });
+    return '<div class="tl-bars">' + bars.map((b, bi) => {
+      const lead = bi === 0 ? 76 : 26, W = 76 + time * step + 14, X = (at) => lead + at * ((W - lead - 14) / time) + 12, H = 222, off = b.pick ? time - t.pickup : 0;
+      let s = `<svg class="tl-strip tl-score" viewBox="0 0 ${W} ${H}" role="img" aria-label="Staff and tablature, bar ${bi + 1}">`;
+      for (let i = 0; i < 5; i++) s += `<line class="ln" x1="8" y1="${sy - i * 10}" x2="${W - 6}" y2="${sy - i * 10}"/>`;
+      for (let i = 0; i < 6; i++) s += `<line class="ln" x1="8" y1="${ty + i * tg}" x2="${W - 6}" y2="${ty + i * tg}"/>`;
+      [8, W - 6].forEach((x) => { s += `<line class="bar" x1="${x}" y1="${sy - 40}" x2="${x}" y2="${sy}"/><line class="bar" x1="${x}" y1="${ty}" x2="${x}" y2="${ty + 5 * tg}"/>`; });
+      if (bi === 0) {
+        s += `<text x="12" y="${sy - 1}" font-size="44" style="font-family:'Segoe UI Symbol','Noto Music','Apple Symbols',serif">𝄞</text><text class="ts" x="60" y="${sy - 21}">${time}</text><text class="ts" x="60" y="${sy - 1}">4</text>`;
+        'TAB'.split('').forEach((c, i) => { s += `<text class="tab" x="22" y="${ty + 14 + i * 16}">${c}</text>`; });
+      }
+      b.notes.forEach((n) => {
+        const cx = X(n.at), beat = n.at + off, whole = Math.abs(beat - Math.round(beat)) < 1e-6;
+        s += `<text class="ct" x="${cx}" y="${H - 8}">${whole ? (Math.round(beat) % time) + 1 : Math.abs(beat % 1 - 0.5) < 1e-6 ? '&amp;' : ''}</text>`;
+        if (!n.s) { // a rest
+          const my = sy - 20;
+          if (n.d >= 4 - 1e-6 || (n.d >= time - 1e-6)) s += `<rect x="${cx - 6}" y="${my - 10}" width="12" height="5" fill="${INK}"/>`;
+          else if (n.d >= 2) s += `<rect x="${cx - 6}" y="${my - 5}" width="12" height="5" fill="${INK}"/>`;
+          else if (n.d >= 1) s += `<path d="M${cx - 3} ${my - 12} l6 8 l-6 6 l6 8 q-8 -3 -4 7" fill="none" stroke="${INK}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+          else s += `<path d="M${cx - 4} ${my - 4} q5 3 8 -1 l-5 15" fill="none" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/><circle cx="${cx - 3}" cy="${my - 4}" r="2.2" fill="${INK}"/>`;
+          return;
+        }
+        const midi = T.TUNING[6 - n.s] + n.f + 12, nm = T.noteName(midi), st = (Math.floor(midi / 12) - 1) * 7 + 'CDEFGAB'.indexOf(nm[0]), cy = sy - (st - 30) * 5, up = st < 34;
+        for (let k = 28; k >= st; k -= 2) s += `<line class="bar" x1="${cx - 10}" y1="${sy - (k - 30) * 5}" x2="${cx + 10}" y2="${sy - (k - 30) * 5}"/>`;
+        for (let k = 40; k <= st; k += 2) s += `<line class="bar" x1="${cx - 10}" y1="${sy - (k - 30) * 5}" x2="${cx + 10}" y2="${sy - (k - 30) * 5}"/>`;
+        if (nm.length > 1) s += `<text x="${cx - 17}" y="${cy + 5}" font-size="15" style="font-family:serif">${nm[1]}</text>`;
+        s += `<ellipse cx="${cx}" cy="${cy}" rx="6.2" ry="4.4" transform="rotate(-20 ${cx} ${cy})" fill="${n.d >= 2 ? 'var(--paper, var(--card))' : INK}" stroke="${INK}" stroke-width="1.6"/>`;
+        if (n.d < 4 - 1e-6 && !(n.d === 3 && time === 3 && false)) {
+          const x = up ? cx + 5.7 : cx - 5.7, y2 = up ? cy - 31 : cy + 31;
+          if (n.d !== 4) s += `<line class="stem" x1="${x}" y1="${cy + (up ? -1.5 : 1.5)}" x2="${x}" y2="${y2}"/>`;
+          if (n.d < 1) s += `<path d="M${x} ${y2} q9 ${up ? 6 : -6} 6 ${up ? 17 : -17}" fill="none" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>`;
+        }
+        if (Math.abs(n.d - 1.5) < 1e-6 || Math.abs(n.d - 3) < 1e-6) s += `<circle cx="${cx + 11}" cy="${cy - (st % 2 ? 0 : 5)}" r="1.9" fill="${INK}"/>`;
+        const y = ty + (n.s - 1) * tg;
+        s += `<rect class="ko" x="${cx - 7}" y="${y - 7}" width="14" height="14"/><text class="fr" x="${cx}" y="${y + 4.5}">${n.f}</text>`;
+      });
+      return s + '</svg>';
+    }).join('') + '</div>';
+  }
+
   const pic = (neck, box) => { specs.push({ neck, box: box || NUT }); return `<div class="tl-pic" data-tl-neck="${specs.length - 1}"></div>`; };
   const list = (items) => `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>`;
 
   G.Teach = {
-    chordBox, tab,
+    chordBox, tab, score,
     // the plate that opens a lesson: number, two-weight title, what is inside
     opener(L, n, tint) {
       const words = String(L.title).split(' '), key = words.pop(), lead = words.join(' '), first = L.steps[0];
@@ -81,6 +127,7 @@
       if (st.steps) h += `<div class="tl-steps">${st.steps.map((s, k) => `<div class="tl-step"><span class="n">${k + 1}</span><p>${s.text}</p>${s.neck ? pic(s.neck, s.box) : ''}</div>`).join('')}</div>`;
       if (st.strip) h += `<div class="tl-stripwrap">${st.strip.title ? `<div class="tl-eyebrow">${esc(st.strip.title)}</div>` : ''}${tab(st.strip)}</div>` +
         ((st.strip.moments || []).length ? `<div class="tl-bar">Here’s how</div><div class="tl-how">${st.strip.moments.map((m, k) => `<div><div class="tl-pic-wrap">${pic(m.neck, m.box)}<span class="tl-key k${k + 1}">${k + 1}</span></div><p><span class="tl-key k${k + 1}">${k + 1}</span>${m.text}</p></div>`).join('')}</div>` : '');
+      if (st.score) h += `<div class="tl-stripwrap"><div class="tl-eyebrow">${esc(st.score.title)}${st.score.credit ? ' · ' + esc(st.score.credit) : ''}</div>${score(st.score)}</div>`;
       if (st.how) h += `<div class="tl-steps tl-steps-text">${st.how.map((t, k) => `<div class="tl-step"><span class="n">${k + 1}</span><p>${t}</p></div>`).join('')}</div>`;
       if (st.facts) h += `<div class="tl-panel">${st.facts.map(([head, items]) => `<div class="tl-eyebrow">${esc(head)}</div>${list(items)}`).join('')}</div>`;
       if (st.look) h += `<div class="tl-panel"><div class="tl-eyebrow">What to look for</div>${list(st.look)}</div>`;

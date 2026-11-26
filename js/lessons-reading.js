@@ -1,0 +1,92 @@
+// Reading music string by string, the way the classic beginner methods teach it: three notes on a string,
+// short studies on those notes alone, then well-known tunes that use only what has been taught so far.
+// The studies and all the text are original to this app; the tunes are traditional or long out of copyright.
+(() => {
+  'use strict';
+  const G = window.G, K = G.LessonKit, TU = G.Tunes;
+  if (!K || !G.LESSONS || !TU) return;
+  const { st } = K, T = G.T;
+  const GROUP = 'Foundations';
+  // the notes of a tune as pegs, played in order
+  const pegs = (notes) => () => { const seq = notes.filter((n) => n[0]).map(([s, f]) => ({ s: 6 - s, f, label: T.noteName(T.TUNING[6 - s] + f), role: 'ext' })); return { notes: seq.filter((x, i) => seq.findIndex((m) => m.s === x.s && m.f === x.f) === i), seq, window: [1, 4] }; };
+  const mini = (title, str) => { const P = { e: [6, 0], f: [6, 1], g: [6, 3], a: [5, 0], b: [5, 2], c: [5, 3], d: [4, 0], e1: [4, 2], f1: [4, 3], fs1: [4, 4], g1: [3, 0], a1: [3, 2], b1: [2, 0], c2: [2, 1], d2: [2, 3], e2: [1, 0], f2: [1, 1], g2: [1, 3] }; return { title, time: 4, notes: str.split(' ').map((t) => { const [n, d] = t.split(':'); return [P[n][0], P[n][1], d ? +d : 1]; }) }; };
+  // a step that shows new notes on the staff
+  const notesStep = (title, tag, body, idea, sc, tryIt, more) => st(title, tag, body, idea, pegs(sc.notes), 'pick', tryIt, null, Object.assign({ score: sc }, more || {}));
+  // a step built round one tune
+  const tuneStep = (id, tag, body, idea, tryIt) => { const t = TU.byId[id]; return st(t.title, tag, body, idea, pegs(t.notes), 'pick', tryIt, { label: 'Play it in time', hash: '#practice-C-tn' + id }, { score: t }); };
+
+  const read1 = { id: 'read1', group: GROUP, title: 'Reading: The First String', mins: 12, level: 'Beginner',
+    lede: 'Reading starts small: three notes on one string. Learn where each sits on the staff, play two short studies that use nothing else, and you are reading music.',
+    learn: ['Find E, F and G on the staff and on string 1', 'Read quarter, half and whole notes in time', 'Keep your eyes on the page, not your hands', 'Count a bar before you begin'],
+    homework: ['3 minutes: say the note names of each study aloud, in rhythm, before playing it.', '3 minutes: play both studies with the metronome at 60.', '2 minutes: play them once more without looking at your fretting hand.'],
+    steps: [
+      notesStep('E, F and G', 'New notes', 'The open first string is E, written in the top space of the staff. F, at the first fret, sits on the top line. G, at the third fret, rests on top of the staff. The numbers underneath are the same notes in tablature.', 'A note’s height on the staff is its pitch. Step up from a space to the next line and you move to the next letter.', mini('E, F and G on the first string', 'e2:2 f2:2 g2:4'),
+        'Play E open, F with finger 1, G with finger 3. Say each letter as you play it. Then point at the three notes on the staff in any order and play them.', { facts: [['On the staff', ['<b>E:</b> the top space', '<b>F:</b> the top line', '<b>G:</b> sitting on the top line']], ['On string 1', ['<b>E:</b> open', '<b>F:</b> fret 1, finger 1', '<b>G:</b> fret 3, finger 3']]] }),
+      tuneStep('s1a', 'Study', 'Your first piece of written music. It uses only E, F and G, in quarter notes with a half note at the end of bar 2 and a whole note to finish.', 'Read by step: the next note is either the same, one higher or one lower.', 'Count “1, 2, 3, 4” aloud for one bar, then begin. A half note lasts two counts and a whole note four.'),
+      tuneStep('s1b', 'Study', 'The same three notes with more half notes, and a skip from E straight up to G.', 'A skip on the staff, space to space or line to line, misses out one letter.', 'Clap the rhythm first, counting aloud. Then play it, holding each half note for its full two beats.'),
+      st('How to read', 'Method', 'Reading is a habit of the eyes. Look at the note before you play it, and by the time you play it be looking at the next. Keep a steady beat even if a note is wrong: a wrong note in time is a smaller mistake than a right note late.', 'Eyes ahead, beat steady, hands unwatched.', pegs(TU.byId.s1a.notes), 'pick', 'Play the first study again and do not look at your hands once. If you lose your place, keep counting and come back in at the next bar.', { label: 'What the staff is: Reading the Staff', hash: '#learn-staff-1' },
+        { how: ['Say the letter names in rhythm.', 'Clap the rhythm while counting.', 'Play it slowly with the metronome.', 'Play it again without looking down.'] }),
+    ] };
+
+  const read2 = { id: 'read2', group: GROUP, title: 'Reading: The Second String and First Tunes', mins: 18, level: 'Beginner',
+    lede: 'Three more notes, B, C and D, and the two top strings hold six notes in a row. That is enough for a surprising number of tunes everyone knows.',
+    learn: ['Find B, C and D on the staff and on string 2', 'Read across two strings', 'Play five well-known tunes from the page', 'Read a dotted quarter note and a rest'],
+    homework: ['3 minutes: both second-string studies, naming the notes.', '5 minutes: one tune a day, slowly, until you can play it without stopping.', '2 minutes: play your best tune for someone.'],
+    steps: [
+      notesStep('B, C and D', 'New notes', 'The open second string is B, on the middle line of the staff. C, at the first fret, is in the space above it. D, at the third fret, is on the next line up.', 'The two strings follow the same finger pattern: open, first fret, third fret.', mini('B, C and D on the second string', 'b1:2 c2:2 d2:4'),
+        'Play B open, C with finger 1, D with finger 3. Then play all six notes you know in a row: B, C, D, E, F, G.', { facts: [['On the staff', ['<b>B:</b> the middle line', '<b>C:</b> the space above it', '<b>D:</b> the fourth line']], ['On string 2', ['<b>B:</b> open', '<b>C:</b> fret 1, finger 1', '<b>D:</b> fret 3, finger 3']]] }),
+      tuneStep('s2a', 'Study', 'A study on the second string alone, to settle the three new notes.', 'Learn new notes on their own before mixing them with old ones.', 'Name the notes aloud in rhythm, then play. Keep finger 1 down on C while finger 3 reaches for D.'),
+      tuneStep('s2b', 'Study', 'Now the line crosses between the strings: up from B to F, and back down from G.', 'Crossing strings changes nothing on the staff. The notes still climb line, space, line, space.', 'Play it slowly and listen for an even sound as you cross from string 2 to string 1.'),
+      tuneStep('buns', 'Tune', 'Three notes, E, D and C, and one new rhythm: a bar of eighth notes, two to each beat.', 'Eighth notes are counted “1 and 2 and”. Pick down on the number and up on the “and”.', 'Count the third bar aloud before playing it: “1 and 2 and 3 and 4 and”.'),
+      tuneStep('mary', 'Tune', 'The same three notes with one G added. Eight bars, and most of it moves by step.', 'When a tune repeats a phrase, read it once and recognise it the second time.', 'Find the two bars that are the same as the first two. Then play the whole tune without stopping.'),
+      tuneStep('clair', 'Tune', 'A French folk melody that fits in four bars, on C, D and E.', 'Short tunes are for memorising. Play it three times, then turn away from the page.', 'Play it from the page twice, then once from memory.'),
+      tuneStep('ode', 'Tune', 'Beethoven’s famous theme uses five notes in a row and moves almost entirely by step. In bars 4 and 8 a dotted quarter note is followed by an eighth: long, short.', 'A dot adds half as much again. A dotted quarter lasts a beat and a half, so the next note falls on an “and”.', 'Count bar 4 as “1 (2) and 3”. Hold the first note through beat 2 and play the short note on the “and”.'),
+      tuneStep('saints', 'Tune', 'This tune starts after a rest: the first beat of the bar is silent and the melody comes in on beat 2.', 'A rest is counted like a note. Say the beat and play nothing.', 'Count “1” silently and play on “2, 3, 4”. Let each whole note ring for all four beats.'),
+    ] };
+
+  const read3 = { id: 'read3', group: GROUP, title: 'Reading: The Third String', mins: 14, level: 'Beginner',
+    lede: 'G and A on the third string take the notes you can read down to a full octave: from the open G up to the G at the third fret of string 1.',
+    learn: ['Find G and A on the staff and on string 3', 'Read tunes across three strings', 'Read eighth notes with down and up strokes'],
+    homework: ['3 minutes: the third-string study, naming the notes.', '4 minutes: Twinkle, Twinkle from the page, then from memory.', '3 minutes: the eighth-note study with strict down-up picking.'],
+    steps: [
+      notesStep('G and A', 'New notes', 'The open third string is G, on the second line of the staff. This is the line the treble clef curls round, which is why it is also called the G clef. A, at the second fret, is in the space above.', 'Open G to third-fret G on string 1 is one octave: eight letter names.', mini('G and A on the third string', 'g1:2 a1:2 b1 c2 d2:2'),
+        'Play G open and A with finger 2. Then climb the whole octave: G, A, B, C, D, E, F, G.', { facts: [['On the staff', ['<b>G:</b> the second line', '<b>A:</b> the second space']], ['On string 3', ['<b>G:</b> open', '<b>A:</b> fret 2, finger 2']]] }),
+      tuneStep('s3a', 'Study', 'A study on strings 3 and 2 that stays in the lower half of the staff.', 'Low on the staff means lower strings. The page and the guitar move the same way.', 'Name the notes, then play. Use finger 2 for A and leave it down when the next note is on another string.'),
+      tuneStep('twinkle', 'Tune', 'Twelve bars across three strings. The first leap, from G up to D, is a fifth: from the second line to the fourth.', 'Learn to see a leap as a distance on the staff, not as two separate notes.', 'Play the first four bars, then find where they come back at the end. The middle four bars are played twice.'),
+      tuneStep('s8a', 'Study', 'Eighth notes moving by step. Each pair takes one beat.', 'Down on the beat, up on the “and”, whatever the notes do.', 'Count “1 and 2, 3 and 4” for the first bar. Keep the pick moving down-up through the eighth notes.'),
+      tuneStep('jingle', 'Tune', 'Repeated notes, a dotted rhythm in bars 3 and 5, and a pair of eighth notes in bar 6.', 'Repeated notes are a rest for the left hand. Use them to look ahead.', 'Clap bar 3 first: “1, 2, 3 (4) and”. Then play the whole chorus.'),
+    ] };
+
+  const read4 = { id: 'read4', group: GROUP, title: 'Reading: The Fourth String and F Sharp', mins: 16, level: 'Beginner',
+    lede: 'D, E and F on the fourth string, and the first sharp. With F♯ you can read tunes in the key of G.',
+    learn: ['Find D, E and F on the staff and on string 4', 'Read and play F♯', 'Read a tune that starts with a pickup', 'Read in three beats to the bar'],
+    homework: ['3 minutes: the fourth-string study.', '4 minutes: Aura Lee, checking every F♯.', '4 minutes: Amazing Grace, counting “1, 2, 3” throughout.'],
+    steps: [
+      notesStep('D, E and F', 'New notes', 'The open fourth string is D, hanging just below the bottom line of the staff. E, at the second fret, is on the bottom line. F, at the third fret, is in the first space.', 'These three are the same letters as the top of string 2 and string 1, one octave lower.', mini('D, E and F on the fourth string', 'd:2 e1:2 f1:4'),
+        'Play D open, E with finger 2, F with finger 3. Then play the E on string 4 and the open first string, one after the other: the same letter, two octaves apart.', { facts: [['On the staff', ['<b>D:</b> just under the bottom line', '<b>E:</b> the bottom line', '<b>F:</b> the first space']], ['On string 4', ['<b>D:</b> open', '<b>E:</b> fret 2, finger 2', '<b>F:</b> fret 3, finger 3']]] }),
+      tuneStep('s4a', 'Study', 'A study on strings 4 and 3.', 'Thicker strings need a slightly firmer pick stroke to speak clearly.', 'Play it with downstrokes only, aiming for the same loudness on every note.'),
+      notesStep('F sharp', 'The first sharp', 'A sharp sign in front of a note raises it one fret. F♯ on string 4 is at the fourth fret, played with the little finger; on string 1 it is at the second fret. The key of G uses F♯ in place of F throughout.', 'A sharp lasts to the end of its bar. In the next bar it must be written again.', mini('F, then F sharp', 'f1:2 fs1:2 g1:4'),
+        'Play F at fret 3, then F♯ at fret 4, then the open G. Hear F♯ lean upward into G.', { tip: 'In printed music the sharp is usually written once at the start of every line, as a key signature, instead of beside each note. Here it is written beside each note so you cannot miss it.' }),
+      tuneStep('aura', 'Tune', 'A slow song from 1861 in the key of G. Every F in it is F♯, played with the little finger on string 4.', 'Before playing in a new key, find its sharp or flat on the guitar first.', 'Find all four F♯ notes on the page before you start. Then play it slowly and let the whole notes ring.'),
+      tuneStep('yankee', 'Tune', 'A quick tune that dips down to the open D and uses F♯ on the way back up.', 'Fast tunes are learned slowly. Speed is the last thing to add.', 'Play it at 60 until it is even, then raise the metronome a little at a time.'),
+      tuneStep('grace', 'Tune', 'Three beats to the bar, and a pickup: the tune begins on beat 3 of an incomplete bar. The last bar is short by one beat to balance it.', 'In three-four time a dotted half note fills the whole bar.', 'Set the metronome to 3/4. Count “1, 2” silently and begin on “3”. The pairs of eighth notes fall on beat 3.'),
+    ] };
+
+  const read5 = { id: 'read5', group: GROUP, title: 'Reading: The Bass Strings', mins: 14, level: 'Beginner',
+    lede: 'The fifth and sixth strings are written below the staff on short extra lines. Once you can read them you can read every natural note in first position.',
+    learn: ['Read ledger lines below the staff', 'Find A, B and C on string 5', 'Find E, F and G on string 6', 'Read all seventeen natural notes of first position'],
+    homework: ['3 minutes: both bass studies, naming the notes.', '4 minutes: the six-string run, up to speed gradually.', '3 minutes: open any earlier tune and play it from the page without stopping.'],
+    steps: [
+      notesStep('A, B and C', 'String 5', 'Notes too low for the staff get short lines of their own, called ledger lines. The open fifth string, A, sits on the second ledger line below the staff. B hangs under the first ledger line, and C, at the third fret, is on it.', 'Ledger lines continue the staff downward. Count them like any other line or space.', mini('A, B and C on the fifth string', 'a:2 b:2 c:4'),
+        'Play A open, B with finger 2, C with finger 3. This C is the lowest C on the guitar; the first ledger line below the staff is always this note.', { facts: [['On the staff', ['<b>A:</b> on the second ledger line', '<b>B:</b> under the first ledger line', '<b>C:</b> on the first ledger line']], ['On string 5', ['<b>A:</b> open', '<b>B:</b> fret 2, finger 2', '<b>C:</b> fret 3, finger 3']]] }),
+      tuneStep('s5a', 'Study', 'A bass-line study on strings 5 and 4.', 'Bass notes ring long. Stop each one as you play the next so they do not blur.', 'Play with firm downstrokes. Say the names of the ledger-line notes as you go.'),
+      notesStep('Low E, F and G', 'String 6', 'The sixth string goes lower still. Open E is below the third ledger line, F is on the third ledger line, and G, at the third fret, is under the second.', 'Low E, F and G follow the same finger pattern as the first string, two octaves down.', mini('E, F and G on the sixth string', 'e:2 f:2 g:4'),
+        'Play E open, F with finger 1, G with finger 3. Then play the same three notes on string 1 and hear the two-octave gap.', { facts: [['On the staff', ['<b>E:</b> under the third ledger line', '<b>F:</b> on the third ledger line', '<b>G:</b> under the second ledger line']], ['On string 6', ['<b>E:</b> open', '<b>F:</b> fret 1, finger 1', '<b>G:</b> fret 3, finger 3']]] }),
+      tuneStep('s6a', 'Study', 'A study on the two lowest strings.', 'Read ledger lines by their distance from the staff, not by counting from scratch each time.', 'Play it slowly. The F on string 6 needs a firm fingertip close behind the first fret.'),
+      tuneStep('srun', 'Study', 'Every natural note of first position in one run, low E to high G in eighth notes, then a slow walk back down through C major’s chord notes.', 'Seventeen notes on six strings. This is the whole of first position on one page.', 'Play the run with down-up picking. Name the notes in the slow bars: G, E, C, G, E, C, E.', { label: 'More tunes and studies in Practice', hash: '#practice-C-tnode' }),
+    ] };
+
+  const L = G.LESSONS, at = (id) => L.findIndex((l) => l.id === id);
+  const after = (id, lesson) => { const i = at(id); L.splice(i < 0 ? L.length : i + 1, 0, lesson); };
+  after('staff', read1); after('read1', read2); after('read2', read3); after('read3', read4); after('read4', read5);
+})();

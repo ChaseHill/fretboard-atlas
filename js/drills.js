@@ -316,6 +316,12 @@
   D('jzbossa', JZ, 'Bossa nova through ii–V–I', 'Intermediate', ['bossa', 'fingerstyle', 'iivi'], 'Thumb on beats 1 and 3, fingers on beat 1, the “and” of 2, and beat 4, in even eighth notes.', 'The right hand repeats without change. Keep it going even when the left hand is late.',
     (c) => lead(twoFive(c.key), 'shell').flatMap((v) => { const b = bassOf(v), u = upperOf(v); return [E([b].concat(u), 1.5, { name: v.name }), E(u, 0.5, { vel: 0.7, name: v.name }), E(b, 1, { name: v.name }), E(u, 1, { vel: 0.7, name: v.name })]; }), jz);
 
+  // ======================= tunes to read (js/tunes.js), each also a drill that plays in time =======================
+  const TUNE_FROM = { s1a: ['read1'], s1b: ['read1'], s2a: ['read2'], s2b: ['read2'], buns: ['read2'], mary: ['read2'], clair: ['read2'], ode: ['read2', 'staff'], saints: ['read2'], s3a: ['read3'], twinkle: ['read3'], jingle: ['read3', 'rhythm'], s8a: ['read3', 'rhythm'], s4a: ['read4'], aura: ['read4', 'keysig'], yankee: ['read4'], grace: ['read4', 'rhythm'], s5a: ['read5'], s6a: ['read5'], srun: ['read5', 'firstnotes'] };
+  (G.Tunes ? G.Tunes.list : []).forEach((t) => D('tn' + t.id, FD, (/written for this app/.test(t.credit) ? 'Study: ' : 'Tune: ') + t.title, t.level > 1 ? 'Intermediate' : 'Beginner', TUNE_FROM[t.id] || ['staff'],
+    `${t.title}. ${t.credit}. Read it from the staff in its lesson, then play it here in time.${t.time === 3 ? ' It is in three: set the metronome to 3/4 at the top.' : ''}`, 'Count one bar before you start, and keep your eyes a note ahead of your fingers.',
+    () => t.notes.map(([s, f, d]) => (s ? E(N(s, f), d) : R(d))), { tempo: [60, 100] }));
+
   // ---------- what the rest of the app sees ----------
   const byId = Object.fromEntries(list.map((d) => [d.id, d]));
   // practice items that existed before the library, filed under the lessons they belong to
