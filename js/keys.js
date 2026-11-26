@@ -6,7 +6,7 @@
   'use strict';
   const G = (window.G = window.G || {});
   const NS = 'http://www.w3.org/2000/svg';
-  const WW = 32, KD = 114, BW = 18, BD = 70, WH = 9, BH = 10, NW = 22, THICK = 14, OX = 130, OY = 82, VW = 852, VH = 561, DEP = 4; // DEP: how far a held key sinks
+  const WW = 32, KD = 114, BW = 18, BD = 70, WH = 9, BH = 10, NW = 22, THICK = 24, OX = 130, OY = 82, VW = 852, VH = 572, DEP = 4; // DEP: how far a held key sinks
   const P = (x, y, z = 0) => [OX + (x - y) * 0.866, OY + (x + y) * 0.5 - z];
   const pts = (arr) => arr.map((p) => p.map((n) => n.toFixed(1)).join(',')).join(' ');
   const el = (tag, attrs, parent) => {
@@ -58,10 +58,11 @@
       const foot = [];
       for (let k = 0; k < N && vis[(st + k) % N] !== null; k++) { const i = (st + k) % N, p = ring[i], q = ring[(i + 1) % N], c = sh(BODY, 0.2 + 0.32 * Math.max(0, vis[i]));
         el('polygon', { points: pts([P(p[0], p[1], BT), P(q[0], q[1], BT), P(q[0], q[1], fz), P(p[0], p[1], fz)]), fill: c, stroke: c, 'stroke-width': 0.7 }, svg);
+        const c2 = sh(BODY, 0.46 + 0.3 * Math.max(0, vis[i])); el('polygon', { points: pts([P(p[0], p[1], fz + 9), P(q[0], q[1], fz + 9), P(q[0], q[1], fz), P(p[0], p[1], fz)]), fill: c2, stroke: c2, 'stroke-width': 0.7 }, svg); // the rolled underside
         if (!k) foot.push(p); foot.push(q); }
       const a = foot[0], b = foot[foot.length - 1];
       el('polyline', { points: pts([P(a[0], a[1], BT)].concat(foot.map(([x, y]) => P(x, y, fz)), [P(b[0], b[1], BT)])), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-linejoin': 'round' }, svg);
-      el('polyline', { points: pts(foot.map(([x, y]) => P(x, y, fz + 5))), fill: 'none', stroke: '#fff', 'stroke-width': 0.8, opacity: '.12' }, svg); // seam where the base meets the shell
+      el('polyline', { points: pts(foot.map(([x, y]) => P(x, y, fz + 9))), fill: 'none', stroke: '#fff', 'stroke-width': 0.8, opacity: '.14' }, svg); // where the side turns under
     }
     el('polygon', { points: pts(ring.map(([x, y]) => P(x, y, BT))), fill: 'url(#kBody)', stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-linejoin': 'round' }, svg);
     el('polyline', { points: pts(ring.slice(6, 15).map(([x, y]) => P(x + (x < 0 ? 2.5 : 0), y + (y < YB + 4 ? 2.5 : 0), BT))), fill: 'none', stroke: '#fff', 'stroke-width': 1.1, opacity: '.26', 'stroke-linecap': 'round' }, svg); // light catching the far edges
@@ -120,6 +121,8 @@
     const keyLayer = el('g', {}, svg), frontLayer = el('g', {}, svg), labelLayer = el('g', {}, svg), pegLayer = el('g', {}, svg);
     // the low key slip in front, and the inside face of the left end block that stands above it
     quad([P(0, YF, LIP), P(L, YF, LIP), P(L, YF, fz), P(0, YF, fz)], sh(BODY, 0.2), frontLayer);
+    quad([P(0, YF, fz + 9), P(L, YF, fz + 9), P(L, YF, fz), P(0, YF, fz)], sh(BODY, 0.46), frontLayer, 0.01);
+    { const a = P(0, YF, fz + 9), b = P(L, YF, fz + 9); el('line', { x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1), stroke: '#fff', 'stroke-width': 0.8, opacity: '.14' }, frontLayer); const c = P(0, YF, fz), d = P(L, YF, fz); el('line', { x1: c[0].toFixed(1), y1: c[1].toFixed(1), x2: d[0].toFixed(1), y2: d[1].toFixed(1), stroke: 'var(--ink)', 'stroke-width': 1.4 }, frontLayer); }
     quad([P(0, KD + 1, LIP), P(L, KD + 1, LIP), P(L, YF, LIP), P(0, YF, LIP)], '#34343a', frontLayer);
     quad([P(0, KD + 1, BT), P(0, YF, BT), P(0, YF, LIP), P(0, KD + 1, LIP)], sh(BODY, 0.6), frontLayer, 1);
 
